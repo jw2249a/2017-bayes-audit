@@ -1,0 +1,552 @@
+Notes for Bayes audit code
+Ronald L. Rivest and Emily Shen
+June 23, 2012
+
+I. Overview
+
+This note documents the program "audit.py" (with auxiliary files
+bayes.py and sampler.py) intended to assist in running a Bayes
+post-election audit in practice.
+
+
+II. Python and JSON
+
+The code is written in Python 2.7.  We use (and recommend) the
+"pypy" python implementation.
+
+The basic module to use is called "audit.py", although the following
+files must also be available for audit.py to import:
+      bayes.py                    -- code for bayes audit
+      sampler.py                  -- code for random number generation
+
+The routines assume that all election data for a given contest
+is in a single directory.  The commands take a "dirname" input
+that specifies this directory.  The last component of the dirname
+might typically be the "contest name", e.g.
+     /ElectionData/2012-11-15/Boston/mayor
+might be a directory for the contest "mayor".
+
+The data formats are all JSON (JavaScript Object Notation). See 
+    http://en.wikipedia.org/wiki/JSON
+Each data object is a text file having a ".js" filename extension.
+
+
+III. Files and data structures used
+
+The files that a contest directory may have are:
+
+    reported.js        -- list of reported choices
+                          created somehow from CVR's from election
+
+    actual.js          -- list of actual choices (for audited ballots)
+                          created by copying template from shuffled.js
+			  then filling in ballot choices as ballots are
+			  audited.
+
+    seed.js            -- seed for pseudo-random number generation
+                          created using "set dirname seed value" command
+
+    audit_type.js      -- specification of audit type
+    		          created using "set dirname audit_type value" command
+
+    shuffled.js	       -- blank template for actual.js, created from
+                          reported.js by removing values and randomly
+			  re-ordering, using "shuffle" command.
+
+The audit routine only works on one contest at a time.
+
+A command of the form:
+
+    pypy audit.py command dirname [parameters]
+
+will perform the specified "audit command" on the election contest
+whose details are given in the specified directory.  Optional
+parameters may follow the dirname.
+
+
+Notation and terminology:
+
+    A "ballot id" is an arbitrary string representing the identifier
+    of a specific ballot.  It might be a numeric string such as "123",
+    or it might consist of arbitrary text, for example, representing
+    a box-number and a ballot-within-box-number, as in "box134-005".
+    This ballot-id is the same for a paper ballot and for its electronic
+    representation.
+
+    A "choice" is an arbitrary string, representing a 
+    choice made on a ballot for this election contest. The
+    interpretation of the choice is up to the social choice
+    function.  For a plurality ballot, the string is the name
+    of the selected alternative.  For an IRV ballot, the
+    interpretation might be as a sequence of blank-separated
+    choices.  The only choice that has a pre-specified meaning
+    is the empty string "", which means "no choice made".
+    Examples of choices are: "Smith-John", "Yes", 
+    "Smith,Jones,Meyers".  (In our paper, the term "ballot-type"
+    is used where we use "choice" here.)
+
+Files:
+
+   Each file represents a "variable" or "data structure" or
+   "input" or "output" for the program.  Each file stores exactly
+   one JSON data structure.  The file names are of the form
+                 variablename.js
+   For example, the file  seed.js  contains the random number
+   seed to be used by the audit program.  The complete list of 
+   files that may be used by the audit program are:
+        reported.js
+	actual.js
+	shuffled.js
+	seed.js
+	audit_type.js
+    These files are described below.
+
+-- reported.js and actual.js
+
+   The file  reported.js  is for the reported choices (e.g. from 
+   the scanner).  The file  actual.js  is for the actual choices 
+   (determined by a hand examination of the paper ballot).
+   Their structure is the same: a JSON mapping from ballot-ids
+   to choices:
+
+    { 
+      "ballotid_1": "choice_1",
+      "ballotid_2": "choice_2",
+      ...
+      "ballotid_n": "choice_n"
+    }
+
+    The ballot lines may be in any order.  The choice value
+    	"" 
+    means "no choice made".
+
+    Here is an example of a complete choices file (this could be
+    for either reported.js or actual.js):
+    {
+      "007" : "Abraham Lincoln",
+      "008" : "Mary Poppins",
+      "010" : "Donald Duck",
+      "023" : ""
+    }
+
+-- seed.js
+
+   The file  seed.js  gives the seed for the audit-order random number
+   generator.  The value is just a long arbitrary string (in quotes,
+   as usual.)
+
+   Example file:
+
+           "6455732988XYA6731"
+
+   Such a file may be created by the command:
+
+            set dirname seed 6455732988XYA6731
+
+
+-- shuffled.js
+
+   The file  shuffled.js  is a prototype or template for
+   the file  actual.js . It is created by the file 
+   reported.js, using the random seed value given in 
+   seed.js.  It has the format of the file reported.js
+   or actual.js; that is, a mapping from ballot-ids to
+   choices.  The ballot-ids are exactly those obtained
+   from reported.js.  The choices are all set to ""
+   (meaning no choice).  The ordering of the ballot-ids
+   is pseudo-random and determined by seed in seed.js.
+   The file shuffled.js can be copied to become the
+   initial file for actual.js.  The idea is that the
+   ballots should be audited in the order specified
+   in the file shuffled.js.  Here is an example of
+   a file  shuffled.js :
+    {
+      "023" : "",
+      "008" : "",
+      "010" : "",
+      "007" : ""
+    }
+   Such a file may be created by a command of the form
+
+   	   shuffle dirname
+
+   once the files  reported.js  and  seed.js  exist
+   within the specified directory.
+
+-- audit_type.js
+
+   This file specifies whether the audit type (priors) are
+   of type N, P, or NP.  The file just contains a string
+   that is one of "N", "P", or "NP".  The default is "NP".
+
+   Example file:
+
+   	   "NP"
+
+   This file may be created by the command
+
+           set dirname audit_type NP
+
+
+IV. Commands
+
+This section documents the commands available to the audit program.
+
+The available commands are:
+    audit
+    set
+    shuffle
+    help    
+
+-- audit dirname
+
+   (Note that this command, as are all the commands here, is to be
+   given as a command-line specification after the invocation of the
+   audit command, as in:
+       pypy audit.py audit dirname
+   )
+
+   The audit command assumes a plurality election, and that the file
+       actual.js
+   is present.  If
+       reported.js
+   is also present, then a comparison audit will be performed;
+   otherwise a ballot-polling audit will be performed.
+
+   The audit type is by default "N", although a different audit
+   type may be specified using the "set" command, as in 
+       set dirname audit_type NP
+   which creates a file  audit_type.js  within the specified
+   directory and sets its contents to  "NP" .
+
+   The audit command reports the estimated probability that each
+   outcome will result, if the auditing process were to be continued
+   to examine all of the ballots.  If the file actual.js gives a
+   choice for every ballot it, then the audit command will report
+   the outcome with 100% certainty.  If no choices are given in
+   actual.js, as is the state before the auditing begins, then every 
+   outcome will be shown to have the same probability.
+
+-- set dirname varname value
+
+   (I.e.  pypy audit.py set dirname varname value )
+
+   This command creates a file  varname.js  within the given
+   directory, and sets the value of this file to be the
+   specified string.  At the moment, the only varnames allowed
+   are "seed" and "audit_type".
+
+       set dirname seed 123456789911234567899
+
+           The seed can be an arbitrary string.
+
+       set dirname audit_type NP
+
+           An audit type can be N , P , or NP .
+
+-- shuffle dirname
+
+   (I.e.  pypy audit.py shuffle dirname )   
+
+   The shuffle command produces the file  shuffled.js  within
+   the specified directory.
+
+   The files  reported.js  and  seed.js  must already exist within
+   the specified directory.
+
+   The file  shuffled.js  that is produces is the same as reported.js,
+   except that 
+        all choices are replaced by ""
+	order of ballots is shuffled in accordance with 
+	    pseudorandom permutation determined by "seed.js"
+
+   The intent is that after all of the reported choices are entered
+   into  reported.js , and after the file  seed.js  has been initialized,
+   then the file  shuffled.js  is created as the templat for the file
+   actual.js,  for the actual choices (from hand examination of the ballots)
+   to be entered.  
+
+
+-- help
+
+   (I.e. pypy audit.py help )
+
+   This lists some basic help information on the available commands.
+
+-- help command
+
+   This gives some basic help information on the specific command, where
+   "command" is one of "audit", "set", "shuffle", "help".
+
+
+V. Sample audit
+
+We now give a worked example of an audit.
+
+Suppose that we have an election for "clerk" with three candidates:
+	Alice, Bob, and Carol
+and that there are eight voters.  These eight voters
+cast ballots with ballot-ids "1", "2", ..., "8".
+
+The ballots are scanned, and the file  clerk/reported.js  is
+created with the recorded choices made on these ballots.
+We print the contents of the file reported.js
+using the "cat" command: 
+
+$ cat clerk/reported.js
+{
+    "1": "Bob",
+    "2": "Carol",
+    "3": "Carol",
+    "4": "Bob",
+    "5": "Alice",
+    "6": "writein-Ted",
+    "7": "Carol",
+    "8": "Carol",
+}
+
+Note that there ballot 6 represents a writein vote.  The 
+audit program does not constrain the writein choices to be
+in a predefined set.
+
+We wish to do a standard comparison audit (of default type
+"NP").  To do so, we'll need to give a random number seed,
+which we can do with the "set" command.
+
+$ pypy audit.py set clerk seed 134839810978821
+--- Bayes Post-Election Audit Utility (version 2012-06-04)
+--- Authors: Ronald L. Rivest and Emily Shen
+--- Start: Sat Jun 23 20:34:16 2012
+--- Task:
+        set clerk seed 134839810978821
+--- Contest =
+        clerk
+--- Contest directory:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk
+--- Setting value for `seed' for contest `clerk'
+--- Writing value to file:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk/seed.js
+--- New value = 
+        "134839810978821"
+--- Done: Sat Jun 23 20:34:16 2012
+
+Next, we can create the file  shuffled.js  which gives the
+scrambled order of ballot ids for the audit:
+
+$ pypy audit.py shuffle clerk
+--- Bayes Post-Election Audit Utility (version 2012-06-04)
+--- Authors: Ronald L. Rivest and Emily Shen
+--- Start: Sat Jun 23 20:36:24 2012
+--- Task:
+        shuffle clerk
+--- Contest =
+        clerk
+--- Contest directory:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk
+--- Seed =
+        134839810978821
+--- Number of reported ballots:
+        8
+--- Wrote shuffled file:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk/shuffled.js
+--- Done: Sat Jun 23 20:36:24 2012
+
+$ cat clerk/shuffled.js 
+{
+   "4":"",
+   "8":"",
+   "7":"",
+   "2":"",
+   "3":"",
+   "6":"",
+   "1":"",
+   "5":""
+}
+
+This file now gives the randomized order in which the ballots should be audited.
+We copy this file over to  actual.js  to use as the template:
+
+$ cp clerk/shuffled.js clerk/actual.js
+
+At this point, we can perform an audit, even though no ballots have actually
+been examined.  Here is the result.
+
+$ pypy audit.py audit clerk
+--- Bayes Post-Election Audit Utility (version 2012-06-04)
+--- Authors: Ronald L. Rivest and Emily Shen
+--- Start: Sat Jun 23 20:46:35 2012
+--- Task:
+        audit clerk
+--- Contest =
+        clerk
+--- Contest directory:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk
+--- Filename for Actual Ballots and Hash of Actual Ballots File:
+        actual.js
+        hash: 006310f3c4fd0b870a23052db99e3785ae192686ed50a36b9ae333dfda51fe59
+--- Number of actual ballots:
+        8
+--- Distinct actual choices (alphabetical order):
+        "" (no choice given)
+--- Filename for Reported Ballots and Hash of Reported Ballots File:
+        reported.js
+        hash: 27f478e3750d60955881f60e9f60b4d599cf73abb12ffff68440225048d18d11
+--- Number of reported ballots:
+        8
+--- Both actual and reported ballots available, so audit will be a `comparison' audit.
+--- Distinct reported choices (alphabetical order):
+        Alice
+        Bob
+        Carol
+        writein-Ted
+--- Warning:
+        actual choice "" not in reported choices; possible typo?
+        (no need to do anything if this is not a typo...)
+--- Number of audited ballots:
+        0
+--- Number of unaudited ballots:
+        8
+--- Audit type:
+        comparison audit
+        NP-type (Nonpartisan prior and also Partisan priors)
+--- Reported winner:
+        Carol
+--- Estimated maximum winning probabilities:
+        1.0000 writein-Ted
+        1.0000 Carol
+        1.0000 Bob
+        1.0000 Alice
+        1.0000 
+--- Estimated maximum probability that actual winner is not Carol :
+        1.0
+--- Done: Sat Jun 23 20:46:36 2012
+
+Now we audit the first three ballots (ballots 4, 8, 7),
+which had reported types Bob, Carol, Carol.  The actual
+types (determined by hand audit) are determined to be
+the same, so we edit the file actual.js to represent this.
+
+...
+$ pypy audit.py audit clerk
+--- Bayes Post-Election Audit Utility (version 2012-06-04)
+--- Authors: Ronald L. Rivest and Emily Shen
+--- Start: Sat Jun 23 20:49:15 2012
+--- Task:
+        audit clerk
+--- Contest =
+        clerk
+--- Contest directory:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk
+--- Filename for Actual Ballots and Hash of Actual Ballots File:
+        actual.js
+        hash: c6a884bc58a420fae53ca835f4a0255f23911e81afc1f2c026e04c61b49853cd
+--- Number of actual ballots:
+        8
+--- Distinct actual choices (alphabetical order):
+        "" (no choice given)
+        Bob
+        Carol
+--- Filename for Reported Ballots and Hash of Reported Ballots File:
+        reported.js
+        hash: 27f478e3750d60955881f60e9f60b4d599cf73abb12ffff68440225048d18d11
+--- Number of reported ballots:
+        8
+--- Both actual and reported ballots available, so audit will be a `comparison' audit.
+--- Distinct reported choices (alphabetical order):
+        Alice
+        Bob
+        Carol
+        writein-Ted
+--- Warning:
+        actual choice "" not in reported choices; possible typo?
+        (no need to do anything if this is not a typo...)
+--- Number of audited ballots:
+        3
+--- Number of unaudited ballots:
+        5
+--- Audit type:
+        comparison audit
+        NP-type (Nonpartisan prior and also Partisan priors)
+--- Reported winner:
+        Carol
+--- Estimated maximum winning probabilities:
+        1.0000 Carol
+        1.0000 Bob
+        0.3968 Alice
+        0.3965 
+        0.3847 writein-Ted
+--- Estimated maximum probability that actual winner is not Carol :
+        1.0
+--- Done: Sat Jun 23 20:49:16 2012
+
+We continue to audit the next three ballots, ballots 2, 3, and 6,
+which were for Carol, Carol, and the write-in Ted.  We update
+the file actual.js to reflect this auditing (no errors discovered).
+
+...
+$ pypy audit.py audit clerk
+--- Bayes Post-Election Audit Utility (version 2012-06-04)
+--- Authors: Ronald L. Rivest and Emily Shen
+--- Start: Sat Jun 23 20:52:37 2012
+--- Task:
+        audit clerk
+--- Contest =
+        clerk
+--- Contest directory:
+        /Users/rivest/Documents/prof/proj/2012-bayes-audit/code/python/clerk
+--- Filename for Actual Ballots and Hash of Actual Ballots File:
+        actual.js
+        hash: e2ebab5fd4a472ffc9257248cbf48d30be9dbca18df810275d7c1db9ba438add
+--- Number of actual ballots:
+        8
+--- Distinct actual choices (alphabetical order):
+        "" (no choice given)
+        Bob
+        Carol
+        writein-Ted
+--- Filename for Reported Ballots and Hash of Reported Ballots File:
+        reported.js
+        hash: 27f478e3750d60955881f60e9f60b4d599cf73abb12ffff68440225048d18d11
+--- Number of reported ballots:
+        8
+--- Both actual and reported ballots available, so audit will be a `comparison' audit.
+--- Distinct reported choices (alphabetical order):
+        Alice
+        Bob
+        Carol
+        writein-Ted
+--- Warning:
+        actual choice "" not in reported choices; possible typo?
+        (no need to do anything if this is not a typo...)
+--- Number of audited ballots:
+        6
+--- Number of unaudited ballots:
+        2
+--- Audit type:
+        comparison audit
+        NP-type (Nonpartisan prior and also Partisan priors)
+--- Reported winner:
+        Carol
+--- Estimated maximum winning probabilities:
+        1.0000 Carol
+        0.0000 writein-Ted
+        0.0000 Bob
+        0.0000 Alice
+        0.0000 
+--- Estimated maximum probability that actual winner is not Carol :
+        0
+--- Done: Sat Jun 23 20:52:38 2012
+
+At this point the auditing is over, no one but Carol can win.
+
+
+
+
+
+
+
+
+
+
+
+
