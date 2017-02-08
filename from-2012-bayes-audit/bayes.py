@@ -1,50 +1,67 @@
+#!/usr/bin/env pypy
 # bayes.py
 # Code for working with Bayes Post-Election Audits
 # Ronald L. Rivest and Emily Shen
 # 5/31/12
+#
+# ----------------------------------------------------------------------
+# This code available under "MIT License" (open source).
+# Copyright (C) 2012 Ronald L. Rivest and Emily Shen.
+
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# ----------------------------------------------------------------------
+
 """
-----------------------------------------------------------------------
-This code available under "MIT License" (open source).
-Copyright (C) 2012 Ronald L. Rivest and Emily Shen.
+Run Bayes comparison or ballot-polling audits
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+As described in:
+ A Bayesian Method for Auditing Elections EVT/WOTE '12  Ronald L. Rivest and Emily Shen
+  http://people.csail.mit.edu/rivest/pubs/RS12.pdf
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+Usage:
+    pypy bayes.py    # Run doctests
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
-"""
+This code is much faster with pypy than with cpython
 
-"""
 Notation:
 
 Even though Python is 0-indexed, we'll use one-indexing here, to
 correspond better with our paper.  The 0-th element of lists (arrays)
-will be ignored (and is typically set to a dummy(-9)).
+will be ignored (and is typically set to a dummy defined as -9).
 
 m       -- the number of candidates (for plurality elections)
 
-t       -- the number of distinct ballot types possible resulting from
+ballot type -- an integer representing a distinct interpretation of how
+           the voter voted in a contest on a ballot, resulting from
            a machine scan or hand examination of a ballot.
+           A ballot type is thus a minimal form of Cast Vote Record (CVR).
            One may consider "undervote" and "overvote" to be
            ballot types (although they shouldn't win), in
-           which case we havve t = m+2 for a plurality election.
+           which case we have t = m+2 for a plurality election.
+
+t       -- the number of distinct ballot types possible.
            The ballot types are coded as integers: 1, ..., t.
 
 n       -- the number of ballots cast.
+
+profile -- a list of ballot types
 
 r[1..n] -- the list of all the *reported* ballot types.
            This is the "reported profile" for the election.
@@ -124,8 +141,10 @@ def f_plurality(count,params=None):
     """
     A simple example social choice function -- plurality elections.
 
-    Here we assume that the most common ballot type "wins", with 
+    With the plurality method, the most common ballot type "wins", with 
     ties broken in favor of the lower-numbered outcome.
+
+    count is a sequence: the tally for each ballot type.
 
     If params is supplied to f_plurality, it should be a dict such that
         params['invalid'] is a list of outcomes that are not be allowed to win.
@@ -136,7 +155,13 @@ def f_plurality(count,params=None):
     defines social choice function g that embeds the desired params
     into f_plurality; g only takes count as an argument (the params
     are now implicit).
+
+    >>> f_plurality(tally([dummy]+[1, 1, 2, 0, 3, 1, 2], 3))
+    1
+    >>> f_plurality(tally([dummy]+[1, 2, 1, 2, 3, 4, 6], 6),{'invalid':[1]})
+    2
     """
+
     t = len(count)-1
     if params != None:
         invalid_list = params.get('invalid',[])
@@ -250,6 +275,19 @@ def make_schedule(n,pattern):
     return schedule
 
 ######################################################################
+# Generate profile
+######################################################################
+def makeProfile(n, m):
+    "Return a profile of n ballots with type 1 winning by margin 'm' over type 2, and 10% type 3"
+
+    t = 3
+    P = [1] * int((0.45 + (m / 2.0)) * n)   +  [2] * int((0.45 - (m / 2.0)) * n)  +  [3] * int(0.1 * n)
+
+    random.shuffle(P)
+    P.insert(0, dummy)
+    return P
+
+######################################################################
 # AUDIT (top-level dispatch function)
 ######################################################################
 
@@ -285,6 +323,34 @@ def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_p
     returns (result, s)
         where result=="OK" if the reported outcome seems OK, else result=="NOT OK"
         and where s == number of ballots examined.
+ 
+    >>> random.seed(1) # make it reproducable
+    >>> t = 3
+    >>> P = [dummy] + [1, 2, 3, 1, 1, 2, 3, 1, 3, 1]
+    >>> schedule = make_schedule(len(P), [1,2])
+    >>> epsilon = 0.05
+    >>> # Try an audit with no discrepancies
+    >>> audit(P, P, t, epsilon, schedule)
+           3 = number of ballot types
+          10 = number of total ballots
+      0.0500 = epsilon (upset probabilitylimit)
+    audit_type =  N
+           1 = number of priors
+           5         2         3  = counts of reported ballots (reported outcome is    1 )
+           5         2         3  = counts of actual ballots   (actual outcome is      1 )
+    Ballot-polling audit: False
+    After      0 ballots, upset prob 0.6593, z 10000 profiles, winning probs {1: 0.3407, 2: 0.3262, 3: 0.3331}
+    After      1 ballots, upset prob 0.2788, z 10000 profiles, winning probs {1: 0.7212, 2: 0.1409, 3: 0.1379}
+    After      2 ballots, upset prob 0.4069, z 10000 profiles, winning probs {1: 0.5931, 2: 0.3084, 3: 0.0985}
+    After      4 ballots, upset prob 0.1465, z 10000 profiles, winning probs {1: 0.8535, 2: 0.0575, 3: 0.089}
+    After      8 ballots, upset prob 0.0000, z 10000 profiles, winning probs {1: 1.0, 2: 0.0, 3: 0.0}
+    Reported election outcome is OK (8 ballots audited)
+    ('OK', 8)
+
+    >>> # audit 10000 ballots with 1% margin and no discrepancies
+    >>> P = makeProfile(10000, 0.01)
+    >>> audit(P, P, t, epsilon, make_schedule(len(P), [400, 401]), printing_wanted=False)
+    ('OK', 444)
     """
 
     n = len(r)-1                      # number of ballots in r
@@ -415,8 +481,7 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
             # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
             wins,u,z = win_probs(r,a,t,s,n,count,ballot_polling,f,prior)
             if printing_wanted:
-                print "After %6d ballots audited, probability of an upset is %7.4f"%(s,u),"(z = %4d simulated profiles)"%z,
-                print "(winning probabilities are:",wins,")"
+                print "After %6d ballots, upset prob %6.4f, z %5d profiles, winning probs %s" % (s, u, z, wins)
             max_upset_prob = max(u,max_upset_prob)
             breakout = True
             if breakout and  max_upset_prob > epsilon:                  # don't bother with other priors
@@ -494,3 +559,9 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None):
     u = float(upsets) / float(max_trials)
     return wins,u,max_trials
     
+def _test():
+    import doctest
+    return doctest.testmod(verbose=True)
+
+if __name__ == "__main__":
+    _test()
