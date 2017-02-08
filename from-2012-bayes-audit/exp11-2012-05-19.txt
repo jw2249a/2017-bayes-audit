@@ -1,0 +1,38 @@
+11:14:19 code $ pypy bayes_exp.py 11
+Bayes election audit testing...
+Running experiment number: 11
+Experiment 11.  Number of ballots audited for no-error example from Checkoway et al., Section 4.3 (49)
+n=100,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m
+epsilon =  0.01
+m= 0.0050 audit_type= N avg_num_audited= 2000
+m= 0.0050 audit_type= P avg_num_audited= 2850
+m= 0.0050 audit_type=NP avg_num_audited= 2940
+m= 0.0100 audit_type= N avg_num_audited=  921
+m= 0.0100 audit_type= P avg_num_audited= 1950
+m= 0.0100 audit_type=NP avg_num_audited= 1900
+m= 0.0150 audit_type= N avg_num_audited=  627
+m= 0.0150 audit_type= P avg_num_audited=  745
+m= 0.0150 audit_type=NP avg_num_audited=  745
+m= 0.0200 audit_type= N avg_num_audited=  486
+m= 0.0200 audit_type= P avg_num_audited=  590
+m= 0.0200 audit_type=NP avg_num_audited=  581
+m= 0.0250 audit_type= N avg_num_audited=  398
+m= 0.0250 audit_type= P avg_num_audited=  473
+m= 0.0250 audit_type=NP avg_num_audited=  475
+m= 0.0300 audit_type= N avg_num_audited=  325
+m= 0.0300 audit_type= P avg_num_audited=  400
+m= 0.0300 audit_type=NP avg_num_audited=  400
+m= 0.0350 audit_type= N avg_num_audited=  297
+m= 0.0350 audit_type= P avg_num_audited=  343
+m= 0.0350 audit_type=NP avg_num_audited=  345
+m= 0.0400 audit_type= N avg_num_audited=  273
+m= 0.0400 audit_type= P avg_num_audited=  300
+m= 0.0400 audit_type=NP avg_num_audited=  300
+m= 0.0450 audit_type= N avg_num_audited=  218
+m= 0.0450 audit_type= P avg_num_audited=  298
+m= 0.0450 audit_type=NP avg_num_audited=  299
+m= 0.0500 audit_type= N avg_num_audited=  203
+m= 0.0500 audit_type= P avg_num_audited=  274
+m= 0.0500 audit_type=NP avg_num_audited=  258
+01:32:15 code $ 
+08:13:10 paper-latest $ 
