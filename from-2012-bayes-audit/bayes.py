@@ -211,6 +211,13 @@ def make_prior_list(audit_type,t,ballot_polling):
         "NP"               -- N union P
         "NPc"              -- Nc union Pc
     Each matrix is t x t with integer entries (with dummy entries to account for 0-indexing of lists).
+
+    >>> make_prior_list("N", 3, False)
+    [[-9, [-9, 1, 1, 1], [-9, 1, 1, 1], [-9, 1, 1, 1]]]
+    >>> make_prior_list("N0", 3, False)
+    [[-9, [-9, 0, 0, 0], [-9, 0, 0, 0], [-9, 0, 0, 0]]]
+    >>> make_prior_list("P2", 3, False)
+    [[-9, [-9, 2, 0, 0], [-9, 2, 0, 0], [-9, 2, 0, 0]], [-9, [-9, 0, 2, 0], [-9, 0, 2, 0], [-9, 0, 2, 0]], [-9, [-9, 0, 0, 2], [-9, 0, 0, 2], [-9, 0, 0, 2]]]
     """
     prior_list = [ ]
     c_digits = [ d for d in audit_type if d in string.digits ]
@@ -348,9 +355,11 @@ def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_p
     ('OK', 8)
 
     >>> # audit 10000 ballots with 1% margin and no discrepancies
+    >>> random.seed(6)  # make each one reproducable
     >>> P = makeProfile(10000, 0.01)
-    >>> audit(P, P, t, epsilon, make_schedule(len(P), [400, 401]), printing_wanted=False)
-    ('OK', 444)
+    >>> epsilon = 0.01
+    >>> audit(P, P, t, epsilon, make_schedule(len(P), [785, 786]), printing_wanted=False)
+    ('OK', 789)
     """
 
     n = len(r)-1                      # number of ballots in r
