@@ -332,6 +332,10 @@ def dirichlet(alphas,n):
 # AUDIT USING DIRICHLET DISTRIBUTION
 ######################################################################
 
+simcsv = open("/srv/tmp/simlog.csv", "a", 0)
+simlog = open("/srv/tmp/simlog.json", "a", 0)
+simlog.write("\n")  # add timestamp, argv
+
 def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_plurality,audit_type="N"):
     """
     Audit the election, given reported ballot types (r), actual
@@ -409,17 +413,26 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
         # now number of ballots audited is s
 
         max_upset_prob = -1.0                
-        for prior in prior_list:
+        for prior_index, prior in enumerate(prior_list):
             # Determine probability of each outcome (dictionary "wins")
             # Determine u the probability of an election upset
             # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
             wins,u,z = win_probs(r,a,t,s,n,count,ballot_polling,f,prior)
+
+            import json
+            global simlog
+            global simcsv
+            # want experiment_name, margin, or L, discrepancy_freq, s, trials, upset_prob, prior!
+            name = "test"
+            simlog.write(json.dumps(dict(name=name, s=s, trials=10000, audit_type=audit_type, upset_prob=u)))
+            simcsv.write("{name},{s},{u},10000,{audit_type},{prior_index}\n".format(**locals()))
+
             if printing_wanted:
                 print "After %6d ballots audited, probability of an upset is %7.4f"%(s,u),"(z = %4d simulated profiles)"%z,
                 print "(winning probabilities are:",wins,")"
             max_upset_prob = max(u,max_upset_prob)
-            breakout = True
-            if breakout and  max_upset_prob > epsilon:                  # don't bother with other priors
+            breakout = False #True                         # Should we stop early? (Or evaluate other priors?)
+            if breakout and  max_upset_prob > epsilon:
                 break
 
         # decide to quit if max_upset prob is at most epsilon
@@ -433,7 +446,7 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
             print "Reported election outcome was NOT OK !!! (All %d ballots audited)"%n
         return ("NOT OK",s)
         
-def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None):
+def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_trials=10000):
     """
     Use simulation to determine the probability of each outcome.
     s is sample size (so far), 0 <= s <= n

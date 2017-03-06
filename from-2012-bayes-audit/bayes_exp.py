@@ -64,6 +64,15 @@ def make_profiles(L,printing_wanted=True):
         t = max(t,j,k)
     n = len(r)-1
     r,a = myshuffle(r,a)
+
+    mr = margin(r, t)
+    ma = margin(a, t)
+
+    import json
+    name = "make_profiles"
+    bayes.simlog.write(json.dumps(dict(name=name, L=L, n=n, t=t)))
+    bayes.simcsv.write("{name},{mr},{ma},{n},{t}\n".format(**locals()))
+    
     return r,a,t,n
 
 def myshuffle(r,a):
@@ -78,6 +87,43 @@ def myshuffle(r,a):
     r = [dummy]+[x[1] for x in L]
     a = [dummy]+[x[2] for x in L]
     return r,a
+
+def margin(P, t):
+    "Calculate margin of given profile and number of types, for plurality contest"
+    
+    counts = bayes.tally(P, t)
+    counts.sort(reverse=True)
+    return(((counts[0] - counts[1]) * 1.0) / sum(counts[:-1]))
+
+# http://stackoverflow.com/a/2753343/507544
+## {{{ http://code.activestate.com/recipes/511478/ (r1)
+import math
+import functools
+
+def percentile(N, percent, key=lambda x:x):
+    """
+    Find the percentile of a list of values.
+
+    @parameter N - is a list of values. Note N MUST BE already sorted.
+    @parameter percent - a float value from 0.0 to 1.0.
+    @parameter key - optional key function to compute value from each element of N.
+
+    @return - the percentile of the values
+    """
+    if not N:
+        return None
+    k = (len(N)-1) * percent
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return key(N[int(k)])
+    d0 = key(N[int(f)]) * (c-k)
+    d1 = key(N[int(c)]) * (k-f)
+    return d0+d1
+
+# median is 50th percentile.
+median = functools.partial(percentile, percent=0.5)
+## end of http://code.activestate.com/recipes/511478/ }}}
 
 def experiment_1(printing_wanted=True):
     if printing_wanted:
@@ -141,7 +187,8 @@ def experiment_4(printing_wanted=True):
     epsilon = 0.01
     ballot_polling = True
     t1 = time.time(); 
-    (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,audit_type="NP20"); 
+    #(result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,audit_type="NP20"); 
+    (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,audit_type="N"); 
     t2 = time.time()
     if printing_wanted:
         print "Reported outcome is",result
@@ -232,17 +279,17 @@ def experiment_9(printing_wanted=True):
     print "Experiment 9.  Miscertification rates on example from Checkoway et al., Section 4.1 (48)"
     print "Scaled down to n=1000 ballots, m ranges from 0.5% to 5%, 1000 simulations for each m"
     n=1000
-    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
     #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
     #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
     m_list = tuple(0.01*m for m in [1, 2, 3, 4, 5])
     epsilon_list = [ 0.00, 0.01, 0.02, 0.05, 0.07, 0.10 ]          # added 0.00 rlr 5/14
     epsilon_list = [ 0.10, 0.07, 0.05, 0.02, 0.01, 0.00 ]          # reverse so we see interesting results first
-    num_trials=1000
+    num_trials=100
     for epsilon in epsilon_list:
         print "epsilon=%7.4f"%epsilon
         for m in m_list:
-            print "m=%7.4f"%m
+            # NDM: extra redundant:   print "m=%7.4f"%m
             L = [ (1, 1, 0), (1, 2, 0), (1, 3, int(0.4*m*n)),
                   (2, 1, int(0.4*m*n)), (2, 2, int(0.5*n-0.4*m*n)), (2, 3, int(0.2*m*n)),
                   (3, 1, 0), (3, 2, 0), (3, 3, int(0.5*n-0.6*m*n))]
@@ -291,45 +338,59 @@ def experiment_10(printing_wanted=True):
     
 def experiment_11(printing_wanted=True):
     print "Experiment 11.  Number of ballots audited for no-error example from Checkoway et al., Section 4.3 (49)"
-    print "n=100,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
+    num_trials = 10
+    print "n=100,000 ballots, m ranges from 0.5% to 5%" + " %d simulated audits for each m" % num_trials
     n=100000
-    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
     #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
     #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
     m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
+    # m_list = tuple(0.01*m for m in [1, 5])
     epsilon = 0.01
     print "epsilon = ",epsilon
-    num_trials = 100
     for m in m_list:
         L = [ (1, 1, int(0.1*n)), (1, 2, 0), (1, 3, 0),
               (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n)), (2, 3, 0),
               (3, 1, 0), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n))]
         for audit_type in ["N","P","NP"]:
+            # Get estimate for scheduling with a broad 10% 
+            r,a,t,n = make_profiles(L,printing_wanted)
+            schedule = bayes.make_schedule(n,[103, 113])
+            (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type); 
+            # print "Reported outcome is "+result+" after examining %d ballots"%s
+            schedule = bayes.make_schedule(n,[int(s * 0.7), int(s * 0.71)])
+
+            allnums = []
             num_audited=0
             for i in range(num_trials):
                 r,a,t,n = make_profiles(L,printing_wanted)
-                schedule = bayes.make_schedule(n,[1,2,3,4,5,6,7,8,9,10])
-                #schedule=bayes.make_schedule(n,[1,2])
                 t1 = time.time(); 
                 (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type); 
                 t2=time.time()
                 num_audited = num_audited+s
+                allnums.append(s)
                 if printing_wanted:
                     print "Reported outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
+
             avg_num_audited = num_audited / float(num_trials)
-            print "m=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
+            # print "m=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
+
+            allnums.sort()
+            percentiles = [percentile(allnums, p) for p in [.01,.10,.25,.50,.75,.90,.99]]
+            print "m=%7.4f audit_type=%2s avg_num_audited=%5d percentiles=%s allnums=%s"%(m,audit_type,avg_num_audited,percentiles,allnums)
 
 def experiment_12(printing_wanted=True):
     print "Experiment 12.  Number of ballots audited for unidirectional error example from Checkoway et al., Section 4.3 (50)"
     print "n=100,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
     n=100000
-    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
     #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
     #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
     m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
     epsilon = 0.01
     error = 16/float(100000)
+
     num_trials = 100
     print "margin m     avg num ballots audited"
     print "--------     -----------------------"
@@ -337,11 +398,15 @@ def experiment_12(printing_wanted=True):
         L = [ (1, 1, int(0.1*n)), (1, 2, int(error*n)), (1, 3, int(error*n)),
               (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n-error*n)), (2, 3, 0),
               (3, 1, 0), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n-error*n))]
+
+        # Get estimate for scheduling with a broad 10% 
+        r,a,t,n = make_profiles(L,printing_wanted)
+        schedule = bayes.make_schedule(n,[103, 113])
+        (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
+        schedule = bayes.make_schedule(n,[int(s * 0.7), int(s * 0.71)])
+
         num_audited=0
         for i in range(num_trials):
-            r,a,t,n = make_profiles(L,printing_wanted)
-            schedule = bayes.make_schedule(n,[1,2,3,4,5,6,7,8,9,10])
-            #schedule=bayes.make_schedule(n,[1,2])
             t1 = time.time(); 
             (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
             t2=time.time()
@@ -356,7 +421,7 @@ def experiment_13(printing_wanted=True):
     print "Experiment 13.  Number of ballots audited for bidirectional error example from Checkoway et al., Section 4.3 (51)"
     print "n=100,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
     n=100000
-    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
     #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
     #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
     m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
@@ -369,11 +434,16 @@ def experiment_13(printing_wanted=True):
         L = [ (1, 1, int(0.1*n-4*error*n)), (1, 2, int(3*error*n)), (1, 3, int(3*error*n)),
               (2, 1, int(2*error*n)), (2, 2, int(0.45*n-0.5*m*n-3*error*n)), (2, 3, 0),
               (3, 1, int(2*error*n)), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n-3*error*n))]
+
+        # Get estimate for scheduling with a broad 10% 
+        r,a,t,n = make_profiles(L,printing_wanted)
+        schedule = bayes.make_schedule(n,[103, 113])
+        (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
+        # print "Reported outcome is "+result+" after examining %d ballots"%s
+        schedule = bayes.make_schedule(n,[int(s * 0.7), int(s * 0.71)])
+
         num_audited=0
         for i in range(num_trials):
-            r,a,t,n = make_profiles(L,printing_wanted)
-            schedule = bayes.make_schedule(n,[1,2,3,4,5,6,7,8,9,10])
-            #schedule=bayes.make_schedule(n,[1,2])
             t1 = time.time(); 
             (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
             t2=time.time()
@@ -388,7 +458,7 @@ def experiment_14(printing_wanted=True):
     print "Experiment 14.  Number of ballots audited for bidirectional errors with 2-errors example from Checkoway et al., Section 4.3 (52)"
     print "n=100,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
     n=100000
-    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
     #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
     #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
     m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
@@ -401,11 +471,16 @@ def experiment_14(printing_wanted=True):
         L = [ (1, 1, int(0.1*n-4*error*n)), (1, 2, int(3*error*n)), (1, 3, int(3*error*n)),
               (2, 1, int(2*error*n)), (2, 2, int(0.45*n-0.5*(m+7*error)*n)), (2, 3, 0),
               (3, 1, int(2*error*n)), (3, 2, 0), (3, 3, int(0.45*n+0.5*(m-7*error)*n))]
+
+        # Get estimate for scheduling with a broad 10% 
+        r,a,t,n = make_profiles(L,printing_wanted)
+        schedule = bayes.make_schedule(n,[103, 113])
+        (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
+        # print "Reported outcome is "+result+" after examining %d ballots"%s
+        schedule = bayes.make_schedule(n,[int(s * 0.7), int(s * 0.71)])
+
         num_audited=0
         for i in range(num_trials):
-            r,a,t,n = make_profiles(L,printing_wanted)
-            schedule = bayes.make_schedule(n,[1,2,3,4,5,6,7,8,9,10])
-            #schedule = bayes.make_schedule(n,[1,2])
             t1 = time.time(); 
             (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type="P"); 
             t2=time.time()
@@ -693,6 +768,50 @@ def experiment_23(printing_wanted=True):
                 print "miscertification trial",i,"s=",s
         print "For epsilon = %2.2f, there were %d miscertifications (out of %d trials)"%(epsilon,count_ok,num_trials)
 
+def experiment_24(printing_wanted=True):
+    import rlacalc
+
+    print "Experiment 24: tracing path of subjective probabilities (uniform prior), dirichlet."
+
+    seed=24
+    random.seed(seed)                 # fix seed, for reproducible results
+
+    num_trials = 30
+    print "n=100,000 ballots, m ranges from 0.5% to 5%" + " %d simulated audits for each m. Seed %d" % (num_trials, seed)
+    n=100000
+    #L = [ (1, 1,   0), (1, 2,    0), (1, 3,  200),      FIXME - these comments don't match L below!
+    #      (2, 1, 200), (2, 2, 4800), (2, 3,  100),
+    #      (3, 1,   0), (3, 2,    0), (3, 3, 4700) ]
+    m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 8, 10, 15, 20])
+    # m_list = tuple(0.01*m for m in [5, 10, 20])
+    # m_list = tuple(0.01*m for m in [5])
+    epsilon = 0.001  # don't want to stop, very hard to hit
+    print "epsilon = ",epsilon
+    for m in m_list:
+        L = [ (1, 1, int(0.1*n)), (1, 2, 0), (1, 3, 0),
+              (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n)), (2, 3, 0),
+              (3, 1, 0), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n))]
+        for audit_type in ["NP"]: # this actually gives all we need
+            nmin_samples = int(rlacalc.nmin(0.001, margin=m))
+
+            bayes.simcsv.write("New margin,{m},{nmin_samples}\n".format(**locals()))
+
+            num_audited=0
+            for i in range(num_trials):
+                r,a,t,n = make_profiles(L,printing_wanted)
+                schedule = bayes.make_schedule(n,range(i % 10 + 1, nmin_samples, 10))
+                t1 = time.time(); 
+                (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type); 
+                t2=time.time()
+                num_audited = num_audited+s
+                if printing_wanted:
+                    print "Reported outcome is "+result+" after examining %d ballots"%s
+                    print "Done in %g seconds."%(t2-t1)
+
+            avg_num_audited = num_audited / float(num_trials)
+            # print "m=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
+
+
 def main():
     printing_wanted = True
     if printing_wanted:
@@ -749,6 +868,8 @@ def main():
             experiment_22(False)
         elif c == 23:
             experiment_23(True)
+        elif c == 24:
+            experiment_24(True)
 
 # cProfile.run("main()")
 if __name__=="__main__":
