@@ -71,6 +71,8 @@ import math
 import random
 import string
 import time
+import operator
+import itertools
 
 dummy = -9                      # dummy value for array position 0
 
@@ -392,6 +394,7 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
     s = 0
     # initialize counts to zero
     if not ballot_polling:
+        # FIXME: Note: this count format is different from the one returned by tally().  Make sense?
         count = [dummy] + [ [dummy]+[0]*t for j in xrange(1,t+1) ]  # allocate this only once
     else: # ballot-polling
         count = [dummy]+[0]*t                                       # allocate this only once
@@ -493,4 +496,328 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None):
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
     return wins,u,max_trials
-    
+
+
+def aggregateTallies(*tallies):
+    """Return aggregated totals for each ballot type across the tallies.
+    Each tally is of the form [dummy, c0, c1, c2, ... ct] where the entries are floats.
+    NB this is the type of tally array used in dirichlet(), not the type used in win_probs
+    """
+
+    total = [sum(x) for x in zip(*tallies)]
+    total[0] = dummy
+    return total
+
+
+# also need a refactored audit_dirichlet?
+# Yes
+
+# "NAH...."
+# do this differently?  Split into setup, returning necessary parts,
+#  then in to loop part via yield
+# and then write new wrapper
+#    bayes.stratified_win_probs(strata,t,reported_outcome,prior=None):
+
+# sequence of actions now:
+#  audit_dirichlet setup: checks and printing and calculate priors and count
+#  loop 0 of audit_dirichlet, thru schedule
+#   setup, simulate auditing
+#   loops of priors
+#     run win_probs for each.
+#     => Could instead yield the arguments to be used when calling stratified_win_probs
+#
+
+def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f=f_plurality,audit_type="N"):
+    """
+    Stratified audit of election, given reported ballot types (r) and actual ballot types (a).
+
+    strata is list containing [r, a, ballot_polling] for each stratum.
+
+    Each ballot type should be an integer in the range 1 to t (incl.)
+
+    epsilon is the upset probability limit.
+
+    Assumes the ballots already in some "random order"
+
+    r[0] and a[0] are ignored; only r[1..n] and a[1..n] are considered.
+
+    t = number of ballot types possible (numbered 1...t, inclusive)
+
+    ballot_polling=True if we want a ballot_polling audit (then r is ignored)
+
+    f is the social choice function (defaults to plurality among ballot types)
+
+    audit_type is one of (where c is an integer):
+        "N"                -- non partisan (uniform) all hyperparameters = 1 (same as N1)
+        "Nc"               -- non partisan (uniform) all hyperparameters = c
+        "P"                -- partisan: list of t matrices each all zeros except one column = to 1 (same as P1)
+        "Pc"               -- partisan: list of t matrices each all zeros except one column = to c
+        "NP"               -- N union P
+        "NPc"              -- Nc union Pc
+    returns ("OK",s) if the reported outcome seems OK
+    Otherwise it returns ("NOT OK",s)
+    where s is the number of ballots examined.
+    """
+
+    # Do this for each stratum
+    Rtallies = []
+    Atallies = []
+    for stratum in strata0:
+        r, a, ballot_polling = stratum
+
+        n = len(r)-1                      # number of ballots in r
+        assert len(r) == len(a)           # should have the same length
+        assert min(r[1:]) >= 1
+        assert max(r[1:]) <= t
+        assert min(a[1:]) >= 1
+        assert max(a[1:]) <= t
+
+        Rtallies.append(tally(r,t))
+        Atallies.append(tally(a,t))
+
+    R = aggregateTallies(Rtallies)
+    reported_outcome = f(R)
+    A = aggregateTallies(Atallies)
+    actual_outcome = f(A)
+
+    prior_list_ballot_polling = make_prior_list(audit_type,t,True)
+    prior_list_ballot_comparison = make_prior_list(audit_type,t,False)
+
+    if printing_wanted:
+        print "%8d = number of ballot types"%t
+        print "%8d = number of total ballots"%n
+        print "%8.4f = epsilon (upset probabilitylimit)"%epsilon
+        print "audit_type = ",audit_type
+        print "%8d = number of priors"%len(prior_lists[0])
+        print prior_lists
+        print "= prior_lists"
+        for x in R[1:]:
+            print "%8d "%x,
+        print "= counts of reported ballots (reported outcome is %4d )"%reported_outcome
+        for x in A[1:]:
+            print "%8d "%x,
+        print "= counts of actual ballots   (actual outcome is   %4d )"%actual_outcome
+        print "Ballot-polling audit:",ballot_polling
+
+    # main loop  -- do samples of given sizes from schedule
+    s = 0
+
+    # build augmented strata, of lists containing [r, a, ballot_polling, s, n, count]
+    # Two items are modified after being set initially.
+    # FIXME: make this a class. But for now...
+    # The "count" member is an array which is updated in place.
+    # s needs to be updated via index:
+    STRATUM_S_INDEX = 3
+    strata = []
+    for stratum in strata0:
+        r, a, ballot_polling = stratum
+
+        s = 0
+        n = len(r) - 1
+
+        # initialize counts to zero
+        if not ballot_polling:
+            count = [dummy] + [ [dummy]+[0]*t for j in xrange(1,t+1) ]  # allocate this only once
+        else: # ballot-polling
+            count = [dummy]+[0]*t                                       # allocate this only once
+
+        strata.append([r, a, ballot_polling, s, n, count])
+
+    MARGIN = 0.02
+
+    for next_s in schedule:
+        # audit enough ballots so that s = next_s   FIXME for stratified, by doing some sort of dynamic optimization.
+        # For now, alls is just a rough progress indicator
+        while alls < next_s:
+            alls += 1
+
+            for stratum in strata:
+                r, a, ballot_polling, s, n, count = stratum
+
+                # For now, since ballot_polling is a factor of 1/margin less efficient, 
+                #  just look at fraction MARGIN of all ballot comparison ballots
+                if ballot_polling  or  random.random < MARGIN:
+                    s = s + 1
+                    # In practice you'd be looking at a paper ballot in the next line;
+                    # in this code, we assume actual ballot types already available in array a.
+                    pass   # <-- audit ballot number s here; that is, determine a[s]
+
+                    if not ballot_polling:
+                        count[r[s]][a[s]] += 1
+                    else:
+                        count[a[s]] += 1
+
+            # now number of ballots audited in this stratum is s
+            stratum[STRATUM_S_INDEX] = s
+            # Note that the "count" list updates in place
+
+        max_upset_prob = -1.0
+
+        # for each stratum
+        for prior in prior_list:
+            # Determine probability of each outcome (dictionary "wins")
+            # Determine u the probability of an election upset
+            # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
+
+            wins,u,z = stratified_win_probs(strata,t,reported_outcome,f,prior)
+
+            if printing_wanted:
+                print "After %6d ballots audited, probability of an upset is %7.4f"%(s,u),"(z = %4d simulated profiles)"%z,
+                print "(winning probabilities are:",wins,")"
+            max_upset_prob = max(u,max_upset_prob)
+            breakout = True
+            if breakout and  max_upset_prob > epsilon:                  # don't bother with other priors
+                break
+
+        # decide to quit if max_upset prob is at most epsilon
+        if max_upset_prob<=epsilon:
+            if printing_wanted:
+                print "Reported election outcome is OK (%d ballots audited)"%s
+                # print "count:",count
+            return ("OK",s)
+    else:
+        if printing_wanted:
+            print "Reported election outcome was NOT OK !!! (All %d ballots audited)"%n
+        return ("NOT OK",s)
+
+
+# Split win_probs up into two pieces to allow for stratified auditing.
+# The inner part is pulled out into tallysim.
+# This outer part calls the 
+
+def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,prior=None,max_trials=10000):
+    """
+    Use simulation to determine the probability of each outcome.
+    strata is list containing [r, a, s, n, count, ballot_polling]
+     s is sample size (so far), 0 <= s <= n
+    reported_outcome is the reported winner (between 1 and t??)
+    for comparison audit:
+        count[j][k] is number of ballots of reported type j and actual type k (plus hyperparameter prior[j][k]) in ballots 1..s
+    for ballot-polling audit
+        count[k] is number of ballots of actual type k (plus hyperparameter prior[k]) in ballots 1..s
+    ballot_polling is True iff we want a ballot-polling audit
+    f is social choice function
+    return dictionary mapping outcomes to frequency of winning, upset probability, and max_trials
+    """
+
+    upsets = 0
+    wins = dict()                                # keep track of number of wins for each outcome
+    for j in xrange(1,t+1):
+        wins[j] = 0
+
+    # Make a list of generators, each of which uses tallysim to generate a stream of tallies for a single stratum
+    tallyGens = []
+    for stratum in enumerate(strata):
+        r, a, s, n, count, ballot_polling = stratum
+
+        tallyGens.append(tallysim(r,a,t,s,n,count,ballot_polling,f,prior))
+
+    # Iterate down the generators for each stratum in parallel
+    tallyGenUnion = itertools.izip(*tallyGens)
+
+    for tallyGensxxx in tallyGenUnion:
+        # zip tallies from the strata together, process outcome
+        tallies = [next(gen) for gen in tallyGens]
+        tally = aggregateTallies(*tallies)
+
+        new_outcome = f(tally)
+        wins[new_outcome] = wins.get(new_outcome,0)+1
+        if new_outcome != reported_outcome:
+            upsets += 1
+
+    for outcome in wins.keys():
+        wins[outcome] = float(wins[outcome])/float(max_trials)
+    u = float(upsets) / float(max_trials)
+    return wins,u,max_trials
+
+
+def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_trials=10000):
+    "generate a stream of max_trials simulated tallies"
+
+    R = tally(r,t)                               # tally of reported votes
+    B = [dummy] + [0]*t                          # allocate this only once (tally for simulated profile)
+    alphas = [dummy] + [0]*t                     # allocate only once (alphas for Dirichlet)
+    wins = dict()                                # keep track of number of wins for each outcome
+    if not ballot_polling:                       # comparison audit
+        Rrem = [dummy] + [0]*t                   # Rrem[j] is number remaining unaudited of reported type j
+        for j in xrange(1,t+1):
+            Rrem[j] = R[j]                       # number remaining unaudited of reported type j
+        for j in xrange(1,t+1):
+            for k in xrange(1,t+1):
+                Rrem[j] -= count[j][k]
+
+        for z in xrange(1,max_trials+1):
+            for k in xrange(1,t+1):
+                B[k] = 0                         # initialize tally for profile b to zero.
+            for j in xrange(1,t+1):              # add in actual counts for ballots audited so far
+                for k in xrange(1,t+1):
+                    B[k] += count[j][k]
+            for j in xrange(1,t+1):              # for each reported type
+                for k in xrange(1,t+1):
+                    alphas[k] = prior[j][k] + count[j][k]
+                ds = dirichlet(alphas,Rrem[j])   # note: Rrem[j] is remaining size of profile of reported type j after sample
+                for k in xrange(1,t+1):
+                    B[k] += ds[k]                # add to counts for sample
+
+            yield B[:]  # yield a copy, for combining with other strata and final tabulation
+
+    else: # ballot-polling audit
+        for k in xrange(1,t+1):
+            alphas[k] = prior[k] + count[k]
+        for z in xrange(1,max_trials+1):
+            ds = dirichlet(alphas,n-s)           # n-s = number of unaudited ballots
+            for k in xrange(1,t+1):
+                ds[k] += count[k]                # add counts to dirichlet for simulated ballot tally
+
+            yield ds[:] # yield a copy, for combining with other strata and final tabulation
+
+def tallysimTest(max_trials=3):
+    r = [-9] + [3] + [1] + [1, 2] * 10
+    print r
+    a = r
+    t = 3
+    s = 8
+    n = 22
+
+    ballot_polling = False
+
+    # initialize counts to zero
+    if not ballot_polling:
+        count = [dummy] + [ [dummy]+[0]*t for j in xrange(1,t+1) ]  # allocate this only once
+    else: # ballot-polling
+        count = [dummy]+[0]*t                                       # allocate this only once
+
+    for s in range(1, s+1):
+        if not ballot_polling:
+            count[r[s]][a[s]] += 1
+        else:
+            count[a[s]] += 1
+
+    # count = [-9, [-9, 3, 0, 0], [-9, 0, 1, 0], [-9, 0, 0, 4]]
+    print count
+
+    prior = [-9, [-9, 1, 1, 1], [-9, 1, 1, 1], [-9, 1, 1, 1]]
+
+    gen = tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials)
+
+    tallies = list(gen)
+
+    print(len(tallies))
+
+    avg = [float(sum(col))/len(col) for col in zip(*tallies)]
+    print(avg)
+
+    for tally in tallies[:3] + tallies[-3:]:
+        print tally
+
+    tallyGens = [tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials), tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials)]
+    tallyGenUnion = itertools.izip(*tallyGens)
+    res = []
+    for tallyGenSet in tallyGenUnion:
+      tallies = [tallyStratum for tallyStratum in tallyGenSet]
+      totalTally = aggregateTallies(*tallies)
+      res.append(totalTally)
+
+    print(res[:3])
+    for totalTally in res[:3]:
+        print f_plurality(totalTally)

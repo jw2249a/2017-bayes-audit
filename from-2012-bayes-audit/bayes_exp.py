@@ -693,6 +693,63 @@ def experiment_23(printing_wanted=True):
                 print "miscertification trial",i,"s=",s
         print "For epsilon = %2.2f, there were %d miscertifications (out of %d trials)"%(epsilon,count_ok,num_trials)
 
+def experiment_25(printing_wanted=True):
+    print "Experiment 25.  Number of ballots audited in stratified audit"
+    print "n=3,000,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
+
+    seed = 25
+
+    alln=300000
+    # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
+    m_list = tuple(0.01*m for m in [1, 5])
+    stratum_list = (.86, .14)
+    assert sum(stratum_list) == 1.0
+    epsilon = 0.05
+    print "epsilon = ",epsilon
+    num_trials = 1
+    sizes = []
+    for m in m_list:
+        # Make an L for each stratum fraction in the list of strata, plus one overall one
+        for p in stratum_list + (1.0,):
+            n = alln * p
+            sizes.append([ (1, 1, int(0.1*n)), (1, 2, 0), (1, 3, 0),
+                   (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n)), (2, 3, 0),
+                   (3, 1, 0), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n))])
+
+        # Remove the overall L
+        allL = sizes.pop()
+
+        for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
+            num_audited=0
+            for i in range(num_trials):
+                schedule=bayes.make_schedule(n,[1,2])
+
+                # First, the overall, non-stratified view:
+                r,a,t,n = make_profiles(allL,printing_wanted)
+                t1 = time.time();
+                (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
+                t2=time.time()
+                if printing_wanted:
+                    print "Reported outcome is "+result+" after examining %d ballots"%s
+                    print "Done in %g seconds."%(t2-t1)
+
+                profiles = []
+                for L in sizes:  FIXME...
+                    r,a,t,n = make_profiles(L,printing_wanted)
+                    # FIXME: deal with count??
+                    profiles.append([r, a, s, n, count, ballot_polling])
+
+                # t1 = time.time();
+                # (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
+                # t2=time.time()
+
+                num_audited = num_audited+s
+                if printing_wanted:
+                    print "Reported outcome is "+result+" after examining %d ballots"%s
+                    print "Done in %g seconds."%(t2-t1)
+            avg_num_audited = num_audited / float(num_trials)
+            print "m=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
+
 def main():
     printing_wanted = True
     if printing_wanted:
@@ -749,6 +806,8 @@ def main():
             experiment_22(False)
         elif c == 23:
             experiment_23(True)
+        elif c == 25:
+            experiment_25(True)
 
 # cProfile.run("main()")
 if __name__=="__main__":
