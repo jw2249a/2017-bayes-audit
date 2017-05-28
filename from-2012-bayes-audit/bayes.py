@@ -3,32 +3,6 @@
 # Ronald L. Rivest and Emily Shen
 # 5/31/12
 """
-----------------------------------------------------------------------
-This code available under "MIT License" (open source).
-Copyright (C) 2012 Ronald L. Rivest and Emily Shen.
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
-"""
-
-"""
 Notation:
 
 Even though Python is 0-indexed, we'll use one-indexing here, to
@@ -60,6 +34,31 @@ s       -- the size of the current sample (the number of ballots
            audited so far).
 
 epsilon -- the provided ``upset risk limit'' (e.g. 0.05)
+
+----------------------------------------------------------------------
+This code available under "MIT License" (open source).
+Copyright (C) 2012 Ronald L. Rivest and Emily Shen.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+----------------------------------------------------------------------
+
 """
 
 ######################################################################
@@ -67,12 +66,14 @@ epsilon -- the provided ``upset risk limit'' (e.g. 0.05)
 # the standard python interpreter !  Use pypy!                       
 ######################################################################
 
+
 import math
 import random
 import string
 import time
 import operator
 import itertools
+import logging
 
 dummy = -9                      # dummy value for array position 0
 
@@ -531,7 +532,7 @@ def aggregateTallies(*tallies):
 #     => Could instead yield the arguments to be used when calling stratified_win_probs
 #
 
-def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f=f_plurality,audit_type="N"):
+def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f=f_plurality,audit_type="N", max_trials=10000):
     """
     Stratified audit of election, given reported ballot types (r) and actual ballot types (a).
 
@@ -671,7 +672,7 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
             # Determine u the probability of an election upset
             # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
 
-            wins,u,z = stratified_win_probs(strata,t,reported_outcome,f)
+            wins,u,z = stratified_win_probs(strata,t,reported_outcome,f, max_trials)
 
             if printing_wanted:
                 print "After %6d ballots (%s) audited, probability of an upset is %7.4f" % ( s, [stratum[STRATUM_S_INDEX] for stratum in strata], u), "(z = %4d simulated profiles)" % z,
@@ -702,7 +703,7 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
 def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=10000):
     """
     Use simulation to determine the probability of each outcome.
-    strata is list containing [r, a, s, n, count, ballot_polling]
+    strata is list containing [r, a, ballot_polling, s, n, count, prior]
      s is sample size (so far), 0 <= s <= n
     reported_outcome is the reported winner (between 1 and t??)
     for comparison audit:
@@ -721,28 +722,40 @@ def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=1000
 
     # Make a list of generators, each of which uses tallysim to generate a stream of tallies for a single stratum
     tallyGens = []
+    prefix = [t, len(strata)]
     for stratum in strata:
         r, a, ballot_polling, s, n, count, prior = stratum
 
-        tallyGens.append(tallysim(r,a,t,s,n,count,ballot_polling,f,prior))
+        tallyGens.append(tallysim(r,a,t,s,n,count,ballot_polling,f,prior,max_trials))
+        prefix += [n, s, ballot_polling]
 
     # Iterate down the generators for each stratum in parallel
     tallyGenUnion = itertools.izip(*tallyGens)
 
+    #prefix = (["tallies", t, list(itertools.chain.from_iterable([n, s, bp]
+    #                        for r, a, bp, s, n, count, prior in strata]))])
+
     for tallyGensxxx in tallyGenUnion:  # FIXME what's up with xxx
         # zip tallies from the strata together, process outcome
         tallies = [next(gen) for gen in tallyGens]
-        tally = aggregateTallies(*tallies)
+        tallytot = aggregateTallies(*tallies)
 
-        new_outcome = f(tally)
+        new_outcome = f(tallytot)
         wins[new_outcome] = wins.get(new_outcome,0)+1
         if new_outcome != reported_outcome:
             upsets += 1
+
+        log_csv('tallies', prefix + [new_outcome==reported_outcome, new_outcome] + tallytot[1:] + list(itertools.chain.from_iterable([t[1:] for t in tallies])))
 
     for outcome in wins.keys():
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
     return wins,u,max_trials
+
+
+def log_csv(name, fields, level=logging.INFO):
+    logger = logging.getLogger(name)
+    logger.log(level, ','.join([str(f) for f in fields]))
 
 
 def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_trials=10000):

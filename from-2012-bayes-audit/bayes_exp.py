@@ -40,6 +40,8 @@ import random
 import sys
 import time
 
+import logging
+
 import bayes                          # our auditing code
 
 dummy = -9                            # marker for position 0 in lists
@@ -701,7 +703,7 @@ def experiment_25(printing_wanted=True):
 
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
-    m_list = tuple(0.01*m for m in [1, 5])
+    m_list = tuple(0.01*m for m in [2,])
     stratum_list = ((.86, False), (.14, True))
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.05
@@ -744,7 +746,7 @@ def experiment_25(printing_wanted=True):
                     profiles.append([r, a, stratum_list[i][1]])
 
                 # t1 = time.time();
-                (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
+                (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type,max_trials=100);
                 # t2=time.time()
 
                 num_audited = num_audited+s
@@ -754,7 +756,21 @@ def experiment_25(printing_wanted=True):
             avg_num_audited = num_audited / float(num_trials)
             print "----\nm=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
 
+
+def csv_lgr(name):
+    "Configure a logger for producing csv files to /tmp/<name>.csv"
+
+    logger = logging.getLogger(name)
+    fh = logging.FileHandler('/tmp/%s.csv' % name)
+    fh.setLevel(logging.INFO)
+    logger.addHandler(fh)
+    logger.setLevel(logging.INFO)
+
+
 def main():
+    csv_lgr('tallies')
+    csv_lgr('win_probs')
+
     printing_wanted = True
     if printing_wanted:
         print "Bayes election audit testing...", time.asctime()
@@ -812,6 +828,7 @@ def main():
             experiment_23(True)
         elif c == 25:
             experiment_25(True)
+
 
 # cProfile.run("main()")
 if __name__=="__main__":
