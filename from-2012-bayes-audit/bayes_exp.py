@@ -702,21 +702,22 @@ def experiment_25(printing_wanted=True):
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
     m_list = tuple(0.01*m for m in [1, 5])
-    stratum_list = (.86, .14)
-    assert sum(stratum_list) == 1.0
+    stratum_list = ((.86, False), (.14, True))
+    assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.05
     print "epsilon = ",epsilon
     num_trials = 1
-    sizes = []
+
     for m in m_list:
+        sizes = []
         # Make an L for each stratum fraction in the list of strata, plus one overall one
-        for p in stratum_list + (1.0,):
+        for p, ballot_polling in stratum_list + ([1.0, True],):
             n = alln * p
             sizes.append([ (1, 1, int(0.1*n)), (1, 2, 0), (1, 3, 0),
                    (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n)), (2, 3, 0),
                    (3, 1, 0), (3, 2, 0), (3, 3, int(0.45*n+0.5*m*n))])
 
-        # Remove the overall L
+        # allL is the final, overall L, leaving one L in sizes for each stratum_list
         allL = sizes.pop()
 
         for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
@@ -725,7 +726,8 @@ def experiment_25(printing_wanted=True):
                 schedule=bayes.make_schedule(n,[1,2])
 
                 # First, the overall, non-stratified view:
-                r,a,t,n = make_profiles(allL,printing_wanted)
+                print("\nm=%7.4f Non-stratified view" % m)
+                r,a,t,n = make_profiles(allL,False) # printing_wanted)
                 t1 = time.time();
                 (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
                 t2=time.time()
@@ -733,14 +735,16 @@ def experiment_25(printing_wanted=True):
                     print "Reported outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
 
+                # Now a stratified view:
+                print("\nm=%7.4f Stratified view" % m)
                 profiles = []
-                for L in sizes:  FIXME...
-                    r,a,t,n = make_profiles(L,printing_wanted)
-                    # FIXME: deal with count??
-                    profiles.append([r, a, s, n, count, ballot_polling])
+                for i, L in enumerate(sizes):  # FIXME...
+                    r,a,t,n = make_profiles(L,False) # printing_wanted)
+                    # FIXME: deal with count? ballot_polling??
+                    profiles.append([r, a, stratum_list[i][1]])
 
                 # t1 = time.time();
-                # (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
+                (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
                 # t2=time.time()
 
                 num_audited = num_audited+s
@@ -748,7 +752,7 @@ def experiment_25(printing_wanted=True):
                     print "Reported outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
             avg_num_audited = num_audited / float(num_trials)
-            print "m=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
+            print "----\nm=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
 
 def main():
     printing_wanted = True
