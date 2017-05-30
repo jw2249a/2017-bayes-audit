@@ -700,14 +700,15 @@ def experiment_25(printing_wanted=True):
 
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
-    m_list = tuple(0.01*m for m in [2,])
+    m_list = tuple(0.01*m for m in [5,])
     stratum_list = [[.86, False], [.14, True]]
-    # stratum_list = [[1.0, False]]
+    stratum_list = [[1.0, True]]
+    stratum_list = [[.95, False], [.05, True]]
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.005
     print "epsilon = ",epsilon
-    max_trials = 200
-    num_trials = 20
+    max_trials = 30
+    num_shuffles = 100
 
     for m in m_list:
         sizes = []
@@ -720,21 +721,22 @@ def experiment_25(printing_wanted=True):
 
         # allL is the final, overall L, leaving one L in sizes for each stratum_list
         allL = sizes.pop()
+        audit_type = "N"   # for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
 
-        for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
+        for p_noncvr in tuple(0.01*m for m in range(20, 100, 20)):
             num_audited=0
             snum_audited=0
-            for i in range(num_trials):
-                schedule_seed = [200, 205]
+            for i in range(num_shuffles):
+                schedule_seed = [50, 55]
                 schedule=bayes.make_schedule(n, schedule_seed)
                 # schedule = [256] # Override for single-shot result
 
                 # First, the overall, non-stratified view:
                 print("\nm=%7.4f Non-stratified view" % m)
-                r,a,t,n = make_profiles(allL,printing_wanted)
+                r,a,t,n = make_profiles(allL,False)
                 print(" tally: %s" % bayes.tally(r, t))
                 t1 = time.time();
-                (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type,max_trials=max_trials);
+                (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,stratum_list[0][1],audit_type=audit_type,max_trials=max_trials);
                 t2=time.time()
 
                 num_audited += s
@@ -747,7 +749,7 @@ def experiment_25(printing_wanted=True):
                 print("\nm=%7.4f Stratified view" % m)
                 profiles = []
                 for i, L in enumerate(sizes):  # FIXME...
-                    r,a,t,n = make_profiles(L,printing_wanted)
+                    r,a,t,n = make_profiles(L,False)
                     print(" tally: %s" % bayes.tally(r, t))
                     # FIXME: deal with count? ballot_polling??
                     profiles.append([r, a, stratum_list[i][1]])
@@ -755,16 +757,16 @@ def experiment_25(printing_wanted=True):
                 # t1 = time.time();
                 bayes.log_csv('win_probs', ['time', t1, 'margin', m] + stratum_list + ["schedule", schedule_seed])
                 bayes.log_csv('tallies', ['time', t1, 'margin', m] + stratum_list + ["schedule", schedule_seed])
-                (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type,max_trials=max_trials);
+                (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type,max_trials=max_trials,p_noncvr=p_noncvr);
                 # t2=time.time()
 
                 snum_audited += s
                 if printing_wanted:
                     print "Reported stratified outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
-            avg_num_audited = num_audited / float(num_trials)
-            avg_snum_audited = snum_audited / float(num_trials)
-            print "----\nm=%7.4f audit_type=%2s avg_snum_audited=%5d, avg_num_audited=%5d,"%(m,audit_type,avg_snum_audited, avg_num_audited)
+            avg_num_audited = num_audited / float(num_shuffles)
+            avg_snum_audited = snum_audited / float(num_shuffles)
+            print "----\nm:%.3f p_noncvr:%.2f max_trials:%d num_trials:%d audit_type=%2s avg_snum_audited:%d, avg_num_audited:%d,"%(m, p_noncvr, max_trials, num_shuffles, audit_type, avg_snum_audited, avg_num_audited)
 
 
 def main():

@@ -556,7 +556,7 @@ def aggregateTallies(*tallies):
 #     => Could instead yield the arguments to be used when calling stratified_win_probs
 #
 
-def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f=f_plurality,audit_type="N", max_trials=10000):
+def stratified_audit_dirichlet(strata0, t, epsilon, schedule, printing_wanted=True, f=f_plurality, audit_type="N", max_trials=10000, p_noncvr = 0.5):
     """
     Stratified audit of election, given reported ballot types (r) and actual ballot types (a).
 
@@ -654,23 +654,22 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
 
         strata.append([r, a, ballot_polling, s, n, count, prior_lists[ballot_polling][0]]) # FIXME: not always [0]?
 
-    MARGIN = 0.5
-    print("prob of incrementing CVR sample size: %.3f" % MARGIN)
+    print("fraction of loops with NON-CVR samples: %.3f" % p_noncvr)
 
     alls = 0
+    loops = 0
 
     for next_s in schedule:
         # audit enough ballots so that s = next_s   FIXME for stratified, by doing some sort of dynamic optimization.
         # For now, alls is just a rough progress indicator
 
         while alls < next_s:
-
+            loops += 1
             for stratum in strata:
                 r, a, ballot_polling, s, n, count, prior = stratum
 
-                # For now, since ballot_polling is a factor of 1/margin less efficient, 
-                #  just look at fraction MARGIN of all ballot comparison ballots
-                if not ballot_polling  or  random.random() < MARGIN:
+                # Only look at fraction p_noncvr of all ballot comparison ballots
+                if not ballot_polling  or  (loops * p_noncvr) > s:
                     alls += 1
                     s += 1
                     # In practice you'd be looking at a paper ballot in the next line;
