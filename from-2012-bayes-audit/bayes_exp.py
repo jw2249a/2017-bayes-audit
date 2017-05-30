@@ -35,14 +35,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ----------------------------------------------------------------------
 """
 
-import cProfile
 import random
 import sys
 import time
 
-import logging
-
-import bayes                          # our auditing code
+import bayes  # our auditing code
 
 dummy = -9                            # marker for position 0 in lists
 
@@ -696,24 +693,25 @@ def experiment_23(printing_wanted=True):
         print "For epsilon = %2.2f, there were %d miscertifications (out of %d trials)"%(epsilon,count_ok,num_trials)
 
 def experiment_25(printing_wanted=True):
+    bayes.Testtallysim(max_trials=1000)
+
     print "Experiment 25.  Number of ballots audited in stratified audit"
     print "n=3,000,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
-
-    seed = 25
 
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
     m_list = tuple(0.01*m for m in [2,])
-    stratum_list = ((.86, False), (.14, True))
+    stratum_list = [[.86, False], [.14, True]]
+    stratum_list = [[1.0, False]]
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
-    epsilon = 0.05
+    epsilon = 0.005
     print "epsilon = ",epsilon
-    num_trials = 1
+    num_trials = 10
 
     for m in m_list:
         sizes = []
         # Make an L for each stratum fraction in the list of strata, plus one overall one
-        for p, ballot_polling in stratum_list + ([1.0, True],):
+        for p, ballot_polling in stratum_list + [[1.0, True]]:
             n = alln * p
             sizes.append([ (1, 1, int(0.1*n)), (1, 2, 0), (1, 3, 0),
                    (2, 1, 0), (2, 2, int(0.45*n-0.5*m*n)), (2, 3, 0),
@@ -724,58 +722,57 @@ def experiment_25(printing_wanted=True):
 
         for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
             num_audited=0
+            snum_audited=0
             for i in range(num_trials):
-                schedule=bayes.make_schedule(n,[1,2])
+                schedule_seed = [200, 205]
+                schedule=bayes.make_schedule(n, schedule_seed)
+                schedule = [256] # Override for single-shot result
 
                 # First, the overall, non-stratified view:
                 print("\nm=%7.4f Non-stratified view" % m)
-                r,a,t,n = make_profiles(allL,False) # printing_wanted)
+                r,a,t,n = make_profiles(allL,printing_wanted)
                 t1 = time.time();
                 (result,s)=bayes.audit(r,a,t,epsilon,schedule,printing_wanted,audit_type=audit_type);
                 t2=time.time()
+
+                num_audited += s
+
                 if printing_wanted:
-                    print "Reported outcome is "+result+" after examining %d ballots"%s
+                    print "Reported non-stratified outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
 
                 # Now a stratified view:
                 print("\nm=%7.4f Stratified view" % m)
                 profiles = []
                 for i, L in enumerate(sizes):  # FIXME...
-                    r,a,t,n = make_profiles(L,False) # printing_wanted)
+                    r,a,t,n = make_profiles(L,printing_wanted)
                     # FIXME: deal with count? ballot_polling??
                     profiles.append([r, a, stratum_list[i][1]])
 
                 # t1 = time.time();
+                bayes.log_csv('win_probs', ['time', t1, 'margin', m] + stratum_list + ["schedule", schedule_seed])
+                bayes.log_csv('tallies', ['time', t1, 'margin', m] + stratum_list + ["schedule", schedule_seed])
                 (result,s)=bayes.stratified_audit_dirichlet(profiles,t,epsilon,schedule,printing_wanted,audit_type=audit_type,max_trials=100);
                 # t2=time.time()
 
-                num_audited = num_audited+s
+                snum_audited += s
                 if printing_wanted:
-                    print "Reported outcome is "+result+" after examining %d ballots"%s
+                    print "Reported stratified outcome is "+result+" after examining %d ballots"%s
                     print "Done in %g seconds."%(t2-t1)
             avg_num_audited = num_audited / float(num_trials)
-            print "----\nm=%7.4f audit_type=%2s avg_num_audited=%5d"%(m,audit_type,avg_num_audited)
-
-
-def csv_lgr(name):
-    "Configure a logger for producing csv files to /tmp/<name>.csv"
-
-    logger = logging.getLogger(name)
-    fh = logging.FileHandler('/tmp/%s.csv' % name)
-    fh.setLevel(logging.INFO)
-    logger.addHandler(fh)
-    logger.setLevel(logging.INFO)
+            avg_snum_audited = snum_audited / float(num_trials)
+            print "----\nm=%7.4f audit_type=%2s avg_snum_audited=%5d, avg_num_audited=%5d,"%(m,audit_type,avg_snum_audited, avg_num_audited)
 
 
 def main():
-    csv_lgr('tallies')
-    csv_lgr('win_probs')
+    bayes.setup_csv_logger('tallies')
+    bayes.setup_csv_logger('win_probs')
 
     printing_wanted = True
     if printing_wanted:
         print "Bayes election audit testing...", time.asctime()
     seed = 11
-    random.seed(seed)                 # fix seed, for reproducible results
+    #random.seed(seed)                 # fix seed, for reproducible results
     for arg in sys.argv[1:]:
         c = int(arg)
         print "Running experiment number:",c

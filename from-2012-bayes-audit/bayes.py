@@ -67,6 +67,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ######################################################################
 
 
+import copy
 import math
 import random
 import string
@@ -76,6 +77,24 @@ import itertools
 import logging
 
 dummy = -9                      # dummy value for array position 0
+STRATUM_S_INDEX = 3
+
+def setup_csv_logger(name):
+    "Configure a logger for producing csv files to /tmp/<name>.csv"
+
+    logger = logging.getLogger(name)
+    fh = logging.FileHandler('/tmp/%s.csv' % name)
+    fh.setLevel(logging.INFO)
+    logger.addHandler(fh)
+    logger.setLevel(logging.INFO)
+
+
+def log_csv(name, fields, level=logging.INFO):
+    "Log comma-separated fields to the named logger"
+
+    logger = logging.getLogger(name)
+    logger.log(level, ','.join([str(f) for f in fields]))
+
 
 ######################################################################
 # TALLY
@@ -437,7 +456,7 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
             print "Reported election outcome was NOT OK !!! (All %d ballots audited)"%n
         return ("NOT OK",s)
         
-def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None):
+def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_trials=10000):
     """
     Use simulation to determine the probability of each outcome.
     s is sample size (so far), 0 <= s <= n
@@ -493,9 +512,11 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None):
             wins[new_outcome] = wins.get(new_outcome,0)+1
         # for ballot-polling audit, "upset prob" is 1 - max winning prob
         upsets = max_trials - max(wins.values())
+
     for outcome in wins.keys():
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
+
     return wins,u,max_trials
 
 
@@ -615,7 +636,6 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
     # FIXME: make this a class. But for now...
     # The "count" member is an array which is updated in place.
     # s needs to be updated via index:
-    STRATUM_S_INDEX = 3
     strata = []
     for stratum in strata0:
         r, a, ballot_polling = stratum
@@ -634,13 +654,13 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
     MARGIN = 0.5
     print("prob of incrementing CVR sample size: %.3f" % MARGIN)
 
+    alls = 0
+
     for next_s in schedule:
         # audit enough ballots so that s = next_s   FIXME for stratified, by doing some sort of dynamic optimization.
         # For now, alls is just a rough progress indicator
-        alls = 0
 
         while alls < next_s:
-            alls += 1
 
             for stratum in strata:
                 r, a, ballot_polling, s, n, count, prior = stratum
@@ -648,7 +668,8 @@ def stratified_audit_dirichlet(strata0,t,epsilon,schedule,printing_wanted=True,f
                 # For now, since ballot_polling is a factor of 1/margin less efficient, 
                 #  just look at fraction MARGIN of all ballot comparison ballots
                 if not ballot_polling  or  random.random() < MARGIN:
-                    s = s + 1
+                    alls += 1
+                    s += 1
                     # In practice you'd be looking at a paper ballot in the next line;
                     # in this code, we assume actual ballot types already available in array a.
                     pass   # <-- audit ballot number s here; that is, determine a[s]
@@ -722,7 +743,9 @@ def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=1000
 
     # Make a list of generators, each of which uses tallysim to generate a stream of tallies for a single stratum
     tallyGens = []
-    prefix = [t, len(strata)]
+    alls = sum(stratum[STRATUM_S_INDEX] for stratum in strata)
+    alln = sum(stratum[STRATUM_S_INDEX+1] for stratum in strata)
+    prefix = [t, len(strata), alln, alls]
     for stratum in strata:
         r, a, ballot_polling, s, n, count, prior = stratum
 
@@ -735,9 +758,8 @@ def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=1000
     #prefix = (["tallies", t, list(itertools.chain.from_iterable([n, s, bp]
     #                        for r, a, bp, s, n, count, prior in strata]))])
 
-    for tallyGensxxx in tallyGenUnion:  # FIXME what's up with xxx
+    for tallies in tallyGenUnion:
         # zip tallies from the strata together, process outcome
-        tallies = [next(gen) for gen in tallyGens]
         tallytot = aggregateTallies(*tallies)
 
         new_outcome = f(tallytot)
@@ -750,16 +772,31 @@ def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=1000
     for outcome in wins.keys():
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
+
+    log_csv('win_probs', prefix + [u] + wins.values())
+
     return wins,u,max_trials
 
 
-def log_csv(name, fields, level=logging.INFO):
-    logger = logging.getLogger(name)
-    logger.log(level, ','.join([str(f) for f in fields]))
-
-
 def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_trials=10000):
-    "generate a stream of max_trials simulated tallies"
+    """generate a stream of max_trials simulated tallies
+    >>> random.seed(1)
+    >>> Testtallysim()
+    vote schedule: [-9, 3, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+    ballots: 22.  tally matrix: [-9, [-9, 4, 0, 0], [-9, 0, 3, 0], [-9, 0, 0, 1]]
+    3
+    [-9.0, 9.705459245838918, 7.573060990468178, 4.721479763692905]
+    [-9, 9.40976301599895, 9.020196080127581, 3.5700409038734686]
+    [-9, 10.259647392797337, 6.456717862735404, 5.283634744467258]
+    [-9, 9.446967328720465, 7.242269028541547, 5.310763642737989]
+    [-9, 9.40976301599895, 9.020196080127581, 3.5700409038734686]
+    [-9, 10.259647392797337, 6.456717862735404, 5.283634744467258]
+    [-9, 9.446967328720465, 7.242269028541547, 5.310763642737989]
+    [[-9, 17.632265147698376, 20.95811624431672, 5.409618607984903], [-9, 20.754257006240735, 17.76187791432313, 5.483865079436132], [-9, 21.509173834010426, 17.399345116233796, 5.091481049755775]]
+    2
+    1
+    1
+    """
 
     R = tally(r,t)                               # tally of reported votes
     B = [dummy] + [0]*t                          # allocate this only once (tally for simulated profile)
@@ -786,6 +823,8 @@ def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_t
                 for k in xrange(1,t+1):
                     B[k] += ds[k]                # add to counts for sample
 
+            B[0] = z
+            # print("tallysim iteration %d" % z)
             yield B[:]  # yield a copy, for combining with other strata and final tabulation
 
     else: # ballot-polling audit
@@ -798,10 +837,16 @@ def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_t
 
             yield ds[:] # yield a copy, for combining with other strata and final tabulation
 
-def tallysimTest(max_trials=3):
-    r = [-9] + [3] + [1] + [1, 2] * 10
-    print r
-    a = r
+
+def Testtallysim(max_trials=3):
+    """Test tallysim with a close contest with three candidates, 11 for candidate 1, 10 for 2 and 1 for 3.
+    One miscount in second ballot, interpreted as vote for 2.
+    """
+    a = [-9] + [3] + [1] + [1, 2] * 10
+    print("actual vote schedule:   %s" % a)
+    r = copy.copy(a)
+    r[2] = 2
+    print("reported vote schedule: %s" % r)
     t = 3
     s = 8
     n = 22
@@ -809,35 +854,45 @@ def tallysimTest(max_trials=3):
     ballot_polling = False
 
     # initialize counts to zero
-    if not ballot_polling:
-        count = [dummy] + [ [dummy]+[0]*t for j in xrange(1,t+1) ]  # allocate this only once
-    else: # ballot-polling
+    if ballot_polling:
         count = [dummy]+[0]*t                                       # allocate this only once
+    else: # ballot-polling
+        count = [dummy] + [ [dummy]+[0]*t for j in xrange(1,t+1) ]  # allocate this only once
 
-    for s in range(1, s+1):
+    for si in range(1, s+1):
         if not ballot_polling:
-            count[r[s]][a[s]] += 1
+            count[r[si]][a[si]] += 1
         else:
-            count[a[s]] += 1
+            count[a[si]] += 1
 
-    # count = [-9, [-9, 3, 0, 0], [-9, 0, 1, 0], [-9, 0, 0, 4]]
-    print count
+    print("ballots: %d.  sampling %s. sample tally matrix: %s" % (len(r)-1, s, count))
 
-    prior = [-9, [-9, 1, 1, 1], [-9, 1, 1, 1], [-9, 1, 1, 1]]
+    if ballot_polling:
+        prior = [-9, 1, 1, 1]
+    else:
+        prior = [-9, [-9, 1, 1, 1], [-9, 1, 1, 1], [-9, 1, 1, 1]]
 
-    gen = tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials)
+    wins, u, max_trials = stratified_win_probs([[r,a,ballot_polling,s,n,count,prior]],t,1,max_trials=max_trials)
+    print("stratified_win_probs: wins = %s, u = %f" % (wins, u))
+
+    wins, u, max_trials = win_probs(r,a,t,s,n,count,ballot_polling,prior=prior,max_trials=max_trials)
+    print("win_probs:            wins = %s, u = %f" % (wins, u))
+
+    gen = tallysim(r,a,t,s,n,count,ballot_polling=ballot_polling,prior=prior, max_trials=max_trials)
 
     tallies = list(gen)
 
-    print(len(tallies))
+    print("Generated %d tallies" % len(tallies))
 
     avg = [float(sum(col))/len(col) for col in zip(*tallies)]
-    print(avg)
+    print("Average of tallies: %s" % avg)
 
     for tally in tallies[:3] + tallies[-3:]:
-        print tally
+        print("test tally: %s" % tally)
 
-    tallyGens = [tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials), tallysim(r,a,t,s,n,count,ballot_polling=False,prior=prior, max_trials=max_trials)]
+    print("Run two tallies in parallel")
+    tallyGens = ([tallysim(r,a,t,s,n,count,ballot_polling=ballot_polling,prior=prior, max_trials=max_trials),
+                  tallysim(r,a,t,s,n,count,ballot_polling=ballot_polling,prior=prior, max_trials=max_trials)])
     tallyGenUnion = itertools.izip(*tallyGens)
     res = []
     for tallyGenSet in tallyGenUnion:
@@ -845,6 +900,8 @@ def tallysimTest(max_trials=3):
       totalTally = aggregateTallies(*tallies)
       res.append(totalTally)
 
-    print(res[:3])
+    for tally in res[:3]:
+        print("test tally: %s" % tally)
+
     for totalTally in res[:3]:
-        print f_plurality(totalTally)
+        print("test winner: %d" % f_plurality(totalTally))
