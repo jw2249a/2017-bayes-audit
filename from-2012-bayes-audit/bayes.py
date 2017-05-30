@@ -65,8 +65,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # Reminder: this code runs about 7x faster with "pypy" than with     
 # the standard python interpreter !  Use pypy!                       
 ######################################################################
-
-
 import copy
 import math
 import random
@@ -278,7 +276,7 @@ def make_schedule(n,pattern):
 audit_method = "dirichlet"        # switch to control dispatch
                                   # alternative is "polya"
 
-def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_plurality,audit_type="N"):
+def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_plurality,audit_type="N",max_trials=10000):
     """
     Audit the election, given reported ballot types (r), actual
     ballot types (a), and an upset probability limit (epsilon).
@@ -317,7 +315,7 @@ def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_p
     assert max(a[1:]) <= t
 
     if audit_method == "dirichlet":
-        return audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,f,audit_type)
+        return audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,f,audit_type,max_trials=max_trials)
     elif audit_method == "polya":
         import polya
         return polya.audit_polya(r,a,t,epsilon,schedule,printing_wanted,ballot_polling,f,audit_type)
@@ -354,7 +352,7 @@ def dirichlet(alphas,n):
 # AUDIT USING DIRICHLET DISTRIBUTION
 ######################################################################
 
-def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_plurality,audit_type="N"):
+def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_plurality,audit_type="N",max_trials=10000):
     """
     Audit the election, given reported ballot types (r), actual
     ballot types (a), and an upset probability limit (epsilon)
@@ -436,7 +434,7 @@ def audit_dirichlet(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=F
             # Determine probability of each outcome (dictionary "wins")
             # Determine u the probability of an election upset
             # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
-            wins,u,z = win_probs(r,a,t,s,n,count,ballot_polling,f,prior)
+            wins,u,z = win_probs(r,a,t,s,n,count,ballot_polling,f,prior,max_trials=max_trials)
             if printing_wanted:
                 print "After %6d ballots audited, probability of an upset is %7.4f"%(s,u),"(z = %4d simulated profiles)"%z,
                 print "(winning probabilities are:",wins,")"
@@ -466,12 +464,12 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_
         count[k] is number of ballots of actual type k (plus hyperparameter prior[k]) in ballots 1..s
     ballot_polling is True iff we want a ballot-polling audit
     f is social choice function
+    max_trials determines accuracy of u (upset probability)
     return dictionary mapping outcomes to frequency of winning, upset probability, and max_trials
     """
     R = tally(r,t)                               # tally of reported votes
     if not ballot_polling:                       # only have reported votes if not ballot polling
         reported_outcome = f(R)
-    max_trials = 10000                           # determines accuracy of u (upset probability)
     upsets = 0
     B = [dummy] + [0]*t                          # allocate this only once (tally for simulated profile)
     alphas = [dummy] + [0]*t                     # allocate only once (alphas for Dirichlet)
@@ -513,9 +511,14 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_
         # for ballot-polling audit, "upset prob" is 1 - max winning prob
         upsets = max_trials - max(wins.values())
 
+        #log_csv('tallies', prefix + [new_outcome == reported_outcome, new_outcome] + tallytot[1:] +
+        #    list(itertools.chain.from_iterable([t[1:] for t in tallies])))
+
     for outcome in wins.keys():
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
+
+    #log_csv('win_probs', prefix + [u] + wins.values())
 
     return wins,u,max_trials
 
