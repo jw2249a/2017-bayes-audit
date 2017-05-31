@@ -696,19 +696,19 @@ def experiment_25(printing_wanted=True):
     #bayes.Testtallysim(max_trials=1000)
 
     print "Experiment 25.  Number of ballots audited in stratified audit"
-    print "n=3,000,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
+    print "n=300,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
 
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
-    m_list = tuple(0.01*m for m in [5,])
+    m_list = tuple(0.01*m for m in [1, 2, 5, 10])
     stratum_list = [[.86, False], [.14, True]]
-    stratum_list = [[1.0, True]]
-    stratum_list = [[.95, False], [.05, True]]
+    #stratum_list = [[1.0, True]]
+    #stratum_list = [[.95, False], [.05, True]]
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.005
     print "epsilon = ",epsilon
     max_trials = 30
-    num_shuffles = 100
+    num_shuffles = 300
 
     for m in m_list:
         sizes = []
@@ -723,7 +723,7 @@ def experiment_25(printing_wanted=True):
         allL = sizes.pop()
         audit_type = "N"   # for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
 
-        for p_noncvr in tuple(0.01*m for m in range(20, 100, 20)):
+        for p_noncvr in [.10, .20, .30, .40, .50, .60, .70, .80, 1.0]: # tuple(0.01*m for m in range(20, 100, 20)):
             num_audited=0
             snum_audited=0
             for i in range(num_shuffles):
@@ -766,7 +766,7 @@ def experiment_25(printing_wanted=True):
                     print "Done in %g seconds."%(t2-t1)
             avg_num_audited = num_audited / float(num_shuffles)
             avg_snum_audited = snum_audited / float(num_shuffles)
-            print "----\nm:%.3f p_noncvr:%.2f max_trials:%d num_trials:%d audit_type=%2s avg_snum_audited:%d, avg_num_audited:%d,"%(m, p_noncvr, max_trials, num_shuffles, audit_type, avg_snum_audited, avg_num_audited)
+            print "----\nm:%.3f p_noncvr:%.2f max_trials:%d num_shuffles:%d audit_type=%2s avg_snum_audited:%d, avg_num_audited:%d,"%(m, p_noncvr, max_trials, num_shuffles, audit_type, avg_snum_audited, avg_num_audited)
 
 
 def main():
