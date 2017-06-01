@@ -95,6 +95,24 @@ import logging
 dummy = -9                      # dummy value for array position 0
 STRATUM_S_INDEX = 3
 
+
+class AuditContext (object):  # In Python 3 base off of types.SimpleNamespace and drop the rest
+    "Context for the audit, useful when reporting status, statistics etc."
+
+    def __init__ (self, **kwargs):
+        self.margin = 0
+        self.shuffle = 0
+        self.__dict__.update(kwargs)
+
+    def context(self):
+        return [self.margin, self.shuffle]
+
+    def __repr__ (self):
+        keys = sorted(self.__dict__)
+        items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
+        return "{}({})".format(type(self).__name__, ", ".join(items))
+
+
 def setup_csv_logger(name):
     "Configure a logger for producing csv files to /tmp/<name>.csv"
 
@@ -282,15 +300,14 @@ def make_prior_list(audit_type,t,ballot_polling):
 def make_schedule(n,pattern):
     """
     Make up an auditing schedule (a list of sample size s values to use)
-    start with 0
-    do pattern, then pattern repeated by multipied by last/first, etc.
+    do pattern, then pattern repeated but multipied by last/first, etc.
     end with n
     note that last/first does not need to be an integer.
     make_schedule(1000,[1,2])         # --> 0,1,2,4,8,16,32,64,128,256,512,1000
     make_schedule(1000,[1,2,5,10])    # --> 0,1,2,5,10,20,50,100,200,500,1000
     make_schedule(1000,[5,6])         # --> 0,5,6,7,8,10,12,14,17,21,25,30,37,44,53,64,77,...
     """
-    schedule = [ 0 ]
+    schedule = [ 0 ]    # Temporary kick-off value
     multiplier = 1
     next_s = 1
     while schedule[-1] < n:
@@ -300,7 +317,7 @@ def make_schedule(n,pattern):
             if next_s > schedule[-1]:
                 schedule.append(next_s)
         multiplier *= float(pattern[-1])/float(pattern[0])
-    return schedule
+    return schedule[1:]   # Don't include the kick-off value of 0
 
 ######################################################################
 # Generate profile
@@ -367,10 +384,9 @@ def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_p
            5         2         3  = counts of reported ballots (reported outcome is    1 )
            5         2         3  = counts of actual ballots   (actual outcome is      1 )
     Ballot-polling audit: False
-    After      0 ballots, upset prob 0.6593, z 10000 profiles, winning probs {1: 0.3407, 2: 0.3262, 3: 0.3331}
-    After      1 ballots, upset prob 0.2788, z 10000 profiles, winning probs {1: 0.7212, 2: 0.1409, 3: 0.1379}
-    After      2 ballots, upset prob 0.4069, z 10000 profiles, winning probs {1: 0.5931, 2: 0.3084, 3: 0.0985}
-    After      4 ballots, upset prob 0.1465, z 10000 profiles, winning probs {1: 0.8535, 2: 0.0575, 3: 0.089}
+    After      1 ballots, upset prob 0.2795, z 10000 profiles, winning probs {1: 0.7205, 2: 0.1407, 3: 0.1388}
+    After      2 ballots, upset prob 0.4052, z 10000 profiles, winning probs {1: 0.5948, 2: 0.3069, 3: 0.0983}
+    After      4 ballots, upset prob 0.1397, z 10000 profiles, winning probs {1: 0.8603, 2: 0.0538, 3: 0.0859}
     After      8 ballots, upset prob 0.0000, z 10000 profiles, winning probs {1: 1.0, 2: 0.0, 3: 0.0}
     Reported election outcome is OK (8 ballots audited)
     ('OK', 8)
@@ -380,7 +396,7 @@ def audit(r,a,t,epsilon,schedule,printing_wanted=True,ballot_polling=False,f=f_p
     >>> P = makeProfile(10000, 0.01)
     >>> epsilon = 0.01
     >>> audit(P, P, t, epsilon, make_schedule(len(P), [785, 786]), printing_wanted=False)
-    ('OK', 789)
+    ('OK', 790)
     """
 
     n = len(r)-1                      # number of ballots in r
@@ -419,7 +435,11 @@ def dirichlet(alphas,n):
         if alphas[k]>0.0:
             x[k] = random.gammavariate(alphas[k],1)
             sumx += x[k]
-    assert sumx > 0.0
+    # assert sumx > 0.0   Doesn't work for N0 prior
+    if sumx == 0.0:
+        print "ERROR in bayes.dirichlet(): sumx == 0.0. Setting to 42. Deal with it."
+        x[1] = 42
+        sumx = 42
     for k in xrange(1,t+1):
         x[k] = n * x[k] / sumx
     return x
@@ -631,7 +651,7 @@ def aggregateTallies(*tallies):
 #     => Could instead yield the arguments to be used when calling stratified_win_probs
 #
 
-def stratified_audit_dirichlet(strata0, t, epsilon, schedule, printing_wanted=True, f=f_plurality, audit_type="N", max_trials=10000, p_noncvr = 0.5):
+def stratified_audit_dirichlet(strata0, t, epsilon, schedule, printing_wanted=True, f=f_plurality, audit_type="N", max_trials=10000, p_noncvr = 0.5, ac=AuditContext()):
     """
     Stratified audit of election, given reported ballot types (r) and actual ballot types (a).
 
@@ -770,7 +790,7 @@ def stratified_audit_dirichlet(strata0, t, epsilon, schedule, printing_wanted=Tr
             # Determine u the probability of an election upset
             # Determine z the number of simulated profiles examined within upset_prob_dirichlet routine
 
-            wins,u,z = stratified_win_probs(strata,t,reported_outcome,f, max_trials)
+            wins,u,z = stratified_win_probs(strata,t,reported_outcome,f, max_trials, ac)
 
             if printing_wanted:
                 print "After %6d ballots (%s) audited, probability of an upset is %7.4f" % ( s, [stratum[STRATUM_S_INDEX] for stratum in strata], u), "(z = %4d simulated profiles)" % z,
@@ -798,7 +818,7 @@ def stratified_audit_dirichlet(strata0, t, epsilon, schedule, printing_wanted=Tr
 # The inner part is pulled out into tallysim.
 # This outer part calls the
 
-def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=10000):
+def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=10000, ac=AuditContext()):
     """
     Use simulation to determine the probability of each outcome.
     strata is list containing [r, a, ballot_polling, s, n, count, prior]
@@ -850,7 +870,7 @@ def stratified_win_probs(strata,t,reported_outcome,f=f_plurality,max_trials=1000
         wins[outcome] = float(wins[outcome])/float(max_trials)
     u = float(upsets) / float(max_trials)
 
-    log_csv('win_probs', prefix + [u] + wins.values())
+    log_csv('win_probs', ac.context() + prefix + [u] + wins.values())
 
     return wins,u,max_trials
 
