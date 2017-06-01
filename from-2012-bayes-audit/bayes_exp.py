@@ -707,8 +707,8 @@ def experiment_25(printing_wanted=True):
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.005
     print "epsilon = ",epsilon
-    max_trials = 30
-    num_shuffles = 300
+    max_trials = 10000
+    num_shuffles = 100
 
     for m in m_list:
         sizes = []
