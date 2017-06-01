@@ -693,10 +693,7 @@ def experiment_23(printing_wanted=True):
         print "For epsilon = %2.2f, there were %d miscertifications (out of %d trials)"%(epsilon,count_ok,num_trials)
 
 def experiment_25(printing_wanted=True):
-    #bayes.Testtallysim(max_trials=1000)
-
-    print "Experiment 25.  Number of ballots audited in stratified audit"
-    print "n=300,000 ballots, m ranges from 0.5% to 5%, 100 simulated audits for each m"
+    print "Experiment 25.  Number of ballots audited in stratified audits"
 
     alln=300000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
@@ -706,9 +703,13 @@ def experiment_25(printing_wanted=True):
     #stratum_list = [[.95, False], [.05, True]]
     assert sum(p for p, ballot_polling in stratum_list) == 1.0
     epsilon = 0.005
-    print "epsilon = ",epsilon
     max_trials = 10000
     num_shuffles = 100
+    p_noncvrs = [.10, .20, .30, .40, .50, .60, .70, .80, 1.0]
+
+    print "n=%d ballots, %d shuffles, %d trials for each, epsilon=%f" % (alln, num_shuffles, max_trials, epsilon)
+    print "margins to try: %s" % (m_list, )
+    print "values of non-CVR selections per CVR selection: %s" % (p_noncvrs, )
 
     for m in m_list:
         sizes = []
@@ -723,7 +724,7 @@ def experiment_25(printing_wanted=True):
         allL = sizes.pop()
         audit_type = "N"   # for audit_type in ["N"]: # FIXME: ["N","P","NP"]:
 
-        for p_noncvr in [.10, .20, .30, .40, .50, .60, .70, .80, 1.0]: # tuple(0.01*m for m in range(20, 100, 20)):
+        for p_noncvr in p_noncvrs:
             num_audited=0
             snum_audited=0
             for i in range(num_shuffles):

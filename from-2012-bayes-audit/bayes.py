@@ -596,12 +596,7 @@ def win_probs(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_
     #log_csv('win_probs', prefix + [u] + wins.values())
 
     return wins,u,max_trials
-    def _test():
-    import doctest
-    return doctest.testmod(verbose=True)
 
-if __name__ == "__main__":
-    _test()
 
 def aggregateTallies(*tallies):
     """Return aggregated totals for each ballot type across the tallies.
@@ -864,20 +859,27 @@ def tallysim(r,a,t,s,n,count,ballot_polling=False,f=f_plurality,prior=None,max_t
     """generate a stream of max_trials simulated tallies
     >>> random.seed(1)
     >>> Testtallysim()
-    vote schedule: [-9, 3, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
-    ballots: 22.  tally matrix: [-9, [-9, 4, 0, 0], [-9, 0, 3, 0], [-9, 0, 0, 1]]
-    3
-    [-9.0, 9.705459245838918, 7.573060990468178, 4.721479763692905]
-    [-9, 9.40976301599895, 9.020196080127581, 3.5700409038734686]
-    [-9, 10.259647392797337, 6.456717862735404, 5.283634744467258]
-    [-9, 9.446967328720465, 7.242269028541547, 5.310763642737989]
-    [-9, 9.40976301599895, 9.020196080127581, 3.5700409038734686]
-    [-9, 10.259647392797337, 6.456717862735404, 5.283634744467258]
-    [-9, 9.446967328720465, 7.242269028541547, 5.310763642737989]
-    [[-9, 17.632265147698376, 20.95811624431672, 5.409618607984903], [-9, 20.754257006240735, 17.76187791432313, 5.483865079436132], [-9, 21.509173834010426, 17.399345116233796, 5.091481049755775]]
-    2
-    1
-    1
+    actual vote schedule:   [-9, 3, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+    reported vote schedule: [-9, 3, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
+    ballots: 22.  sampling 8. sample tally matrix: [-9, [-9, 3, 0, 0], [-9, 1, 3, 0], [-9, 0, 0, 1]]
+    stratified_win_probs: wins = {1: 1.0, 2: 0.0, 3: 0.0}, u = 0.000000
+    win_probs:            wins = {1: 1.0, 2: 0.0, 3: 0.0}, u = 1.000000
+    Generated 3 tallies
+    Average of tallies: [2.0, 11.564206417498974, 7.207208787948221, 3.228584794552806]
+    test tally: [1, 8.66036266819241, 7.6794362554068964, 5.660201076400692]
+    test tally: [2, 11.9072979627099, 8.040883959606388, 2.0518180776837127]
+    test tally: [3, 14.124958621594615, 5.901306148831376, 1.973735229574013]
+    test tally: [1, 8.66036266819241, 7.6794362554068964, 5.660201076400692]
+    test tally: [2, 11.9072979627099, 8.040883959606388, 2.0518180776837127]
+    test tally: [3, 14.124958621594615, 5.901306148831376, 1.973735229574013]
+    .
+    Run two tallies in parallel
+    test tally: [-9, 15.710268099702905, 18.958426465292277, 9.331305435004817]
+    test tally: [-9, 22.177452364589698, 17.488871944800202, 4.333675690610097]
+    test tally: [-9, 21.797474189562188, 15.326155736568552, 6.876370073869259]
+    test winner: 2
+    test winner: 1
+    test winner: 1
     """
 
     R = tally(r,t)                               # tally of reported votes
@@ -972,7 +974,7 @@ def Testtallysim(max_trials=3):
     for tally in tallies[:3] + tallies[-3:]:
         print("test tally: %s" % tally)
 
-    print("Run two tallies in parallel")
+    print(".\nRun two tallies in parallel")
     tallyGens = ([tallysim(r,a,t,s,n,count,ballot_polling=ballot_polling,prior=prior, max_trials=max_trials),
                   tallysim(r,a,t,s,n,count,ballot_polling=ballot_polling,prior=prior, max_trials=max_trials)])
     tallyGenUnion = itertools.izip(*tallyGens)
@@ -987,3 +989,12 @@ def Testtallysim(max_trials=3):
 
     for totalTally in res[:3]:
         print("test winner: %d" % f_plurality(totalTally))
+
+
+def _test():
+    import doctest
+    return doctest.testmod()
+
+
+if __name__ == "__main__":
+    _test()
