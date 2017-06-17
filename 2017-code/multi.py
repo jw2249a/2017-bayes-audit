@@ -64,6 +64,7 @@ class Election(object):
                                   # "Auditing", "Just Watching", "Risk Limit Reached", "Full Recount Needed"
                                   # must be one of "Auditing" "Just Watching" initially
         e.recount_threshold = 0.99 # if e.risk[cid] exceeds 0.99, then full recount called for cid
+        e.n_trials = 40000    # number of trials used to estimate risk in compute_contest_risk
         # sample info
         e.av = dict()         # dict mapping (cid, pbcid) pairs to list of actual votes for that
                               # contest in that paper ballot collection (sampled ballots)
@@ -112,13 +113,15 @@ def check_election_structure(e):
 
 def print_election_structure(e):
     print("====== Election structure ======")
-    print("Number of contests:", len(e.cids))
+    print("Number of contests:")
+    print("    {}".format(len(e.cids)))
     print("e.cids (contest ids):")
     print("    ", end='')
     for cid in e.cids:
         print(cid, end=' ')
     print()
-    print("Number of paper ballot collections)", len(e.pbcids))
+    print("Number of paper ballot collections)")
+    print("    {}".format(len(e.pbcids)))
     print("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
     print("    ", end='')
     for pbcid in e.pbcids:
@@ -307,11 +310,16 @@ def compute_contest_risk(e, cid, st):
     Return risk that reported outcome is wrong for cid.
     We take st here as argument rather than e.st so
     we can call compute_contest_risk with modified sample counts.
+    (This option not yet used.)
+
+    This is the heart of the Bayesian post-election audit method.
+    But it could be replaced by a frequentist approach instead, at
+    least for those outcome rules and mixes of collection types for
+    which a frequentist method is known.
     """
 
-    n_trials = 40000
     wrong_outcome_count = 0
-    for trial in range(n_trials):
+    for trial in range(e.n_trials):
         test_tally = {vid:0 for vid in e.vids[cid]}
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
@@ -323,7 +331,7 @@ def compute_contest_risk(e, cid, st):
                     test_tally[vid] += gamma.rvs(tally[vid]) * (e.n[pbcid] - e.s[pbcid]) / e.s[pbcid]
         if e.ro[cid] != plurality(test_tally):
             wrong_outcome_count += 1
-    e.risk[cid] = wrong_outcome_count/n_trials
+    e.risk[cid] = wrong_outcome_count/e.n_trials
 
 def compute_status(e, st):
     """ 
@@ -332,7 +340,17 @@ def compute_status(e, st):
 
     for cid in e.cids:
         compute_contest_risk(e, cid, st)
-        if e.contest_status[cid] == "Auditing":   # was != "Just Watching"
+        # The following test was originally just `` != "Just Watching" ''
+        # but it seemed better to have so that once a contest has met its
+        # risk limit once, it no longer goes back to "Auditing" status, even
+        # if its risk drifts back up to be larger than its risk limit.
+        # Mathematically, this is OK, although it could conceivably look
+        # strange to an observer or an election official to have a contest
+        # whose status is "Risk Limit Reached" but whose current risk is
+        # more than the risk limit.  If we put this test back to "Just Watching",
+        # then a contest of status "Risk Limit Reached" could have its status
+        # set back to "Auditing" if the risk then rises too much...  Which is better UI?
+        if e.contest_status[cid] == "Auditing":  
             if e.risk[cid] < e.risk_limit[cid]:
                 e.contest_status[cid] = "Risk Limit Reached"
             elif all([e.n[pbcid]==e.s[pbcid] for pbcid in e.pbcids if e.rel[(cid, pbcid)]]):
@@ -357,15 +375,17 @@ def print_status(e):
     print("    Election status:", e.election_status)
                 
 def plan_sample(e):
-    """ Return a sampling plan (dict of target sample sizes) """
+    """ 
+    Return a sampling plan (dict of target sample sizes by pbcid) 
+    """
+
     # for now, just simple strategy of looking at more ballots
-    # only in those paper ballot collections that still have contests
-    # that haven't finished yet.
+    # only in those paper ballot collections that are still being audited
     plan = e.s.copy()
     for pbcid in e.pbcids:
         for cid in e.cids:
-            if e.rel[(cid, pbcid)] and e.risk[cid]>e.risk_limit[cid]:
-                # if contest still active do as much as you can without
+            if e.rel[(cid, pbcid)] and e.contest_status[cid] == "Auditing":
+                # if contest still being audited do as much as you can without
                 # exceeding size of paper ballot collection
                 plan[pbcid] = min(e.s[pbcid] + e.audit_rate[pbcid], e.n[pbcid])
                 break
@@ -375,7 +395,7 @@ def print_audit_parameters(e):
 
     print("====== Audit parameters ======")
 
-    print("e.contest_status (audit status for each contest):")
+    print("e.contest_status (initial audit status for each contest):")
     for cid in e.cids:
         print("    {}:{}".format(cid, e.contest_status[cid]))
 
@@ -386,6 +406,9 @@ def print_audit_parameters(e):
     print("e.audit_rate (max number of ballots audited/day per pbcid):")
     for pbcid in e.pbcids:
         print("    {}:{}".format(pbcid, e.audit_rate[pbcid]))
+
+    print("e.n_trials (number of trials used to estimate risk in compute_contest_risk):")
+    print("    {}".format(e.n_trials))
 
 def print_audit_stage_header(e, stage, last_s):
 
