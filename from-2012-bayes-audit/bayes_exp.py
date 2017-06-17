@@ -695,7 +695,7 @@ def experiment_23(printing_wanted=True):
 def experiment_25(printing_wanted=True):
     print "Experiment 25.  Number of ballots audited in stratified audits"
 
-    alln=300000
+    alln=30000
     # m_list = tuple(0.01*m for m in [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
     m_list = tuple(0.01*m for m in [5]) # [1, 2, 5, 10])
     stratum_list = [[.86, False], [.14, True]]
@@ -710,6 +710,7 @@ def experiment_25(printing_wanted=True):
 
     ac = bayes.AuditContext(n=alln, epsilon=epsilon, audit_type=audit_type, trials=max_trials, shuffles=num_shuffles)
     print "n=%d ballots, audit_type %s, %d shuffles, %d trials for each, epsilon=%f" % (alln, audit_type, num_shuffles, max_trials, epsilon)
+    print "stratum_list: %s" % stratum_list
     print "margins to try: %s" % (m_list, )
     print "values of non-CVR selections per CVR selection: %s" % (p_noncvrs, )
 
