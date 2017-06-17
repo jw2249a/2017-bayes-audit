@@ -9,6 +9,8 @@ Test election for testing Bayesian post-election audit code (multi.py)
 
 def election_structure(e):
 
+    e.type = "Synthetic"
+
     # four contests
     e.cids = ["I", "C1", "C2", "C3", "F23"]
 

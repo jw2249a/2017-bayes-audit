@@ -46,6 +46,7 @@ class Election(object):
         e.pbcids = []        # list of paper ballot collection ids
         e.rel = dict()       # dict mapping (cid, pbcid) pairs to True/False (relevance)
         e.vids = dict()      # dict mapping cid to list of allowable votes (vids)(strings)
+        e.type = "Synthetic" # string, either "Synthetic" or "Real"
 
         # reported election results
         e.n = dict()         # e.n[pbcid] number ballots cast in collection pbcid
@@ -72,10 +73,13 @@ class Election(object):
         # computed from the above
         e.st = dict()         # e.st[(cid, pbcid)] gives sample tally dict for that cid pbcid combo
 
+##############################################################################
+## Election structure I/O and validation
+##############################################################################
+
 def finish_election_structure(e):
     """ Compute attributes of e that are derivative from others. """
     pass
-    
     
 def check_id(id):
     assert isinstance(id, str) and id.isprintable()
@@ -85,6 +89,8 @@ def check_id(id):
 
 def check_election_structure(e):
     
+    assert e.type in ["Synthetic", "Real"], e.type
+
     assert isinstance(e.cids, (list, tuple))
     assert len(e.cids)>0
     for cid in e.cids:
@@ -113,6 +119,8 @@ def check_election_structure(e):
 
 def print_election_structure(e):
     print("====== Election structure ======")
+    print("Election type:")
+    print("    {}".format(e.type))
     print("Number of contests:")
     print("    {}".format(len(e.cids)))
     print("e.cids (contest ids):")
@@ -141,6 +149,10 @@ def print_election_structure(e):
             print(vid, end=' ')
         print()
 
+##############################################################################
+## Election data I/O and validation (stuff that depends on cast votes)
+##############################################################################
+
 def finish_election_data(e):
     """ 
     Compute election data attributes of e that are derivative from others. 
@@ -158,6 +170,7 @@ def finish_election_data(e):
 def compute_synthetic_votes(e):
     """
     Make up actual votes and randomly permute their order.
+    Only useful for test elections, not for real elections.
     """
     
     for cid in e.cids:
@@ -243,6 +256,40 @@ def print_election_data(e):
     for cid in e.cids:
         print("    {}:{}".format(cid, e.ro[cid]))
 
+##############################################################################
+## Tally and outcome computations
+##############################################################################
+
+def compute_tally(vec):
+    """
+    Return dict giving tally of elements in iterable vec.
+    """
+
+    tally = dict()
+    for x in vec:
+        tally[x] = tally.get(x, 0) + 1
+
+    return tally
+
+def plurality(d):
+    """
+    Return, for input dict d mapping vids to (real) counts, vid with largest count.
+    (Tie-breaking done arbitrarily here.)
+    """
+
+    max_cnt = -1e90
+    max_vid = None
+    for vid in d:
+        if d[vid]>max_cnt:
+            max_cnt = d[vid]
+            max_vid = vid
+
+    return max_vid
+
+##############################################################################
+## Audit I/O and validation
+##############################################################################
+
 def check_audit_parameters(e):
 
     assert isinstance(e.risk_limit, dict)
@@ -260,17 +307,6 @@ def check_audit_parameters(e):
         assert cid in e.cids, cid
         assert e.contest_status[cid] in ["Auditing", "Just Watching"], \
             e.contest_status[cid]
-
-def compute_tally(vec):
-    """
-    Return dict giving tally of elements in iterable vec.
-    """
-
-    tally = dict()
-    for x in vec:
-        tally[x] = tally.get(x, 0) + 1
-
-    return tally
 
 def draw_sample(e):
     """ 
@@ -290,24 +326,9 @@ def draw_sample(e):
             if e.rel[(cid, pbcid)]:
                 e.st[(cid, pbcid)] = compute_tally(e.av[(cid, pbcid)][:e.s[pbcid]])
                 
-def plurality(d):
-    """
-    Return, for input dict d mapping vids to (real) counts, vid with largest count.
-    (Tie-breaking done arbitrarily here.)
-    """
-
-    max_cnt = -1e90
-    max_vid = None
-    for vid in d:
-        if d[vid]>max_cnt:
-            max_cnt = d[vid]
-            max_vid = vid
-
-    return max_vid
-
 def compute_contest_risk(e, cid, st):
     """ 
-    Return risk that reported outcome is wrong for cid.
+    Return Bayesian risk (chance that reported outcome is wrong for cid).
     We take st here as argument rather than e.st so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used.)
@@ -340,17 +361,20 @@ def compute_status(e, st):
 
     for cid in e.cids:
         compute_contest_risk(e, cid, st)
-        # The following test was originally just `` != "Just Watching" ''
-        # but it seemed better to have so that once a contest has met its
+        # The following test was could be for !="Just Watching" or for =="Auditing"
+        # It may be better to have it so that once a contest has met its
         # risk limit once, it no longer goes back to "Auditing" status, even
         # if its risk drifts back up to be larger than its risk limit.
         # Mathematically, this is OK, although it could conceivably look
         # strange to an observer or an election official to have a contest
         # whose status is "Risk Limit Reached" but whose current risk is
-        # more than the risk limit.  If we put this test back to "Just Watching",
+        # more than the risk limit.  If this test compares to "Just Watching",
         # then a contest of status "Risk Limit Reached" could have its status
         # set back to "Auditing" if the risk then rises too much...  Which is better UI?
-        if e.contest_status[cid] == "Auditing":  
+        # Note that a contest which has reached its risk limit could be set back to
+        # Auditing because of any one of its pbc's, even if some of them aren't being
+        # audited for a stage.
+        if e.contest_status[cid] != "Just Watching":
             if e.risk[cid] < e.risk_limit[cid]:
                 e.contest_status[cid] = "Risk Limit Reached"
             elif all([e.n[pbcid]==e.s[pbcid] for pbcid in e.pbcids if e.rel[(cid, pbcid)]]):
@@ -476,7 +500,8 @@ def main():
     print_election_structure(e)
 
     finish_election_data(e)
-    compute_synthetic_votes(e)
+    if e.type == "Synthetic":
+        compute_synthetic_votes(e)
     check_election_data(e)
     print_election_data(e)
 
