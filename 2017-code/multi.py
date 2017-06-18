@@ -42,7 +42,7 @@ class Election(object):
 
         ### election structure
         e.election_type = "Synthetic"  # string, either "Synthetic" or "Real"
-        e.synthetic_seed = 0 # seed for synthetic generation of random votes
+        e.synthetic_seed = 7 # seed for synthetic generation of random votes
         e.cids = []          # list of contest ids
         e.pbcids = []        # list of paper ballot collection ids
         e.bids = dict()      # dict mapping pbcids to list of ballot ids
@@ -554,7 +554,7 @@ def print_audit_summary(e):
     
 def audit(e):
 
-    e.audit_seed = 3                      # TBD: generate randomly with dice!
+    e.audit_seed = 11                      # TBD: generate randomly with dice!
     np.random.seed(e.audit_seed)
 
     print_audit_parameters(e)
