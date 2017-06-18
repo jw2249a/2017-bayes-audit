@@ -45,12 +45,14 @@ class Election(object):
         e.synthetic_seed = 7 # seed for synthetic generation of random votes
         e.cids = []          # list of contest ids
         e.pbcids = []        # list of paper ballot collection ids
-        e.bids = dict()      # dict mapping pbcids to list of ballot ids
+        e.bids = dict()      # dict mapping pbcids to lists of ballot ids
         e.rel = dict()       # dict mapping (cid, pbcid) pairs to True/False (relevance)
         e.vvids = dict()     # dict mapping cid to list of valid (CANDIDATE) votes (vvids)(strings)
         e.ivids = dict()     # dict mapping cid to list of invalid (NONCANDIDATE) votes (ivids) (strings),
-                             # must include "Invalid", "Overvote", "Undervote"
+                             # must include "Invalid", "Overvote", "Undervote", and "Unknown"
         e.vids = dict()      # dict mapping cid to union of e.vvids[cid] and e.ivids[cid]
+                             # note that e.vids is used for both reported votes (e.rv) and
+                             # for actual votes (e.av)
         e.collection_type = dict()  # dict mapping pbcid to "CVR" or "noCVR"
 
         ### reported election results
@@ -60,9 +62,14 @@ class Election(object):
         # computed from the above 
         e.totcid = dict()    # dict mapping cid to total # votes cast in contest
         e.totvot = dict()    # dict mapping (cid, vid) pairs to number of votes recd
+        e.rv = dict()        # dict mapping (cid, pbcid) pairs to 
+                             # dict mapping bids to reported votes for that
+                             # contest in that paper ballot collection (sampled ballots)
+                             # e.rv is like e.av (reported votes; actual votes)
+        e.error_rate = 0.0001  # error rate used in model for generating synthetic reported votes
 
         ### audit
-        e.audit_seed = 0      # seed for pseudo-random number generation for audit
+        e.audit_seed = 1      # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # mapping from cid to risk limit for that contest
         e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
         e.audit_rate = dict() # number of ballots that can be audited per day, by pbcid
@@ -71,14 +78,16 @@ class Election(object):
                                   # "Auditing", "Just Watching", "Risk Limit Reached", "Full Recount Needed"
                                   # must be one of "Auditing" "Just Watching" initially
         e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95, then full recount called for cid
-        e.n_trials = 40000    # number of trials used to estimate risk in compute_contest_risk
+        e.n_trials = 100000   # number of trials used to estimate risk in compute_contest_risk
         # sample info
         e.av = dict()         # dict mapping (cid, pbcid) pairs to 
                               # dict mapping bids to actual votes for that
                               # contest in that paper ballot collection (sampled ballots)
         e.s = dict()          # e.s[pbcid] number ballots sampled in paper ballot collection pbcid
         # computed from the above
-        e.st = dict()         # e.st[(cid, pbcid)] gives sample tally dict for that cid pbcid combo
+        e.st = dict()         # e.st[(cid, pbcid)] gives dict mapping r to tally dict mapping a to count
+        e.sr = dict()         # mapping from (cid, pbcid) pairs to dict mapping r to count for sample
+        e.nr = dict()         # mapping from (cid, pbcid) pairs to dict mapping r to count for pbcid
 
 ##############################################################################
 ## Election structure I/O and validation
@@ -88,7 +97,7 @@ def finish_election_structure(e):
     """ Compute attributes of e that are derivative from others. """
 
     for cid in e.cids:
-        e.vids[cid] = (e.vvids[cid]+e.ivids[cid]).copy()
+        e.vids[cid] = sorted(e.vvids[cid]+e.ivids[cid])
     
 def check_id(id):
     assert isinstance(id, str) and id.isprintable()
@@ -214,6 +223,25 @@ def finish_election_data(e):
             e.totvot[(cid, vid)] = sum([e.t[(cid, pbcid, vid)] for pbcid in e.pbcids])
 
 
+def compute_rv(e, cid, pbcid, bid, vid):
+    """
+    Compute reported vote for e.rv[(cid, pbcid)][bid]
+    based on whether pbcid is CVR or noCVR, and based on
+    a prior for errors.  Here vid is the actual vote.
+    e.error_rate (default 0.0001) is chance that 
+    reported vote != actual vote.  If they differ all 
+    other possibilities are equally likely to occur.
+    """
+    if e.collection_type[pbcid]=="noCVR":
+        assert "Unknown" in e.vids[cid], cid   # assume Unknown is legit
+        return "Unknown"
+    # Otherwise, we generate a reported vote
+    m = len(e.vids[cid])          # number of vote options for this cid
+    if np.random.random()>error_rate or m==1:
+        return vid                # no error is typical case
+    error_vids = (e.vids[cid].copy()).remove(vid)
+    return error_vids[int(np.random.random()*(m-1))]  # pick an error at random
+
 def compute_synthetic_votes(e):
     """
     Make up actual votes and randomly permute their order.
@@ -242,11 +270,13 @@ def compute_synthetic_votes(e):
         i = 0
         for pbcid in e.pbcids:
             e.av[(cid, pbcid)] = dict()
+            e.rv[(cid, pbcid)] = dict()
             if e.rel[(cid, pbcid)]:
                 for j in range(e.n[pbcid]):
                     bid = e.bids[pbcid][j]
                     vid = votes[j]
                     e.av[(cid, pbcid)][bid] = vid
+                    e.rv[(cid, pbcid)][bid] = compute_rv(e, cid, pbcid, bid, vid)
                 i += e.n[pbcid]
 
 def check_election_data(e):
@@ -298,6 +328,20 @@ def check_election_data(e):
             if e.rel[(cid, pbcid)]:
                 assert (cid, pbcid) in e.av
 
+    assert isinstance(e.rv, dict)
+    for (cid, pbcid) in e.rv:
+        assert cid in e.cids, cid
+        assert pbcid in e.pbcids, pbcid
+        assert isinstance(e.rv[(cid, pbcid)], dict), (cid, pbcid)
+        bidsset = set(e.bids[pbcid])
+        for bid in e.rv[(cid, pbcid)]:
+            assert bid in bidsset, bid
+            assert e.rv[(cid, pbcid)][bid] in e.vids[cid]
+    for cid in e.cids:
+        for pbcid in e.pbcids:
+            if e.rel[(cid, pbcid)]:
+                assert (cid, pbcid) in e.rv
+                
     assert isinstance(e.ro, dict)
     for cid in e.ro:
         assert cid in e.cids, cid
@@ -349,14 +393,28 @@ def print_election_data(e):
 
 def compute_tally(vec):
     """
-    Return dict giving tally of elements in iterable vec.
+    Here vec is an iterable of elements.
+    Return dict giving tally of elements.
     """
 
     tally = dict()
     for x in vec:
         tally[x] = tally.get(x, 0) + 1
-
     return tally
+
+def compute_tally2(vec):
+    """
+    Here vec is an iterable of (a, r) pairs. 
+    (actual vote, reported vote) pairs
+    Return dict giving mapping from r to dict
+    giving tally of a's that appear with that r.
+    """
+
+    tally2 = dict()
+    for (a, r) in vec:
+        if r not in tally2:
+            tally2[r] = compute_tally([aa for (aa, rr) in vec if r==rr])
+    return tally2
 
 def plurality(d):
     """
@@ -410,9 +468,16 @@ def draw_sample(e):
     e.s = e.plan
     for cid in e.cids:
         for pbcid in e.pbcids:
+            e.sr[(cid, pbcid)] = dict()
+            e.nr[(cid, pbcid)] = dict()
             if e.rel[(cid, pbcid)]:
-                votes = [e.av[(cid, pbcid)][bid] for bid in e.bids[pbcid][:e.s[pbcid]]]
-                e.st[(cid, pbcid)] = compute_tally(votes)
+                avotes = [e.av[(cid, pbcid)][bid] for bid in e.bids[pbcid][:e.s[pbcid]]] # actual
+                rvotes = [e.rv[(cid, pbcid)][bid] for bid in e.bids[pbcid][:e.s[pbcid]]] # reported
+                zvotes = list(zip(avotes, rvotes))  # list of (actual, reported) vote pairs
+                e.st[(cid, pbcid)] = compute_tally2(zvotes)
+                for r in e.vids[cid]:
+                    e.sr[(cid, pbcid)][r] = len([rr for rr in rvotes if rr==r])
+                    e.nr[(cid, pbcid)][r] = len([bid for bid in e.bids[pbcid] if e.rv[(cid, pbcid)][bid] == r])
                 
 def compute_contest_risk(e, cid, st):
     """ 
@@ -433,11 +498,15 @@ def compute_contest_risk(e, cid, st):
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
                 # draw from posterior for each paper ballot collection, sum them
-                tally = st[(cid, pbcid)]  # tally from actual sample
-                for vid in tally:
-                    test_tally[vid] += tally[vid]     
-                    assert e.s[pbcid] > 0               # sample sizes should always be positive
-                    test_tally[vid] += gamma(tally[vid]) * (e.n[pbcid] - e.s[pbcid]) / e.s[pbcid]
+                # stratify by reported vote
+                for r in e.st[(cid, pbcid)]:
+                    tally = e.st[(cid, pbcid)][r]
+                    for vid in tally:
+                        test_tally[vid] += tally[vid]     
+                        if e.sr[(cid, pbcid)][r] > 0 and tally[vid]>0:
+                            test_tally[vid] += gamma(tally[vid]) * \
+                                               (e.nr[(cid, pbcid)][r] - e.sr[(cid, pbcid)][r]) / \
+                                                   e.sr[(cid, pbcid)][r]
         if e.ro[cid] != plurality(test_tally):
             wrong_outcome_count += 1
     e.risk[cid] = wrong_outcome_count/e.n_trials
@@ -531,15 +600,16 @@ def print_audit_stage_header(e, stage, last_s):
             
 def print_sample_counts(e):
 
-    print("    Total sample counts by contest, paper ballot collection, and vote:")
+    print("    Total sample counts by Contest.PaperBallotCollection[reported vote] and actual votes:")
     for cid in e.cids:
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
-                print("      {}.{}".format(cid, pbcid), end='')
-                tally = e.st[(cid, pbcid)]
-                for v in tally:
-                    print("  {}:{}".format(v, tally[v]), end='')
-                print("  total:{}".format(sum([tally[v] for v in tally])))
+                tally2 = e.st[(cid, pbcid)]
+                for r in sorted(tally2.keys()): # r = reported vote
+                    print("      {}.{}[{}]".format(cid, pbcid, r), end='')
+                    for v in sorted(tally2[r].keys()):
+                        print("  {}:{}".format(v, tally2[r][v]), end='')
+                print("  total:{}".format(sum([e.sr[(cid, pbcid)][r] for r in e.vids[cid]])))
 
 def print_audit_summary(e):
 
