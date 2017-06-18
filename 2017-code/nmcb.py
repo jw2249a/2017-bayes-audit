@@ -38,9 +38,9 @@ def election_structure(e):
     for cid in e.cids:                     # invalid votes for each contest
         e.ivids[cid] = ["Invalid", "Overvote", "Undervote", "Unknown"]
 
-    e.collection_type["PBC1"] = "noCVR"
-    e.collection_type["PBC2"] = "noCVR"
-    e.collection_type["PBC3"] = "noCVR"
+    e.collection_type["PBC1"] = "CVR"
+    e.collection_type["PBC2"] = "CVR"
+    e.collection_type["PBC3"] = "CVR"
 
 def election_data(e):
 

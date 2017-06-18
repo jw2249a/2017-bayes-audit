@@ -237,9 +237,10 @@ def compute_rv(e, cid, pbcid, bid, vid):
         return "Unknown"
     # Otherwise, we generate a reported vote
     m = len(e.vids[cid])          # number of vote options for this cid
-    if np.random.random()>error_rate or m==1:
+    if np.random.random()>e.error_rate or m==1:
         return vid                # no error is typical case
-    error_vids = (e.vids[cid].copy()).remove(vid)
+    error_vids = e.vids[cid].copy()
+    error_vids.remove(vid)
     return error_vids[int(np.random.random()*(m-1))]  # pick an error at random
 
 def compute_synthetic_votes(e):
@@ -484,7 +485,7 @@ def compute_contest_risk(e, cid, st):
     Return Bayesian risk (chance that reported outcome is wrong for cid).
     We take st here as argument rather than e.st so
     we can call compute_contest_risk with modified sample counts.
-    (This option not yet used.)
+    (This option not yet used, but might be later.)
 
     This is the heart of the Bayesian post-election audit method.
     But it could be replaced by a frequentist approach instead, at
@@ -502,7 +503,7 @@ def compute_contest_risk(e, cid, st):
                 for r in e.st[(cid, pbcid)]:
                     tally = e.st[(cid, pbcid)][r]
                     for vid in tally:
-                        test_tally[vid] += tally[vid]     
+                        test_tally[vid] += tally[vid]     # actual tally for vid with reported vote r
                         if e.sr[(cid, pbcid)][r] > 0 and tally[vid]>0:
                             test_tally[vid] += gamma(tally[vid]) * \
                                                (e.nr[(cid, pbcid)][r] - e.sr[(cid, pbcid)][r]) / \
@@ -609,7 +610,7 @@ def print_sample_counts(e):
                     print("      {}.{}[{}]".format(cid, pbcid, r), end='')
                     for v in sorted(tally2[r].keys()):
                         print("  {}:{}".format(v, tally2[r][v]), end='')
-                print("  total:{}".format(sum([e.sr[(cid, pbcid)][r] for r in e.vids[cid]])))
+                    print("  total:{}".format(e.sr[(cid, pbcid)][r]))
 
 def print_audit_summary(e):
 
