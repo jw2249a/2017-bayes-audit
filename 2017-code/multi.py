@@ -15,21 +15,20 @@ ballot in that collection has the same ballot type.  That is, every
 ballot in the collection shows the same set of contests.
 """
 
-import random
-random.seed(1)     # fix seed for reproducibility (make deterministic)
 import logging
+import numpy as np                
 
 import nmcb as test_election
 
 ##############################################################################
 ## Gamma distribution
 ##############################################################################
-# https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.stats.gamma.html
+# https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
 
-from scipy.stats import gamma
+from numpy.random import gamma
 
 # To generate random gamma variate with mean k:
-# gamma.rvs(k)
+# gamma(k)
 
 ##############################################################################
 ## Elections
@@ -41,14 +40,20 @@ class Election(object):
 
         e = self
 
-        # election structure
+        ### election structure
+        e.election_type = "Synthetic"  # string, either "Synthetic" or "Real"
+        e.synthetic_seed = 0 # seed for synthetic generation of random votes
         e.cids = []          # list of contest ids
         e.pbcids = []        # list of paper ballot collection ids
+        e.bids = dict()      # dict mapping pbcids to list of ballot ids
         e.rel = dict()       # dict mapping (cid, pbcid) pairs to True/False (relevance)
-        e.vids = dict()      # dict mapping cid to list of allowable votes (vids)(strings)
-        e.type = "Synthetic" # string, either "Synthetic" or "Real"
+        e.vvids = dict()     # dict mapping cid to list of valid (CANDIDATE) votes (vvids)(strings)
+        e.ivids = dict()     # dict mapping cid to list of invalid (NONCANDIDATE) votes (ivids) (strings),
+                             # must include "Invalid", "Overvote", "Undervote"
+        e.vids = dict()      # dict mapping cid to union of e.vvids[cid] and e.ivids[cid]
+        e.collection_type = dict()  # dict mapping pbcid to "CVR" or "noCVR"
 
-        # reported election results
+        ### reported election results
         e.n = dict()         # e.n[pbcid] number ballots cast in collection pbcid
         e.t = dict()         # dict mapping (cid, pbcid, vid) tuples to counts
         e.ro = dict()        # dict mapping cid to reported outcome
@@ -56,7 +61,8 @@ class Election(object):
         e.totcid = dict()    # dict mapping cid to total # votes cast in contest
         e.totvot = dict()    # dict mapping (cid, vid) pairs to number of votes recd
 
-        # audit
+        ### audit
+        e.audit_seed = 0      # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # mapping from cid to risk limit for that contest
         e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
         e.audit_rate = dict() # number of ballots that can be audited per day, by pbcid
@@ -64,10 +70,11 @@ class Election(object):
         e.contest_status = dict() # maps cid to one of \
                                   # "Auditing", "Just Watching", "Risk Limit Reached", "Full Recount Needed"
                                   # must be one of "Auditing" "Just Watching" initially
-        e.recount_threshold = 0.99 # if e.risk[cid] exceeds 0.99, then full recount called for cid
+        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95, then full recount called for cid
         e.n_trials = 40000    # number of trials used to estimate risk in compute_contest_risk
         # sample info
-        e.av = dict()         # dict mapping (cid, pbcid) pairs to list of actual votes for that
+        e.av = dict()         # dict mapping (cid, pbcid) pairs to 
+                              # dict mapping bids to actual votes for that
                               # contest in that paper ballot collection (sampled ballots)
         e.s = dict()          # e.s[pbcid] number ballots sampled in paper ballot collection pbcid
         # computed from the above
@@ -79,7 +86,9 @@ class Election(object):
 
 def finish_election_structure(e):
     """ Compute attributes of e that are derivative from others. """
-    pass
+
+    for cid in e.cids:
+        e.vids[cid] = (e.vvids[cid]+e.ivids[cid]).copy()
     
 def check_id(id):
     assert isinstance(id, str) and id.isprintable()
@@ -89,7 +98,7 @@ def check_id(id):
 
 def check_election_structure(e):
     
-    assert e.type in ["Synthetic", "Real"], e.type
+    assert e.election_type in ["Synthetic", "Real"], e.election_type
 
     assert isinstance(e.cids, (list, tuple))
     assert len(e.cids)>0
@@ -116,11 +125,36 @@ def check_election_structure(e):
         for vid in e.vids[cid]:
             assert isinstance(vid, str), vid
             check_id(vid)
+    for cid in e.cids:
+        assert cid in e.vids, cid
+
+    assert isinstance(e.ivids, dict)
+    for cid in e.ivids:
+        assert cid in e.cids, cid
+        assert isinstance(e.ivids[cid], (list, tuple))
+        for ivid in e.ivids[cid]:
+            assert isinstance(ivid, str), ivid
+            check_id(ivid)
+    for cid in e.cids:
+        assert cid in e.ivids, cid
+
+    for cid in e.cids:
+        for vvid in e.vvids[cid]:
+            for ivid in e.ivids[cid]:
+                assert vvid != ivid, (cid, vvid, ivid)
+
+    assert isinstance(e.collection_type, dict)
+    for pbcid in e.collection_type:
+        assert pbcid in e.pbcids, pbcid
+        assert e.collection_type[pbcid] in ["CVR", "noCVR"], \
+            e.collection_type[pbcid]
+    for pbcid in e.pbcids:
+        assert pbcid in e.collection_type, pbcid
 
 def print_election_structure(e):
     print("====== Election structure ======")
     print("Election type:")
-    print("    {}".format(e.type))
+    print("    {}".format(e.election_type))
     print("Number of contests:")
     print("    {}".format(len(e.cids)))
     print("e.cids (contest ids):")
@@ -142,7 +176,19 @@ def print_election_structure(e):
             if e.rel[(cid, pbcid)]:
                 print(pbcid, end=' ')
         print()
-    print("e.vids (allowable vote ids for each cid):")
+    print("e.vvids (valid vote ids for each cid):")
+    for cid in e.cids:
+        print("    {}: ".format(cid), end='')
+        for vvid in e.vvids[cid]:
+            print(vvid, end=' ')
+        print()
+    print("e.ivids (invalid vote ids for each cid):")
+    for cid in e.cids:
+        print("    {}: ".format(cid), end='')
+        for ivid in e.ivids[cid]:
+            print(ivid, end=' ')
+        print()
+    print("e.vids (valid or invalid vote ids for each cid):")
     for cid in e.cids:
         print("    {}: ".format(cid), end='')
         for vid in e.vids[cid]:
@@ -167,25 +213,41 @@ def finish_election_data(e):
         for vid in e.vids[cid]:
             e.totvot[(cid, vid)] = sum([e.t[(cid, pbcid, vid)] for pbcid in e.pbcids])
 
+
 def compute_synthetic_votes(e):
     """
     Make up actual votes and randomly permute their order.
     Only useful for test elections, not for real elections.
+    Form of bid is e.b. PBC1::576
     """
     
+    np.random.seed(e.synthetic_seed)
+    # make up bids
+    for pbcid in e.pbcids:
+        e.bids[pbcid] = list()
+        i = 0
+        for j in range(i, i+e.n[pbcid]):
+            bid = pbcid + "::" + "%d"%j
+            e.bids[pbcid].append(bid)
+        i += e.n[pbcid]
+    print(e.n)
+    # make up votes
     for cid in e.cids:
         # make up all votes first, so overall tally for cid is right
         votes = []
         for vid in e.vids[cid]:
             votes.extend([vid]*e.totvot[(cid, vid)])
-        random.shuffle(votes)
-        # break votes up into pieces by pbc
+        np.random.shuffle(votes)                     # in-place shuffle!
+        # break votes up into pieces by pbcid
         i = 0
         for pbcid in e.pbcids:
-            e.av[(cid, pbcid)] = []
+            e.av[(cid, pbcid)] = dict()
             if e.rel[(cid, pbcid)]:
-                e.av[(cid, pbcid)] = votes[i:i+e.n[pbcid]]
-                i = i + e.n[pbcid]
+                for j in range(e.n[pbcid]):
+                    bid = e.bids[pbcid][j]
+                    vid = votes[j]
+                    e.av[(cid, pbcid)][bid] = vid
+                i += e.n[pbcid]
 
 def check_election_data(e):
 
@@ -197,30 +259,51 @@ def check_election_data(e):
         assert isinstance(e.t[(cid, pbcid, vid)], int), (cid, pbcid, vid, e.t[(cid, pbcid, vid)])
         assert 0 <= e.t[(cid, pbcid, vid)] <= e.n[pbcid], (cid, pbcid, vid, e.t[(cid, pbcid, vid)], "e.t out of range")
         assert e.totvot[(cid, vid)] == sum([e.t[(cid, pbcid, vid)] for pbcid in e.pbcids])
+    for cid in e.cids:
+        for pbcid in e.pbcids:
+            for vid in e.vids[cid]:
+                assert (cid, pbcid, vid) in e.t, (cid, pbcid, vid)
 
     assert isinstance(e.totcid, dict)
     for cid in e.totcid:
         assert cid in e.cids, cid
         assert isinstance(e.totcid[cid], int), (cid, e.totcid[cid])
+    for cid in e.cids:
+        assert cid in e.totcid, cid
 
     assert isinstance(e.totvot, dict)
     for (cid, vid) in e.totvot:
         assert cid in e.cids, cid
         assert vid in e.vids[cid], (cid, vid)
         assert isinstance(e.totvot[(cid, vid)], int)
+    for cid in e.cids:
+        for vid in e.vids[cid]:
+            assert (cid, vid) in e.totvot, (cid, vid)
+
+    assert isinstance(e.bids, dict)
+    for pbcid in e.pbcids:
+        assert isinstance(e.bids[pbcid], list), pbcid
 
     assert isinstance(e.av, dict)
     for (cid, pbcid) in e.av:
         assert cid in e.cids, cid
         assert pbcid in e.pbcids, pbcid
-        assert isinstance(e.av[(cid, pbcid)], (list, tuple)), (cid, pbcid, e.av[(cid, pbcid)])
-        for vid in e.av[(cid, pbcid)]:
-            assert vid in e.vids[cid], vid
+        assert isinstance(e.av[(cid, pbcid)], dict), (cid, pbcid)
+        bidsset = set(e.bids[pbcid])
+        for bid in e.av[(cid, pbcid)]:
+            assert bid in bidsset, bid
+            assert e.av[(cid, pbcid)][bid] in e.vids[cid]
+    for cid in e.cids:
+        for pbcid in e.pbcids:
+            if e.rel[(cid, pbcid)]:
+                assert (cid, pbcid) in e.av
 
     assert isinstance(e.ro, dict)
     for cid in e.ro:
         assert cid in e.cids, cid
         assert e.ro[cid] in e.vids[cid], (cid, e.ro[cid])
+    for cid in e.cids:
+        assert cid in e.ro, cid
 
 def print_election_data(e):
 
@@ -246,11 +329,15 @@ def print_election_data(e):
             print("{}:{} ".format(vid, e.totvot[(cid, vid)]), end='')
         print()
 
-    print("e.av (first five actual votes cast for each cid and pbcid):")
+    print("e.av (first five or so actual votes cast for each cid and pbcid):")
     for cid in e.cids:
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
-                print("    {}.{}:".format(cid, pbcid), e.av[(cid, pbcid)][:5])
+                print("    {}.{}:".format(cid, pbcid), end='')
+                for j in range(min(5, len(e.bids[pbcid]))):
+                    bid = e.bids[pbcid][j]
+                    print(e.av[(cid, pbcid)][bid], end=' ')
+                print()
 
     print("e.ro (reported outcome for each cid):")
     for cid in e.cids:
@@ -295,7 +382,7 @@ def check_audit_parameters(e):
     assert isinstance(e.risk_limit, dict)
     for cid in e.risk_limit:
         assert cid in e.cids, cid
-        assert 0.0 <= e.risk_limit <= 1.0
+        assert 0.0 <= e.risk_limit[cid] <= 1.0
 
     assert isinstance(e.audit_rate, dict)
     for pbcid in e.audit_rate:
@@ -324,7 +411,8 @@ def draw_sample(e):
     for cid in e.cids:
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
-                e.st[(cid, pbcid)] = compute_tally(e.av[(cid, pbcid)][:e.s[pbcid]])
+                votes = [e.av[(cid, pbcid)][bid] for bid in e.bids[pbcid][:e.s[pbcid]]]
+                e.st[(cid, pbcid)] = compute_tally(votes)
                 
 def compute_contest_risk(e, cid, st):
     """ 
@@ -349,7 +437,7 @@ def compute_contest_risk(e, cid, st):
                 for vid in tally:
                     test_tally[vid] += tally[vid]     
                     assert e.s[pbcid] > 0               # sample sizes should always be positive
-                    test_tally[vid] += gamma.rvs(tally[vid]) * (e.n[pbcid] - e.s[pbcid]) / e.s[pbcid]
+                    test_tally[vid] += gamma(tally[vid]) * (e.n[pbcid] - e.s[pbcid]) / e.s[pbcid]
         if e.ro[cid] != plurality(test_tally):
             wrong_outcome_count += 1
     e.risk[cid] = wrong_outcome_count/e.n_trials
@@ -375,10 +463,10 @@ def compute_status(e, st):
         # Auditing because of any one of its pbc's, even if some of them aren't being
         # audited for a stage.
         if e.contest_status[cid] != "Just Watching":
-            if e.risk[cid] < e.risk_limit[cid]:
-                e.contest_status[cid] = "Risk Limit Reached"
-            elif all([e.n[pbcid]==e.s[pbcid] for pbcid in e.pbcids if e.rel[(cid, pbcid)]]):
+            if all([e.n[pbcid]==e.s[pbcid] for pbcid in e.pbcids if e.rel[(cid, pbcid)]]):
                 e.contest_status[cid] = "All Relevant Ballots Sampled"
+            elif e.risk[cid] < e.risk_limit[cid]:
+                e.contest_status[cid] = "Risk Limit Reached"
             elif e.risk[cid] > e.recount_threshold:
                 e.contest_status[cid] = "Full Recount Needed"
             else:
@@ -466,8 +554,12 @@ def print_audit_summary(e):
     
 def audit(e):
 
+    e.audit_seed = 3                      # TBD: generate randomly with dice!
+    np.random.seed(e.audit_seed)
+
     print_audit_parameters(e)
     print("====== Audit ======")
+
     for pbcid in e.pbcids:                           
         e.s[pbcid] = 0
     last_s = e.s
@@ -492,19 +584,19 @@ def main():
     e = Election()
 
     test_election.election_structure(e)
-    test_election.election_data(e)
-    test_election.audit_parameters(e)
-
     finish_election_structure(e)
     check_election_structure(e)
     print_election_structure(e)
 
+    test_election.election_data(e)
     finish_election_data(e)
-    if e.type == "Synthetic":
+    if e.election_type == "Synthetic":
+        print("Synthetic vote generation seed:", e.synthetic_seed)
         compute_synthetic_votes(e)
     check_election_data(e)
     print_election_data(e)
 
+    test_election.audit_parameters(e)
     audit(e)
 
 Logger = logging.getLogger()

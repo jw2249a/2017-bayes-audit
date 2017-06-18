@@ -9,7 +9,7 @@ Test election for testing Bayesian post-election audit code (multi.py)
 
 def election_structure(e):
 
-    e.type = "Synthetic"
+    e.election_type = "Synthetic"
 
     # four contests
     e.cids = ["I", "C1", "C2", "C3", "F23"]
@@ -29,39 +29,46 @@ def election_structure(e):
     e.rel[("C3", "PBC3")] = True           # C3 is only in PBC3
     e.rel[("F23", "PBC2")] = True          # F23 is in both PBC2 and PBC3
     e.rel[("F23", "PBC3")] = True
-    e.vids["I"] = ["0", "1"]                 # valid votes for each contest
-    e.vids["C1"] = ["0", "1"]
-    e.vids["C2"] = ["0", "1"]
-    e.vids["C3"] = ["0", "1"]
-    e.vids["F23"] = ["0", "1"]
+
+    e.vvids["I"] = ["0", "1"]              # valid votes for each contest
+    e.vvids["C1"] = ["0", "1"]
+    e.vvids["C2"] = ["0", "1"]
+    e.vvids["C3"] = ["0", "1"]
+    e.vvids["F23"] = ["0", "1"]
+    for cid in e.cids:                     # invalid votes for each contest
+        e.ivids[cid] = ["Invalid", "Overvote", "Undervote"]
+
+    e.collection_type["PBC1"] = "noCVR"
+    e.collection_type["PBC2"] = "noCVR"
+    e.collection_type["PBC3"] = "noCVR"
 
 def election_data(e):
 
     # 100000 ballots for each paper ballot collection
     for pbcid in e.pbcids:
-        e.n[pbcid] = 100000
+        e.n[pbcid] = 1000
 
     # e.t = vote totals for each cid pbcid vid combo
     for cid in e.cids:
         for pbcid in e.pbcids:
             for vid in e.vids[cid]:
                 e.t[(cid, pbcid, vid)] = 0
-    e.t[("I", "PBC1", "1")] = 50500           # I is in all counties (margin 1%)
-    e.t[("I", "PBC1", "0")] = 49500
-    e.t[("I", "PBC2", "1")] = 50500          
-    e.t[("I", "PBC2", "0")] = 49500
-    e.t[("I", "PBC3", "1")] = 50500          
-    e.t[("I", "PBC3", "0")] = 49500
-    e.t[("C1", "PBC1","1")] = 65000          # C1 is only in PBC1 (margin 30%)
-    e.t[("C1", "PBC1", "0")] = 35000
-    e.t[("C2", "PBC2", "1")] = 60000          # C2 is only in PBC2 (margin 20%)
-    e.t[("C2", "PBC2", "0")] = 40000
-    e.t[("C3", "PBC3", "1")] = 55000          # C3 is only in PBC3 (margin 10%)
-    e.t[("C3", "PBC3", "0")] = 45000
-    e.t[("F23", "PBC2", "1")] = 52500         # F23 is in both PBC2 and PBC3 (margin 5%)
-    e.t[("F23", "PBC2", "0")] = 47500
-    e.t[("F23", "PBC3", "1")] = 52500
-    e.t[("F23", "PBC3", "0")] = 47500
+    e.t[("I", "PBC1", "1")] = 505           # I is in all counties (margin 1%)
+    e.t[("I", "PBC1", "0")] = 495
+    e.t[("I", "PBC2", "1")] = 505          
+    e.t[("I", "PBC2", "0")] = 495
+    e.t[("I", "PBC3", "1")] = 505          
+    e.t[("I", "PBC3", "0")] = 495
+    e.t[("C1", "PBC1","1")] = 650          # C1 is only in PBC1 (margin 30%)
+    e.t[("C1", "PBC1", "0")] = 350
+    e.t[("C2", "PBC2", "1")] = 600          # C2 is only in PBC2 (margin 20%)
+    e.t[("C2", "PBC2", "0")] = 400
+    e.t[("C3", "PBC3", "1")] = 550          # C3 is only in PBC3 (margin 10%)
+    e.t[("C3", "PBC3", "0")] = 450
+    e.t[("F23", "PBC2", "1")] = 525         # F23 is in both PBC2 and PBC3 (margin 5%)
+    e.t[("F23", "PBC2", "0")] = 475
+    e.t[("F23", "PBC3", "1")] = 525
+    e.t[("F23", "PBC3", "0")] = 475
     
     # e.ro = reported outcomes for each cid (all correct here)
     e.ro["I"] = "1"                         
