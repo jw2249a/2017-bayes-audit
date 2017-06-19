@@ -24,11 +24,34 @@ import nmcb as test_election
 ## Gamma distribution
 ##############################################################################
 # https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
-
-from numpy.random import gamma
-
+# from numpy.random import gamma
 # To generate random gamma variate with mean k:
 # gamma(k)
+
+def gamma(k):
+    """ 
+    Return sample from gamma distribution with mean k.
+    Differs from standard one that it allows k==0, which returns 0.
+    """
+    if k>0:
+        return np.random.gamma(k)
+    return 0.0
+
+##############################################################################
+## Dirichlet distribution
+##############################################################################
+
+def dirichlet(tally):
+    """ 
+    Given tally dict mapping vote ids (vids) to reals (counts), return
+    dict mapping those vids to elements of Dirichlet distribution on
+    those vids, where tally values are Dirichlet hyperparameters.
+    The values produced sum to one.
+    """
+    dir = {vid: gamma(tally[vid]) for vid in tally}
+    total = sum(dir.values())
+    dir = {vid: dir[vid]/total for vid in dir}
+    return dir
 
 ##############################################################################
 ## Elections
@@ -42,14 +65,14 @@ class Election(object):
 
         ### election structure
         e.election_type = "Synthetic"  # string, either "Synthetic" or "Real"
-        e.synthetic_seed = 7 # seed for synthetic generation of random votes
+        e.synthetic_seed = 8 # seed for synthetic generation of random votes
         e.cids = []          # list of contest ids
         e.pbcids = []        # list of paper ballot collection ids
         e.bids = dict()      # dict mapping pbcids to lists of ballot ids
         e.rel = dict()       # dict mapping (cid, pbcid) pairs to True/False (relevance)
         e.vvids = dict()     # dict mapping cid to list of valid (CANDIDATE) votes (vvids)(strings)
         e.ivids = dict()     # dict mapping cid to list of invalid (NONCANDIDATE) votes (ivids) (strings),
-                             # must include "Invalid", "Overvote", "Undervote", and "Unknown"
+                             # must include "Invalid", "Overvote", "Undervote", and "noCVR"
         e.vids = dict()      # dict mapping cid to union of e.vvids[cid] and e.ivids[cid]
                              # note that e.vids is used for both reported votes (e.rv) and
                              # for actual votes (e.av)
@@ -69,7 +92,7 @@ class Election(object):
         e.error_rate = 0.0001  # error rate used in model for generating synthetic reported votes
 
         ### audit
-        e.audit_seed = 1      # seed for pseudo-random number generation for audit
+        e.audit_seed = 2      # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # mapping from cid to risk limit for that contest
         e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
         e.audit_rate = dict() # number of ballots that can be audited per day, by pbcid
@@ -103,7 +126,7 @@ def check_id(id):
     assert isinstance(id, str) and id.isprintable()
     for c in id:
         if c.isspace():
-            Logger.warning("check_id warning: id should not contain whitespace: {}".format(id))
+            Logger.warning("check_id warning: id should not contain whitespace: `{}'".format(id))
 
 def check_election_structure(e):
     
@@ -178,6 +201,9 @@ def print_election_structure(e):
     for pbcid in e.pbcids:
         print(pbcid, end=' ')
     print()
+    print("e.collection_type (either CVR or noCVR) for each pbcid:")
+    for pbcid in e.pbcids:
+        print("    {}:{} ".format(pbcid, e.collection_type[pbcid]))
     print("e.rel (valid pbcids for each cid):")
     for cid in e.cids:
         print("    {}: ".format(cid), end='')
@@ -233,8 +259,8 @@ def compute_rv(e, cid, pbcid, bid, vid):
     other possibilities are equally likely to occur.
     """
     if e.collection_type[pbcid]=="noCVR":
-        assert "Unknown" in e.vids[cid], cid   # assume Unknown is legit
-        return "Unknown"
+        assert "noCVR" in e.vids[cid], cid   # assume noCVR is legit vid
+        return "noCVR"
     # Otherwise, we generate a reported vote
     m = len(e.vids[cid])          # number of vote options for this cid
     if np.random.random()>e.error_rate or m==1:
@@ -259,7 +285,6 @@ def compute_synthetic_votes(e):
             bid = pbcid + "::" + "%d"%j
             e.bids[pbcid].append(bid)
         i += e.n[pbcid]
-    print(e.n)
     # make up votes
     for cid in e.cids:
         # make up all votes first, so overall tally for cid is right
@@ -405,8 +430,8 @@ def compute_tally(vec):
 
 def compute_tally2(vec):
     """
-    Here vec is an iterable of (a, r) pairs. 
-    (actual vote, reported vote) pairs
+    Input vec is an iterable of (a, r) pairs. 
+    (i.e., (actual vote, reported vote) pairs).
     Return dict giving mapping from r to dict
     giving tally of a's that appear with that r.
     """
@@ -460,10 +485,12 @@ def draw_sample(e):
 
     Draw sample is in quotes since it just looks at the first
     e.s[pbcid] elements of e.av[(cid, pbcid)].
+    Code sets e.sr[(cid, pbcid)][r] to number in sample with reported vote r.
+    Code sets e.nr[(cid, pbcid)][r] to number in pbcid with reported vote r.
 
-    Note that in real life actual sampling might be different than planned;
+    Code sets e.s to number of ballots sampled in each pbc (equal to plan).
+    Note that in real life actual sampling number might be different than planned;
     here it will be the same.  But code elsewhere allows for such differences.
-    Code sets e.s to number of ballots sampled in each pbc.
     """
 
     e.s = e.plan
@@ -478,11 +505,12 @@ def draw_sample(e):
                 e.st[(cid, pbcid)] = compute_tally2(zvotes)
                 for r in e.vids[cid]:
                     e.sr[(cid, pbcid)][r] = len([rr for rr in rvotes if rr==r])
-                    e.nr[(cid, pbcid)][r] = len([bid for bid in e.bids[pbcid] if e.rv[(cid, pbcid)][bid] == r])
+                    e.nr[(cid, pbcid)][r] = len([bid for bid in e.bids[pbcid] \
+                                                 if e.rv[(cid, pbcid)][bid] == r])
                 
 def compute_contest_risk(e, cid, st):
     """ 
-    Return Bayesian risk (chance that reported outcome is wrong for cid).
+    Compute Bayesian risk (chance that reported outcome is wrong for cid).
     We take st here as argument rather than e.st so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later.)
@@ -491,23 +519,31 @@ def compute_contest_risk(e, cid, st):
     But it could be replaced by a frequentist approach instead, at
     least for those outcome rules and mixes of collection types for
     which a frequentist method is known.
+
+    The comparison and ballot-polling audits are blended here; the
+    data just records an "noCVR" for the reported type of each vote
+    in a noCVR paper ballot collection.
     """
 
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
-        test_tally = {vid:0 for vid in e.vids[cid]}
+        test_tally = {vid:0 for vid in e.vids[cid]} 
         for pbcid in e.pbcids:
             if e.rel[(cid, pbcid)]:
                 # draw from posterior for each paper ballot collection, sum them
                 # stratify by reported vote
                 for r in e.st[(cid, pbcid)]:
-                    tally = e.st[(cid, pbcid)][r]
+                    tally = e.st[(cid, pbcid)][r].copy()
+                    for vid in e.vids[cid]:
+                        tally[vid] = tally.get(vid, 0)
+                    for vid in tally:
+                        tally[vid] += 0.5  # Jeffrey's prior
+                    dirichlet_dict = dirichlet(tally)
+                    nonsample_size = e.nr[(cid, pbcid)][r] - e.sr[(cid, pbcid)][r]
                     for vid in tally:
                         test_tally[vid] += tally[vid]     # actual tally for vid with reported vote r
-                        if e.sr[(cid, pbcid)][r] > 0 and tally[vid]>0:
-                            test_tally[vid] += gamma(tally[vid]) * \
-                                               (e.nr[(cid, pbcid)][r] - e.sr[(cid, pbcid)][r]) / \
-                                                   e.sr[(cid, pbcid)][r]
+                        if e.sr[(cid, pbcid)][r] > 0:
+                            test_tally[vid] += dirichlet_dict[vid] * nonsample_size
         if e.ro[cid] != plurality(test_tally):
             wrong_outcome_count += 1
     e.risk[cid] = wrong_outcome_count/e.n_trials
@@ -625,7 +661,7 @@ def print_audit_summary(e):
     
 def audit(e):
 
-    e.audit_seed = 11                      # TBD: generate randomly with dice!
+    e.audit_seed = 12                      # TBD: generate randomly with dice!
     np.random.seed(e.audit_seed)
 
     print_audit_parameters(e)

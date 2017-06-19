@@ -17,6 +17,10 @@ def election_structure(e):
     # three paper ballot collections
     e.pbcids = ["PBC1", "PBC2", "PBC3"]
 
+    e.collection_type["PBC1"] = "noCVR"
+    e.collection_type["PBC2"] = "noCVR"
+    e.collection_type["PBC3"] = "noCVR"
+
     # Structure
     for cid in e.cids:
         for pbcid in e.pbcids:
@@ -36,11 +40,12 @@ def election_structure(e):
     e.vvids["C3"] = ["0", "1"]
     e.vvids["F23"] = ["0", "1"]
     for cid in e.cids:                     # invalid votes for each contest
-        e.ivids[cid] = ["Invalid", "Overvote", "Undervote", "Unknown"]
-
-    e.collection_type["PBC1"] = "CVR"
-    e.collection_type["PBC2"] = "CVR"
-    e.collection_type["PBC3"] = "CVR"
+        e.ivids[cid] = ["Invalid", "Overvote", "Undervote"]
+    for cid in e.cids:
+        if any([e.collection_type[pbcid]=="noCVR" \
+                for pbcid in e.pbcids
+                if e.rel[(cid, pbcid)]]):
+            e.ivids[cid].append("noCVR")
 
 def election_data(e):
 
@@ -85,8 +90,8 @@ def audit_parameters(e):
     e.risk_limit["C3"] = 0.05
     e.risk_limit["F23"] = 0.10  
     e.audit_rate["PBC1"] = 40    # max rate/stage for auditing ballots by pbcid
-    e.audit_rate["PBC2"] = 60 
-    e.audit_rate["PBC3"] = 80
+    e.audit_rate["PBC2"] = 50 
+    e.audit_rate["PBC3"] = 60
 
     # Each contest status should be "Auditing" or "Just Watching"
     e.contest_status["I"] = "Auditing"
