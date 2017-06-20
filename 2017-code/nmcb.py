@@ -23,16 +23,15 @@ def election_structure(e):
 
     # Structure
     for cid in e.cids:
-        for pbcid in e.pbcids:
-            e.rel[(cid, pbcid)] = False    # default
-    e.rel[("I", "PBC1")] = True            # I is in all counties
-    e.rel[("I", "PBC2")] = True          
-    e.rel[("I", "PBC3")] = True          
-    e.rel[("C1", "PBC1")] = True           # C1 is only in PBC1
-    e.rel[("C2", "PBC2")] = True           # C2 is only in PBC2
-    e.rel[("C3", "PBC3")] = True           # C3 is only in PBC3
-    e.rel[("F23", "PBC2")] = True          # F23 is in both PBC2 and PBC3
-    e.rel[("F23", "PBC3")] = True
+        e.rel[cid] = dict()
+    e.rel["I"]["PBC1"] = True            # I is in all counties
+    e.rel["I"]["PBC2"] = True          
+    e.rel["I"]["PBC3"] = True          
+    e.rel["C1"]["PBC1"] = True           # C1 is only in PBC1
+    e.rel["C2"]["PBC2"] = True           # C2 is only in PBC2
+    e.rel["C3"]["PBC3"] = True           # C3 is only in PBC3
+    e.rel["F23"]["PBC2"] = True          # F23 is in both PBC2 and PBC3
+    e.rel["F23"]["PBC3"] = True
 
     e.vvids["I"] = ["0", "1"]              # valid votes for each contest
     e.vvids["C1"] = ["0", "1"]
@@ -43,8 +42,7 @@ def election_structure(e):
         e.ivids[cid] = ["Invalid", "Overvote", "Undervote"]
     for cid in e.cids:
         if any([e.collection_type[pbcid]=="noCVR" \
-                for pbcid in e.pbcids
-                if e.rel[(cid, pbcid)]]):
+                for pbcid in e.rel[cid]]):
             e.ivids[cid].append("noCVR")
 
 def election_data(e):
@@ -55,25 +53,27 @@ def election_data(e):
 
     # e.t = vote totals for each cid pbcid vid combo
     for cid in e.cids:
+        e.t[cid] = dict()
         for pbcid in e.pbcids:
+            e.t[cid][pbcid] = dict()
             for vid in e.vids[cid]:
-                e.t[(cid, pbcid, vid)] = 0
-    e.t[("I", "PBC1", "1")] = 5050           # I is in all counties (margin 1%)
-    e.t[("I", "PBC1", "0")] = 4950
-    e.t[("I", "PBC2", "1")] = 5050          
-    e.t[("I", "PBC2", "0")] = 4950
-    e.t[("I", "PBC3", "1")] = 5050          
-    e.t[("I", "PBC3", "0")] = 4950
-    e.t[("C1", "PBC1","1")] = 6500          # C1 is only in PBC1 (margin 30%)
-    e.t[("C1", "PBC1", "0")] = 3500
-    e.t[("C2", "PBC2", "1")] = 6000          # C2 is only in PBC2 (margin 20%)
-    e.t[("C2", "PBC2", "0")] = 4000
-    e.t[("C3", "PBC3", "1")] = 5500          # C3 is only in PBC3 (margin 10%)
-    e.t[("C3", "PBC3", "0")] = 4500
-    e.t[("F23", "PBC2", "1")] = 5250         # F23 is in both PBC2 and PBC3 (margin 5%)
-    e.t[("F23", "PBC2", "0")] = 4750
-    e.t[("F23", "PBC3", "1")] = 5250
-    e.t[("F23", "PBC3", "0")] = 4750
+                e.t[cid][pbcid][vid] = 0
+    e.t["I"]["PBC1"]["1"] = 5050           # I is in all counties (margin 1%)
+    e.t["I"]["PBC1"]["0"] = 4950
+    e.t["I"][ "PBC2"]["1"] = 5050          
+    e.t["I"]["PBC2"]["0"] = 4950
+    e.t["I"]["PBC3"]["1"] = 5050          
+    e.t["I"]["PBC3"]["0"] = 4950
+    e.t["C1"]["PBC1"]["1"] = 6500          # C1 is only in PBC1 (margin 30%)
+    e.t["C1"]["PBC1"]["0"] = 3500
+    e.t["C2"]["PBC2"]["1"] = 6000          # C2 is only in PBC2 (margin 20%)
+    e.t["C2"]["PBC2"]["0"] = 4000
+    e.t["C3"]["PBC3"]["1"] = 5500          # C3 is only in PBC3 (margin 10%)
+    e.t["C3"]["PBC3"]["0"] = 4500
+    e.t["F23"]["PBC2"]["1"] = 5250         # F23 is in both PBC2 and PBC3 (margin 5%)
+    e.t["F23"]["PBC2"]["0"] = 4750
+    e.t["F23"]["PBC3"]["1"] = 5250
+    e.t["F23"]["PBC3"]["0"] = 4750
     
     # e.ro = reported outcomes for each cid (all correct here)
     e.ro["I"] = "1"                         
