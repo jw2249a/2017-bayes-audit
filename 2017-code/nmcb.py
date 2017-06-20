@@ -1,6 +1,6 @@
 # nmcb.py
 # Ronald L. Rivest
-# Jun 17, 2017
+# Jun 19, 2017
 # python3
 
 """
@@ -17,9 +17,9 @@ def election_structure(e):
     # three paper ballot collections
     e.pbcids = ["PBC1", "PBC2", "PBC3"]
 
-    e.collection_type["PBC1"] = "noCVR"
-    e.collection_type["PBC2"] = "noCVR"
-    e.collection_type["PBC3"] = "noCVR"
+    e.collection_type["PBC1"] = "CVR"
+    e.collection_type["PBC2"] = "CVR"
+    e.collection_type["PBC3"] = "CVR"
 
     # Structure
     for cid in e.cids:
@@ -92,6 +92,8 @@ def audit_parameters(e):
     e.audit_rate["PBC1"] = 40    # max rate/stage for auditing ballots by pbcid
     e.audit_rate["PBC2"] = 50 
     e.audit_rate["PBC3"] = 60
+
+    e.pseudocount = 0.5
 
     # Each contest status should be "Auditing" or "Just Watching"
     e.contest_status["I"] = "Auditing"

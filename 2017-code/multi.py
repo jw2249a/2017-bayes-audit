@@ -97,6 +97,7 @@ class Election(object):
         e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
         e.audit_rate = dict() # number of ballots that can be audited per day, by pbcid
         e.plan = dict()       # desired size of sample after next draw, by pbcid
+        e.pseudocount = 0.5   # hyperparameter for prior distribution (e.g. 0.5 for Jeffrey's distribution)
         e.contest_status = dict() # maps cid to one of \
                                   # "Auditing", "Just Watching", "Risk Limit Reached", "Full Recount Needed"
                                   # must be one of "Auditing" "Just Watching" initially
@@ -537,7 +538,7 @@ def compute_contest_risk(e, cid, st):
                     for vid in e.vids[cid]:
                         tally[vid] = tally.get(vid, 0)
                     for vid in tally:
-                        tally[vid] += 0.5  # Jeffrey's prior
+                        tally[vid] += e.pseudocount
                     dirichlet_dict = dirichlet(tally)
                     nonsample_size = e.nr[(cid, pbcid)][r] - e.sr[(cid, pbcid)][r]
                     for vid in tally:
@@ -627,6 +628,9 @@ def print_audit_parameters(e):
 
     print("e.n_trials (number of trials used to estimate risk in compute_contest_risk):")
     print("    {}".format(e.n_trials))
+
+    print("e.pseudocount (hyperparameter for prior distribution, e.g. 0.5 for Jeffrey's prior)")
+    print("    {}".format(e.pseudocount))
 
 def print_audit_stage_header(e, stage, last_s):
 
