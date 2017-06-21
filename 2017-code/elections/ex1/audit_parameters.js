@@ -6,9 +6,9 @@
                  "C3": 0.05,
                  "F23": 0.10},
 
-  "audit_rate": {"PBC1": 40,
-                 "PBC2": 50,
-                 "PBC3": 60},
+  "audit_rate": {"PBC1": 20,
+                 "PBC2": 25,
+                 "PBC3": 30},
 
   "pseudocount": 0.001,
 
