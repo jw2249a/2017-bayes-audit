@@ -6,7 +6,7 @@
 """
 Prototype code for auditing an election having both multiple contests and
 multiple paper ballot collections (e.g. multiple jurisdictions).
-Relevant to Colorado state-wide post-election audits in 2017.
+Possibly relevant to Colorado state-wide post-election audits in 2017.
 """
 
 """
@@ -15,11 +15,16 @@ ballot in that collection has the same ballot type.  That is, every
 ballot in the collection shows the same set of contests.
 """
 
+""" 
+This code corresponds to the what Audit Central needs to do.
+"""
+
+# MIT License
+
 import json
 import logging
 import numpy as np                
-
-import nmcb as test_election
+import os
 
 ##############################################################################
 ## Gamma distribution
@@ -34,9 +39,9 @@ def gamma(k):
     Return sample from gamma distribution with mean k.
     Differs from standard one that it allows k==0, which returns 0.
     """
-    if k>0:
-        return np.random.gamma(k)
-    return 0.0
+    if k<=0.0:
+        return 0.0
+    return np.random.gamma(k)
 
 ##############################################################################
 ## Dirichlet distribution
@@ -93,14 +98,19 @@ class Election(object):
         e.cids = []          # [cids]           list of contest ids
         e.pbcids = []        # [pcbids]         list of paper ballot collection ids
         e.bids = dict()      # pbcid-->[bids]   list of ballot ids for each pcbid
-        e.rel = dict()       # cid-->pbcid-->True   (relevance; only relevant pbcids in e.rel[cid])
-        e.vvids = dict()     # dict mapping cid to list of valid (CANDIDATE) votes (vvids)(strings)
-        e.ivids = dict()     # dict mapping cid to list of invalid (NONCANDIDATE) votes (ivids) (strings),
-                             # must include "Invalid", "Overvote", "Undervote", and "noCVR"
-        e.vids = dict()      # dict mapping cid to union of e.vvids[cid] and e.ivids[cid]
-                             # note that e.vids is used for both reported votes (e.rv) and
-                             # for actual votes (e.av)
-        e.collection_type = dict()  # dict mapping pbcid to "CVR" or "noCVR"
+        e.rel = dict()       # cid-->pbcid-->"True"
+                             # (relevance; only relevant pbcids in e.rel[cid])
+        e.vvids = dict()     # cid-->[vids]   givs list of valid (CANDIDATE) votes
+                             # (which are strings)
+        e.ivids = dict()     # cid-->[vids]  gives list of invalid (NONCANDIDATE)
+                             # votes (which are strings),
+                             # must include "Invalid", "Overvote", "Undervote",
+                             # and possibly "noCVR" (for noCVR pbcs)
+        e.vids = dict()      # cid-->[vids]
+                             # maps cid to union of e.vvids[cid] and e.ivids[cid]
+                             # note that e.vids is used for both reported votes
+                             # (e.rv) and for actual votes (e.av)
+        e.collection_type = dict()  # pbcid--> "CVR" or "noCVR"
 
         ### reported election results
         e.n = dict()         # e.n[pbcid] number ballots cast in collection pbcid
@@ -111,28 +121,39 @@ class Election(object):
         e.totvot = dict()    # cid-->vid--> reals    (number of votes recd)
         e.rv = dict()        # cid-->pbcid-->bid-->[vids]     (reported votes)
                              # e.rv is like e.av (reported votes; actual votes)
-        e.error_rate = 0.0001  # error rate used in model for generating synthetic reported votes
+        e.error_rate = 0.0001  # error rate used in model for generating
+                               # synthetic reported votes
 
         ### audit
         e.audit_seed = 2      # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # mapping from cid to risk limit for that contest
         e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
-        e.audit_rate = dict() # number of ballots that can be audited per day, by pbcid
+        e.audit_rate = dict() # number of ballots that can be audited per day,
+                              # by pbcid
         e.plan = dict()       # desired size of sample after next draw, by pbcid
-        e.pseudocount = 0.5   # hyperparameter for prior distribution (e.g. 0.5 for Jeffrey's distribution)
+        e.pseudocount = 0.5   # hyperparameter for prior distribution
+                              # (e.g. 0.5 for Jeffrey's distribution)
         e.contest_status = dict() # maps cid to one of \
-                                  # "Auditing", "Just Watching", "Risk Limit Reached", "Full Recount Needed"
-                                  # must be one of "Auditing" "Just Watching" initially
-        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95, then full recount called for cid
-        e.n_trials = 100000   # number of trials used to estimate risk in compute_contest_risk
+                                  # "Auditing", "Just Watching",
+                                  # "Risk Limit Reached", "Full Recount Needed"
+                                  # must be one of "Auditing" "Just Watching"
+                                  # initially
+        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
+                                   # then full recount called for cid
+        e.n_trials = 100000   # number of trials used to estimate risk
+                              # in compute_contest_risk
         # sample info
-        e.av = dict()         # cid-->pbcid-->bid-->vid   (actual votes; sampled ballots)
-        e.s = dict()          # e.s[pbcid] number ballots sampled in paper ballot collection pbcid
+        e.av = dict()         # cid-->pbcid-->bid-->vid
+                              # (actual votes; sampled ballots)
+        e.s = dict()          # e.s[pbcid] number ballots sampled so far
+                              # in paper ballot collection pbcid
         # computed from the above
         e.st = dict()         # cid-->pbcid-->vid-->vid-->count
                               # (first vid is reported vote, second is actual vote)
-        e.sr = dict()         # cid-->pbcid-->vid-->count  (vid is reported vote in sample)
-        e.nr = dict()         # cid-->pbcid-->vid-->count  (vid is reported vote in whole pbcid)
+        e.sr = dict()         # cid-->pbcid-->vid-->count
+                              # (vid is reported vote in sample)
+        e.nr = dict()         # cid-->pbcid-->vid-->count
+                              # (vid is reported vote in whole pbcid)
 
 ##############################################################################
 ## Election structure I/O and validation
@@ -212,7 +233,7 @@ def check_election_structure(e):
     for pbcid in e.pbcids:
         assert pbcid in e.collection_type, pbcid
 
-def print_election_structure(e):
+def show_election_structure(e):
     print("====== Election structure ======")
     print("Election type:")
     print("    {}".format(e.election_type))
@@ -275,8 +296,8 @@ def finish_election_data(e):
     for cid in e.cids:
         e.totvot[cid] = dict()
         for vid in e.vids[cid]:
-            e.totvot[cid][vid] = sum([e.t[cid][pbcid][vid] for pbcid in e.pbcids])
-
+            e.totvot[cid][vid] = \
+                sum([e.t[cid][pbcid].get(vid, 0) for pbcid in e.rel[cid]])
 
 def compute_rv(e, cid, pbcid, bid, vid):
     """
@@ -349,13 +370,14 @@ def check_election_data(e):
                 assert 0 <= e.t[cid][pbcid][vid] <= e.n[pbcid], \
                     (cid, pbcid, vid, e.t[cid][pbcid][vid], "e.t out of range")
                 assert e.totvot[cid][vid] == \
-                    sum([e.t[cid][pbcid][vid] for pbcid in e.pbcids])
+                    sum([e.t[cid][pbcid][vid] for pbcid in e.rel[cid]])
     for cid in e.cids:
         assert cid in e.t, cid
-        for pbcid in e.pbcids:
+        for pbcid in e.rel[cid]:
             assert pbcid in e.t[cid], (cid, pbcid)
-            for vid in e.vids[cid]:
-                assert vid in e.t[cid][pbcid], (cid, pbcid, vid)
+            # for vid in e.vids[cid]:
+            #     assert vid in e.t[cid][pbcid], (cid, pbcid, vid)
+            # ## not necessary, since missing vids have t of 0
 
     assert isinstance(e.totcid, dict)
     for cid in e.totcid:
@@ -416,7 +438,7 @@ def check_election_data(e):
     for cid in e.cids:
         assert cid in e.ro, cid
 
-def print_election_data(e):
+def show_election_data(e):
 
     print("====== Reported election data ======")
 
@@ -425,7 +447,7 @@ def print_election_data(e):
         for pbcid in e.rel[cid]:
             print("    {}.{}: ".format(cid, pbcid), end='')
             for vid in e.vids[cid]:
-                print("{}:{} ".format(vid, e.t[cid][pbcid][vid]), end='')
+                print("{}:{} ".format(vid, e.t[cid][pbcid].get(vid, 0)), end='')
             print()
 
     print("e.totcid (total votes cast for each cid):")
@@ -620,7 +642,7 @@ def compute_status(e, st):
         
     e.election_status = sorted(list(set([e.contest_status[cid] for cid in e.cids])))
 
-def print_status(e):
+def show_status(e):
     """ 
     Print election and contest status info.
     """
@@ -648,7 +670,7 @@ def plan_sample(e):
                 plan[pbcid] = min(e.s[pbcid] + e.audit_rate[pbcid], e.n[pbcid])
     return plan
 
-def print_audit_parameters(e):
+def show_audit_parameters(e):
 
     print("====== Audit parameters ======")
 
@@ -670,14 +692,14 @@ def print_audit_parameters(e):
     print("e.pseudocount (hyperparameter for prior distribution, e.g. 0.5 for Jeffrey's prior)")
     print("    {}".format(e.pseudocount))
 
-def print_audit_stage_header(e, stage, last_s):
+def show_audit_stage_header(e, stage, last_s):
 
     print("audit stage", stage)
     print("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
         print("      {}: {} (+{})".format(pbcid, e.plan[pbcid], e.plan[pbcid]-last_s[pbcid]))
             
-def print_sample_counts(e):
+def show_sample_counts(e):
 
     print("    Total sample counts by Contest.PaperBallotCollection[reported vote] and actual votes:")
     for cid in e.cids:
@@ -689,7 +711,7 @@ def print_sample_counts(e):
                     print("  {}:{}".format(v, tally2[r][v]), end='')
                 print("  total:{}".format(e.sr[cid][pbcid][r]))
 
-def print_audit_summary(e):
+def show_audit_summary(e):
 
     print("=============")
     print("Audit completed!")
@@ -705,7 +727,7 @@ def audit(e):
     e.audit_seed = 12                      # TBD: generate randomly with dice!
     np.random.seed(e.audit_seed)
 
-    print_audit_parameters(e)
+    show_audit_parameters(e)
     print("====== Audit ======")
 
     for pbcid in e.pbcids:                           
@@ -716,12 +738,12 @@ def audit(e):
         draw_sample(e)
         compute_status(e, e.st)
 
-        print_audit_stage_header(e, stage, last_s)
-        print_sample_counts(e)
-        print_status(e)
+        show_audit_stage_header(e, stage, last_s)
+        show_sample_counts(e)
+        show_status(e)
 
         if "Auditing" not in e.election_status:
-            print_audit_summary(e)
+            show_audit_summary(e)
             break
 
         e.plan = plan_sample(e)
@@ -731,23 +753,54 @@ def main():
 
     e = Election()
 
-    test_election.election_structure(e)
+    e.election_name = "ex1"
+
+    load_part_from_json(e, "structure.js")
     finish_election_structure(e)
     check_election_structure(e)
-    print_election_structure(e)
+    show_election_structure(e)
 
-    test_election.election_data(e)
+    load_part_from_json(e, "data.js")
     finish_election_data(e)
     if e.election_type == "Synthetic":
         print("Synthetic vote generation seed:", e.synthetic_seed)
         compute_synthetic_votes(e)
     check_election_data(e)
-    print_election_data(e)
+    show_election_data(e)
 
-    test_election.audit_parameters(e)
+    load_part_from_json(e, "audit_parameters.js")
+    check_audit_parameters(e)
     audit(e)
 
     # print(json.dumps(e.__dict__))
+
+def copy_dict_tree(dest, source):
+    """
+    Copy data from source dict tree to dest dict tree.
+    """
+    if not isinstance(dest, dict) or not isinstance(source, dict):
+        print("copy_dict_tree: source or dest is not a dict.")
+        return
+    for source_key in source:
+        if not source_key.startswith("__"):   # for comments, etc.
+            if isinstance(source[source_key], dict):
+                if not source_key in dest:
+                    dest_dict = dict()
+                    dest[source_key] = dest_dict
+                else:
+                    dest_dict = dest[source_key]
+                source_dict = source[source_key]
+                copy_dict_tree(dest_dict, source_dict)
+            else:
+                dest[source_key] = source[source_key]
+
+def load_part_from_json(e, part_name):
+    part_filename = os.path.join("./elections", e.election_name, part_name)
+    part = json.load(open(part_filename, "r"))
+    print("File {} loaded.".format(part_filename))
+    copy_dict_tree(e.__dict__, part)
+    print("Copied.")
+    print(e.__dict__)
 
 Logger = logging.getLogger()
 main()    
