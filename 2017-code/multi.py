@@ -649,7 +649,7 @@ def show_status(e):
 
     print("    Risk (that reported outcome is wrong) per cid and contest status:")
     for cid in e.cids:
-        print("      ", cid, e.risk[cid], \
+        print("     ", cid, e.risk[cid], \
               "(limit {})".format(e.risk_limit[cid]), \
               e.contest_status[cid])
     print("    Election status:", e.election_status)
@@ -797,10 +797,8 @@ def copy_dict_tree(dest, source):
 def load_part_from_json(e, part_name):
     part_filename = os.path.join("./elections", e.election_name, part_name)
     part = json.load(open(part_filename, "r"))
-    print("File {} loaded.".format(part_filename))
     copy_dict_tree(e.__dict__, part)
-    print("Copied.")
-    print(e.__dict__)
+    print("File {} loaded.".format(part_filename))
 
 Logger = logging.getLogger()
 main()    
