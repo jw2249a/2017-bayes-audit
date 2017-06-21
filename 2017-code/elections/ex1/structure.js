@@ -14,14 +14,14 @@
 
   "__comment": "=====STRUCTURE=====",
   "rel": {
-      "I": {"PBC1": "True",
-            "PBC2": "True",
-            "PBC3": "True"},
-      "C1": {"PBC1": "True"},
-      "C2": {"PBC2": "True"},
-      "C3": {"PBC3": "True"},
-      "F23": {"PBC2": "True",
-              "PBC3": "True"}},
+      "I": {"PBC1": true,
+            "PBC2": true,
+            "PBC3": true},
+      "C1": {"PBC1": true},
+      "C2": {"PBC2": true},
+      "C3": {"PBC3": true},
+      "F23": {"PBC2": true,
+              "PBC3": true}},
 
   "__comment": "valid votes for each contest (can win)",
   "vvids": {"I": ["0", "1"],
