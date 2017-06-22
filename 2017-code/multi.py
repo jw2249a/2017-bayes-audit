@@ -154,6 +154,7 @@ class Election(object):
         e.audit_seed = None   # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # cid-->reals  (risk limit for that contest)
         e.audit_rate = dict() # pbcid-->int  (# ballots that can be audited per stage)
+        e.max_stages = 100    # maximum number of stages allowed in audit
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
         e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
@@ -736,7 +737,7 @@ def show_audit_stage_header(e, stage, last_s):
 def show_sample_counts(e):
 
     myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
-          "and actual votes:")
+            "and actual votes:")
     for cid in e.cids:
         for pbcid in e.rel[cid]:
             tally2 = e.st[cid][pbcid]
@@ -770,22 +771,26 @@ def audit(e):
 
     for pbcid in e.pbcids:                           
         e.s[pbcid] = 0
-    last_s = e.s
+    e.last_s = e.s
     e.plan = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
-    for stage in range(1, 1000):
-        draw_sample(e)
-        compute_status(e, e.st)
-
-        show_audit_stage_header(e, stage, last_s)
-        show_sample_counts(e)
-        show_status(e)
-
+    
+    for stage in range(1, e.max_stages):
+        audit_stage(e, stage)
         if "Auditing" not in e.election_status:
             show_audit_summary(e)
             break
-
         e.plan = plan_sample(e)
-        last_s = e.s
+        e.last_s = e.s
+
+def audit_stage(e, stage):
+
+    draw_sample(e)
+    compute_status(e, e.st)
+
+    show_audit_stage_header(e, stage, e.last_s)
+    show_sample_counts(e)
+    show_status(e)
+
         
 def main():
 
