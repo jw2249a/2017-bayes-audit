@@ -404,7 +404,7 @@ def check_election_data(e):
             assert pbcid in e.t[cid], (cid, pbcid)
             # for vid in e.vids[cid]:
             #     assert vid in e.t[cid][pbcid], (cid, pbcid, vid)
-            # ## not necessary, since missing vids have t of 0
+            # ## not necessary, since missing vids have assumed t of 0
 
     assert isinstance(e.totcid, dict)
     for cid in e.totcid:
@@ -712,10 +712,12 @@ def show_audit_parameters(e):
     for pbcid in e.pbcids:
         myprint("    {}:{}".format(pbcid, e.audit_rate[pbcid]))
 
-    myprint("e.n_trials (number of trials used to estimate risk in compute_contest_risk):")
+    myprint("e.n_trials (number of trials used to estimate risk"
+            "in compute_contest_risk):")
     myprint("    {}".format(e.n_trials))
 
-    myprint("e.pseudocount (hyperparameter for prior distribution, e.g. 0.5 for Jeffrey's prior)")
+    myprint("e.pseudocount (hyperparameter for prior distribution,"
+            "e.g. 0.5 for Jeffrey's prior)")
     myprint("    {}".format(e.pseudocount))
 
     myprint("e.audit_seed (seed for audit pseudorandom number generation)")
@@ -726,7 +728,8 @@ def show_audit_stage_header(e, stage, last_s):
     myprint("audit stage", stage)
     myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
-        myprint("      {}: {} (+{})".format(pbcid, e.plan[pbcid], e.plan[pbcid]-last_s[pbcid]))
+        myprint("      {}: {} (+{})"
+                .format(pbcid, e.plan[pbcid], e.plan[pbcid]-last_s[pbcid]))
             
 def show_sample_counts(e):
 
