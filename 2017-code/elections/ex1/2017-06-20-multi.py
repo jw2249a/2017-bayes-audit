@@ -21,47 +21,37 @@ This code corresponds to the what Audit Central needs to do.
 
 # MIT License
 
-import argparse
 import json
 import logging
 import numpy as np                
 import os
 
 ##############################################################################
-## Random number generation
-##############################################################################
-
-# see numpy.random.RandomState documentation
-# Random states used in the program:
-# auditRandomState        -- controls random sampling and other audit aspects
-# syntheticRandomState    -- controls generation of synthetic vote datasets
-
 ## Gamma distribution
-## https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
+##############################################################################
+# https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
 # from numpy.random import gamma
 # To generate random gamma variate with mean k:
-# gamma(k)  or rs.gamma(k) where rs is a numpy.random.RandomState object
+# gamma(k)
 
-def gamma(k, rs=None):
+def gamma(k):
     """ 
     Return sample from gamma distribution with mean k.
     Differs from standard one that it allows k==0, which returns 0.
-    Parameter rs, if present, is a numpy.random.RandomState object.
     """
-    global auditRandomState
-    if rs==None:
-        rs = auditRandomState
     if k<=0.0:
         return 0.0
-    return rs.gamma(k)
+    return np.random.gamma(k)
 
+##############################################################################
 ## Dirichlet distribution
+##############################################################################
 
 def dirichlet(tally):
     """ 
-    Given tally dict mapping vote ids (vids) to nonnegative reals (counts), 
-    return dict mapping those vids to elements of Dirichlet distribution on
-    those vids, where tally values are used as Dirichlet hyperparameters.
+    Given tally dict mapping vote ids (vids) to reals (counts), return
+    dict mapping those vids to elements of Dirichlet distribution on
+    those vids, where tally values are Dirichlet hyperparameters.
     The values produced sum to one.
     """
     dir = {vid: gamma(tally[vid]) for vid in tally}
@@ -122,30 +112,32 @@ class Election(object):
                              # (e.rv) and for actual votes (e.av)
         e.collection_type = dict()  # pbcid--> "CVR" or "noCVR"
 
-        ### election data (reported election results)
+        ### reported election results
         e.n = dict()         # e.n[pbcid] number ballots cast in collection pbcid
-        e.t = dict()         # cid-->pbcid--> vid-->reals    (counts)
-        e.ro = dict()        # cid-->vid   (reported outcome)
+        e.t = dict()         # cid-->pbcid--> vid--> reals    (counts)
+        e.ro = dict()        # dict mapping cid to reported outcome
         # computed from the above 
-        e.totcid = dict()    # cid-->reals  (total # votes cast in contest)
-        e.totvot = dict()    # cid-->vid-->reals  (number of votes recd by vid in cid)
+        e.totcid = dict()    # dict mapping cid to total # votes cast in contest
+        e.totvot = dict()    # cid-->vid--> reals    (number of votes recd)
         e.rv = dict()        # cid-->pbcid-->bid-->[vids]     (reported votes)
                              # e.rv is like e.av (reported votes; actual votes)
         e.error_rate = 0.0001  # error rate used in model for generating
                                # synthetic reported votes
 
         ### audit
-        e.audit_seed = None   # seed for pseudo-random number generation for audit
-        e.risk_limit = dict() # cid-->reals  (risk limit for that contest)
-        e.risk = dict()       # cid-->reals  (risk (that e.ro[cid] is wrong))
-        e.audit_rate = dict() # pbcid-->int  (# ballots that can be audited per stage)
-        e.plan = dict()       # pbcid-->reals (desired size of sample after next draw)
+        e.audit_seed = 2      # seed for pseudo-random number generation for audit
+        e.risk_limit = dict() # mapping from cid to risk limit for that contest
+        e.risk = dict()       # mapping from cid to risk (that e.ro[cid] is wrong)
+        e.audit_rate = dict() # number of ballots that can be audited per day,
+                              # by pbcid
+        e.plan = dict()       # desired size of sample after next draw, by pbcid
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
-        e.contest_status = dict() # cid--> one of 
+        e.contest_status = dict() # maps cid to one of \
                                   # "Auditing", "Just Watching",
                                   # "Risk Limit Reached", "Full Recount Needed"
-                                  # initially must be "Auditing" or "Just Watching"
+                                  # must be one of "Auditing" "Just Watching"
+                                  # initially
         e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
                                    # then full recount called for cid
         e.n_trials = 100000   # number of trials used to estimate risk
@@ -153,7 +145,8 @@ class Election(object):
         # sample info
         e.av = dict()         # cid-->pbcid-->bid-->vid
                               # (actual votes; sampled ballots)
-        e.s = dict()          # pbcid-->ints (number of ballots sampled so far)
+        e.s = dict()          # e.s[pbcid] number ballots sampled so far
+                              # in paper ballot collection pbcid
         # computed from the above
         e.st = dict()         # cid-->pbcid-->vid-->vid-->count
                               # (first vid is reported vote, second is actual vote)
@@ -182,8 +175,7 @@ def check_id(id):
     assert isinstance(id, str) and id.isprintable()
     for c in id:
         if c.isspace():
-            Logger.warning(\
-                "check_id warning: id should not contain whitespace: `{}'".format(id))
+            Logger.warning("check_id warning: id should not contain whitespace: `{}'".format(id))
 
 def check_election_structure(e):
     
@@ -321,12 +313,11 @@ def compute_rv(e, cid, pbcid, bid, vid):
         return "noCVR"
     # Otherwise, we generate a reported vote
     m = len(e.vids[cid])          # number of vote options for this cid
-    if syntheticRandomState.uniform()>e.error_rate or m==1:
+    if np.random.random()>e.error_rate or m==1:
         return vid                # no error is typical case
     error_vids = e.vids[cid].copy()
     error_vids.remove(vid)
-    # pick an error at random
-    return error_vids[int(syntheticRandomState.uniform()*(m-1))]
+    return error_vids[int(np.random.random()*(m-1))]  # pick an error at random
 
 def compute_synthetic_votes(e):
     """
@@ -335,8 +326,7 @@ def compute_synthetic_votes(e):
     Form of bid is e.b. PBC1::576
     """
     
-    global syntheticRandomState
-    syntheticRandomState = np.random.RandomState(e.synthetic_seed)
+    np.random.seed(e.synthetic_seed)
     # make up bids
     for pbcid in e.pbcids:
         e.bids[pbcid] = list()
@@ -353,7 +343,7 @@ def compute_synthetic_votes(e):
         votes = []
         for vid in e.vids[cid]:
             votes.extend([vid]*e.totvot[cid][vid])
-        syntheticRandomState.shuffle(votes)          # in-place shuffle!
+        np.random.shuffle(votes)                     # in-place shuffle!
         # break votes up into pieces by pbcid
         i = 0
         for pbcid in e.rel[cid]:
@@ -513,19 +503,19 @@ def compute_tally2(vec):
             tally2[r] = compute_tally([aa for (aa, rr) in vec if r==rr])
     return tally2
 
-def plurality(d, vvids):
+def plurality(d):
     """
     Return, for input dict d mapping vids to (real) counts, vid with largest count.
     (Tie-breaking done arbitrarily here.)
-    Winning vid must be a valid winner (member of vvids).
     """
 
     max_cnt = -1e90
     max_vid = None
     for vid in d:
-        if d[vid]>max_cnt and vid in vvids:
+        if d[vid]>max_cnt:
             max_cnt = d[vid]
             max_vid = vid
+
     return max_vid
 
 ##############################################################################
@@ -572,11 +562,9 @@ def draw_sample(e):
         for pbcid in e.rel[cid]:
             e.sr[cid][pbcid] = dict()
             e.nr[cid][pbcid] = dict()
-            avotes = [e.av[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[pbcid]]] # actual
-            rvotes = [e.rv[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[pbcid]]] # reported
-            zvotes = list(zip(avotes, rvotes)) # list of (actual, reported) vote pairs
+            avotes = [e.av[cid][pbcid][bid] for bid in e.bids[pbcid][:e.s[pbcid]]] # actual
+            rvotes = [e.rv[cid][pbcid][bid] for bid in e.bids[pbcid][:e.s[pbcid]]] # reported
+            zvotes = list(zip(avotes, rvotes))  # list of (actual, reported) vote pairs
             e.st[cid][pbcid] = compute_tally2(zvotes)
             for r in e.vids[cid]:
                 e.sr[cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
@@ -615,11 +603,10 @@ def compute_contest_risk(e, cid, st):
                 dirichlet_dict = dirichlet(tally)
                 nonsample_size = e.nr[cid][pbcid][r] - e.sr[cid][pbcid][r]
                 for vid in tally:
-                    # increment actual tally for vid with reported vote r
-                    test_tally[vid] += tally[vid]  
+                    test_tally[vid] += tally[vid]     # actual tally for vid with reported vote r
                     if e.sr[cid][pbcid][r] > 0:
                         test_tally[vid] += dirichlet_dict[vid] * nonsample_size
-        if e.ro[cid] != plurality(test_tally, e.vvids[cid]):
+        if e.ro[cid] != plurality(test_tally):
             wrong_outcome_count += 1
     e.risk[cid] = wrong_outcome_count/e.n_trials
 
@@ -656,7 +643,9 @@ def compute_status(e, st):
     e.election_status = sorted(list(set([e.contest_status[cid] for cid in e.cids])))
 
 def show_status(e):
-    """ Print election and contest status info. """
+    """ 
+    Print election and contest status info.
+    """
 
     print("    Risk (that reported outcome is wrong) per cid and contest status:")
     for cid in e.cids:
@@ -666,9 +655,11 @@ def show_status(e):
     print("    Election status:", e.election_status)
                 
 def plan_sample(e):
-    """ Return a sampling plan (dict of target sample sizes by pbcid) """
+    """ 
+    Return a sampling plan (dict of target sample sizes by pbcid) 
+    """
 
-    # for now, use simple strategy of looking at more ballots
+    # for now, just simple strategy of looking at more ballots
     # only in those paper ballot collections that are still being audited
     plan = e.s.copy()
     for cid in e.cids:
@@ -701,9 +692,6 @@ def show_audit_parameters(e):
     print("e.pseudocount (hyperparameter for prior distribution, e.g. 0.5 for Jeffrey's prior)")
     print("    {}".format(e.pseudocount))
 
-    print("e.audit_seed (seed for audit pseudorandom number generation)")
-    print("    {}".format(e.audit_seed))
-
 def show_audit_stage_header(e, stage, last_s):
 
     print("audit stage", stage)
@@ -713,8 +701,7 @@ def show_audit_stage_header(e, stage, last_s):
             
 def show_sample_counts(e):
 
-    print("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
-          "and actual votes:")
+    print("    Total sample counts by Contest.PaperBallotCollection[reported vote] and actual votes:")
     for cid in e.cids:
         for pbcid in e.rel[cid]:
             tally2 = e.st[cid][pbcid]
@@ -737,9 +724,8 @@ def show_audit_summary(e):
     
 def audit(e):
 
-    global auditRandomState
-    auditRandomState = np.random.RandomState(e.audit_seed)
-    print("auditRandomState set")
+    e.audit_seed = 12                      # TBD: generate randomly with dice!
+    np.random.seed(e.audit_seed)
 
     show_audit_parameters(e)
     print("====== Audit ======")
@@ -765,27 +751,9 @@ def audit(e):
         
 def main():
 
-    parser = argparse.ArgumentParser(description=\
-            """multi.py: A Bayesian post-election audit program for an
-            election with multiple contests and multiple paper ballot 
-            collections.""")
-    parser.add_argument("election_name", help="""
-                        The name of the election.  Same as the name of the 
-                        subdirectory within the 'elections' directory 
-                        for information about this election.""")
-    parser.add_argument("--elections_dir", help=\
-                        """The directory where the subdirectory for the
-                        election is to be found.  Defaults to "./elections".""",
-                        default="./elections")
-    parser.add_argument("--audit_seed",
-                        help="""Seed for the random number generator used for
-                        auditing (32-bit value). (If omitted, uses clock.)""")
-        
-    args = parser.parse_args()
-                        
     e = Election()
-    e.elections_dir = args.elections_dir
-    e.election_name = args.election_name
+
+    e.election_name = "ex1"
 
     load_part_from_json(e, "structure.js")
     finish_election_structure(e)
@@ -801,14 +769,14 @@ def main():
     show_election_data(e)
 
     load_part_from_json(e, "audit_parameters.js")
-    e.audit_seed = args.audit_seed          # (might be None)
     check_audit_parameters(e)
     audit(e)
 
+    # print(json.dumps(e.__dict__))
+
 def copy_dict_tree(dest, source):
     """
-    Copy data from source dict tree to dest dict tree, recursively.
-    Omit key/value pairs where key starts with "__".
+    Copy data from source dict tree to dest dict tree.
     """
     if not isinstance(dest, dict) or not isinstance(source, dict):
         print("copy_dict_tree: source or dest is not a dict.")
@@ -824,11 +792,10 @@ def copy_dict_tree(dest, source):
                 source_dict = source[source_key]
                 copy_dict_tree(dest_dict, source_dict)
             else:
-                # Maybe add option to disallow clobbering here??
                 dest[source_key] = source[source_key]
 
 def load_part_from_json(e, part_name):
-    part_filename = os.path.join(e.elections_dir, e.election_name, part_name)
+    part_filename = os.path.join("./elections", e.election_name, part_name)
     part = json.load(open(part_filename, "r"))
     copy_dict_tree(e.__dict__, part)
     print("File {} loaded.".format(part_filename))
