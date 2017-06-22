@@ -123,37 +123,38 @@ class Election(object):
         e.synthetic_seed = 8 # seed for synthetic generation of random votes
         e.cids = []          # [cids]           list of contest ids
         e.pbcids = []        # [pcbids]         list of paper ballot collection ids
-        e.bids = dict()      # pbcid-->[bids]   list of ballot ids for each pcbid
-        e.rel = dict()       # cid-->pbcid-->"True"
+        e.bids = {}          # pbcid-->[bids]   list of ballot ids for each pcbid
+        e.rel = {}           # cid-->pbcid-->"True"
                              # (relevance; only relevant pbcids in e.rel[cid])
-        e.vvids = dict()     # cid-->[vids]   givs list of valid (CANDIDATE) votes
+        e.vvids = {}         # cid-->[vids]   givs list of valid (CANDIDATE) votes
                              # (which are strings)
-        e.ivids = dict()     # cid-->[vids]  gives list of invalid (NONCANDIDATE)
+        e.ivids = {}         # cid-->[vids]  gives list of invalid (NONCANDIDATE)
                              # votes (which are strings),
                              # must include "Invalid", "Overvote", "Undervote",
                              # and possibly "noCVR" (for noCVR pbcs)
-        e.vids = dict()      # cid-->[vids]
+        e.vids = {}          # cid-->[vids]
                              # maps cid to union of e.vvids[cid] and e.ivids[cid]
                              # note that e.vids is used for both reported votes
                              # (e.rv) and for actual votes (e.av)
-        e.collection_type = dict()  # pbcid--> "CVR" or "noCVR"
+        e.collection_type = {}  # pbcid--> "CVR" or "noCVR"
 
         ### election data (reported election results)
-        e.n = dict()         # e.n[pbcid] number ballots cast in collection pbcid
-        e.t = dict()         # cid-->pbcid--> vid-->reals    (counts)
-        e.ro = dict()        # cid-->vid   (reported outcome)
+        e.n = {}             # e.n[pbcid] number ballots cast in collection pbcid
+        e.t = {}             # cid-->pbcid--> vid-->reals    (counts)
+        e.ro = {}            # cid-->vid   (reported outcome)
         # computed from the above 
-        e.totcid = dict()    # cid-->reals  (total # votes cast in contest)
-        e.totvot = dict()    # cid-->vid-->reals  (number of votes recd by vid in cid)
-        e.rv = dict()        # cid-->pbcid-->bid-->[vids]     (reported votes)
+        e.totcid = {}        # cid-->reals  (total # votes cast in contest)
+        e.totvot = {}        # cid-->vid-->reals  (number of votes recd by vid in cid)
+        e.rv = {}            # cid-->pbcid-->bid-->[vids]     (reported votes)
                              # e.rv is like e.av (reported votes; actual votes)
         e.error_rate = 0.0001  # error rate used in model for generating
                                # synthetic reported votes
 
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
-        e.risk_limit = dict() # cid-->reals  (risk limit for that contest)
-        e.audit_rate = dict() # pbcid-->int  (# ballots that can be audited per stage)
+        e.risk_limit = {}     # cid-->reals  (risk limit for that contest)
+        e.audit_rate = {}     # pbcid-->int  (# ballots that can be audited per stage)
+        e.stage = 0           # current stage number (in progress) or last stage completed
         e.max_stages = 100    # maximum number of stages allowed in audit
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
@@ -162,23 +163,23 @@ class Election(object):
         e.n_trials = 100000   # number of trials used to estimate risk
                               # in compute_contest_risk
         ## stage-dependent: (fix to have stage # as input?)
-        e.plan = dict()       # pbcid-->reals (desired size of sample after next draw)
-        e.risk = dict()       # cid-->reals  (risk (that e.ro[cid] is wrong))
-        e.contest_status = dict() # cid--> one of 
-                                  # "Auditing", "Just Watching",
-                                  # "Risk Limit Reached", "Full Recount Needed"
-                                  # initially must be "Auditing" or "Just Watching"
+        e.plan = {}           # pbcid-->reals (sample size wantedafter next draw)
+        e.risk = {}           # cid-->reals  (risk (that e.ro[cid] is wrong))
+        e.contest_status = {} # cid--> one of 
+                              # "Auditing", "Just Watching",
+                              # "Risk Limit Reached", "Full Recount Needed"
+                              # initially must be "Auditing" or "Just Watching"
         e.election_status = []    # list of contest statuses, at most once each
         # sample info
-        e.av = dict()         # cid-->pbcid-->bid-->vid
+        e.av = {}             # cid-->pbcid-->bid-->vid
                               # (actual votes; sampled ballots)
-        e.s = dict()          # pbcid-->ints (number of ballots sampled so far)
+        e.s = {}              # pbcid-->ints (number of ballots sampled so far)
         # computed from the above
-        e.st = dict()         # cid-->pbcid-->vid-->vid-->count
+        e.st = {}             # cid-->pbcid-->vid-->vid-->count
                               # (first vid is reported vote, second is actual vote)
-        e.sr = dict()         # cid-->pbcid-->vid-->count
+        e.sr = {}             # cid-->pbcid-->vid-->count
                               # (vid is reported vote in sample)
-        e.nr = dict()         # cid-->pbcid-->vid-->count
+        e.nr = {}             # cid-->pbcid-->vid-->count
                               # (vid is reported vote in whole pbcid)
 
 ##############################################################################
@@ -321,7 +322,7 @@ def finish_election_data(e):
 
     # e.totvid[cid][vid] is total number cast for vid in cid
     for cid in e.cids:
-        e.totvot[cid] = dict()
+        e.totvot[cid] = {}
         for vid in e.vids[cid]:
             e.totvot[cid][vid] = \
                 sum([e.t[cid][pbcid].get(vid, 0) for pbcid in e.rel[cid]])
@@ -366,8 +367,8 @@ def compute_synthetic_votes(e):
         i += e.n[pbcid]
     # make up votes
     for cid in e.cids:
-        e.rv[cid] = dict()
-        e.av[cid] = dict()
+        e.rv[cid] = {}
+        e.av[cid] = {}
         # make up all votes first, so overall tally for cid is right
         votes = []
         for vid in e.vids[cid]:
@@ -376,8 +377,8 @@ def compute_synthetic_votes(e):
         # break votes up into pieces by pbcid
         i = 0
         for pbcid in e.rel[cid]:
-            e.av[cid][pbcid] = dict()
-            e.rv[cid][pbcid] = dict()
+            e.av[cid][pbcid] = {}
+            e.rv[cid][pbcid] = {}
             for j in range(e.n[pbcid]):
                 bid = e.bids[pbcid][j]
                 vid = votes[j]
@@ -513,7 +514,7 @@ def compute_tally(vec):
     Return dict giving tally of elements.
     """
 
-    tally = dict()
+    tally = {}
     for x in vec:
         tally[x] = tally.get(x, 0) + 1
     return tally
@@ -526,7 +527,7 @@ def compute_tally2(vec):
     giving tally of a's that appear with that r.
     """
 
-    tally2 = dict()
+    tally2 = {}
     for (a, r) in vec:
         if r not in tally2:
             tally2[r] = compute_tally([aa for (aa, rr) in vec if r==rr])
@@ -586,12 +587,12 @@ def draw_sample(e):
 
     e.s = e.plan
     for cid in e.cids:
-        e.st[cid] = dict()
-        e.sr[cid] = dict()
-        e.nr[cid] = dict()
+        e.st[cid] = {}
+        e.sr[cid] = {}
+        e.nr[cid] = {}
         for pbcid in e.rel[cid]:
-            e.sr[cid][pbcid] = dict()
-            e.nr[cid][pbcid] = dict()
+            e.sr[cid][pbcid] = {}
+            e.nr[cid][pbcid] = {}
             avotes = [e.av[cid][pbcid][bid] \
                       for bid in e.bids[pbcid][:e.s[pbcid]]] # actual
             rvotes = [e.rv[cid][pbcid][bid] \
@@ -715,6 +716,9 @@ def show_audit_parameters(e):
     for pbcid in e.pbcids:
         myprint("    {}:{}".format(pbcid, e.audit_rate[pbcid]))
 
+    myprint("e.max_stages (max number of audit stages allowed):")
+    myprint("    {}".format(e.max_stages))
+
     myprint("e.n_trials (number of trials used to estimate risk"
             "in compute_contest_risk):")
     myprint("    {}".format(e.n_trials))
@@ -726,9 +730,9 @@ def show_audit_parameters(e):
     myprint("e.audit_seed (seed for audit pseudorandom number generation)")
     myprint("    {}".format(e.audit_seed))
 
-def show_audit_stage_header(e, stage, last_s):
+def show_audit_stage_header(e, last_s):
 
-    myprint("audit stage", stage)
+    myprint("audit stage", e.stage)
     myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
         myprint("      {}: {} (+{})"
@@ -750,9 +754,12 @@ def show_sample_counts(e):
 def show_audit_summary(e):
 
     global myprint_switches
+
     myprint("=============")
     myprint("Audit completed!")
+
     myprint("All contests have a status in the following list:", e.election_status)
+
     myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
         myprint("  {}:{}".format(pbcid, e.s[pbcid]))
@@ -774,20 +781,20 @@ def audit(e):
     e.last_s = e.s
     e.plan = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
     
-    for stage in range(1, e.max_stages):
-        audit_stage(e, stage)
+    for e.stage in range(1, e.max_stages):
+        audit_stage(e)
         if "Auditing" not in e.election_status:
             show_audit_summary(e)
             break
         e.plan = plan_sample(e)
         e.last_s = e.s
 
-def audit_stage(e, stage):
+def audit_stage(e):
 
     draw_sample(e)
     compute_status(e, e.st)
 
-    show_audit_stage_header(e, stage, e.last_s)
+    show_audit_stage_header(e, e.last_s)
     show_sample_counts(e)
     show_status(e)
 
@@ -851,7 +858,7 @@ def copy_dict_tree(dest, source):
         if not source_key.startswith("__"):   # for comments, etc.
             if isinstance(source[source_key], dict):
                 if not source_key in dest:
-                    dest_dict = dict()
+                    dest_dict = {}
                     dest[source_key] = dest_dict
                 else:
                     dest_dict = dest[source_key]
