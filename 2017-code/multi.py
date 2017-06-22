@@ -153,20 +153,21 @@ class Election(object):
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
         e.risk_limit = dict() # cid-->reals  (risk limit for that contest)
-        e.risk = dict()       # cid-->reals  (risk (that e.ro[cid] is wrong))
         e.audit_rate = dict() # pbcid-->int  (# ballots that can be audited per stage)
-        e.plan = dict()       # pbcid-->reals (desired size of sample after next draw)
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
+        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
+                                   # then full recount called for cid
+        e.n_trials = 100000   # number of trials used to estimate risk
+                              # in compute_contest_risk
+        ## stage-dependent: (fix to have stage # as input?)
+        e.plan = dict()       # pbcid-->reals (desired size of sample after next draw)
+        e.risk = dict()       # cid-->reals  (risk (that e.ro[cid] is wrong))
         e.contest_status = dict() # cid--> one of 
                                   # "Auditing", "Just Watching",
                                   # "Risk Limit Reached", "Full Recount Needed"
                                   # initially must be "Auditing" or "Just Watching"
         e.election_status = []    # list of contest statuses, at most once each
-        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
-                                   # then full recount called for cid
-        e.n_trials = 100000   # number of trials used to estimate risk
-                              # in compute_contest_risk
         # sample info
         e.av = dict()         # cid-->pbcid-->bid-->vid
                               # (actual votes; sampled ballots)
@@ -569,7 +570,8 @@ def check_audit_parameters(e):
 
 def draw_sample(e):
     """ 
-    "Draw sample", tally it, save sample tally in e.st[cid][pbcid].
+    "Draw sample", tally it, save sample tally in e.st[cid][pbcid]. 
+    Update e.sr and e.nr
 
     Draw sample is in quotes since it just looks at the first
     e.s[pbcid] elements of e.av[cid][pbcid].
@@ -613,7 +615,7 @@ def compute_contest_risk(e, cid, st):
     which a frequentist method is known.
 
     The comparison and ballot-polling audits are blended here; the
-    data just records an "noCVR" for the reported type of each vote
+    election data just records an "noCVR" for the reported type of each vote
     in a noCVR paper ballot collection.
     """
 
