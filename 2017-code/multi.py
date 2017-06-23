@@ -199,68 +199,119 @@ def finish_election_structure(e):
     for cid in e.cids:
         e.vids[cid] = sorted(e.vvids[cid]+e.ivids[cid])
 
+def myerror(msg):
+    """ Print error message and halt immediately """
+    
+    print("FATAL ERROR:", msg)
+    raise Exception
+
+warnings_given = 0
+def mywarning(msg):
+    """ Print error message, but keep going.
+        Keep track as to how many warnings have been given.
+    """
+
+    global warnings_given
+    warnings_given += 1
+    print("WARNING: msg")
+
 def check_id(id):
-    assert isinstance(id, str) and id.isprintable()
+    if not isinstance(id, str) or not id.isprintable():
+        mywarning("id is not string or is not printable: {}".format(id))
     for c in id:
         if c.isspace():
-            Logger.warning(\
-                "check_id warning: id should not contain whitespace: `{}'".format(id))
+            mywarning("id `id` contains whitespace.")
+            break
 
 def check_election_structure(e):
     
-    assert e.election_type in ["Synthetic", "Real"], e.election_type
+    if e.election_type not in ["Synthetic", "Real"]:
+        myerror("Unknown election_type:{}.".format(e.election_type))
 
-    assert isinstance(e.cids, (list, tuple))
-    assert len(e.cids)>0
+    if not isinstance(e.cids, (list, tuple)):
+        myerror("e.cids is not a list or a tuple.")
+    if len(e.cids)==0:
+        myerror("e.cids is an empty list of contests.")
     for cid in e.cids:
-        assert isinstance(cid, str), cid
         check_id(cid)
     
-    assert isinstance(e.pbcids, (list, tuple))
-    assert len(e.pbcids)>0, len(e.pbcids)
+    if not isinstance(e.pbcids, (list, tuple)):
+        myerror("e.pbcids is not a list or a tuple.")
+    if len(e.pbcids)==0:
+        myerror("e.pbcids is an empty list of pbcids.")
     for pbcid in e.pbcids:
-        assert isinstance(pbcid, str), pbcid
         check_id(pbcid)
 
-    assert isinstance(e.rel, dict)
+    if not isinstance(e.rel, dict):
+        myerror("e.rel is not a dict.")
     for cid in e.rel:
-        assert cid in e.cids, cid
+        if cid not in e.cids:
+            mywarn("cid is not in e.cids: {}".format(cid))
         for pbcid in e.rel[cid]:
-            assert pbcid in e.pbcids, pbcid
-            assert e.rel[cid][pbcid]==True, (cid, pbcid, e.rel[cid][pbcid])
+            if pbcid not in e.pbcids:
+                mywarn("pbcid is not in e.pbcids: {}".format(pbcid))
+            if e.rel[cid][pbcid]!=True:
+                mywarn("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
 
-    assert isinstance(e.vids, dict)
-    for cid in e.vids:
-        assert cid in e.cids, cid
-        assert isinstance(e.vids[cid], (list, tuple))
-        for vid in e.vids[cid]:
-            assert isinstance(vid, str), vid
-            check_id(vid)
-    for cid in e.cids:
-        assert cid in e.vids, cid
-
-    assert isinstance(e.ivids, dict)
+    if not isinstance(e.ivids, dict):
+        myerror("e.ivids is not a dict.")
     for cid in e.ivids:
-        assert cid in e.cids, cid
-        assert isinstance(e.ivids[cid], (list, tuple))
+        if cid not in e.cids:
+            myerror("e.ivids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.ivids[cid], (list, tuple)):
+            myerror("e.ivids[{}] is not a list or a tuple.".format(cid))
         for ivid in e.ivids[cid]:
-            assert isinstance(ivid, str), ivid
             check_id(ivid)
     for cid in e.cids:
-        assert cid in e.ivids, cid
+        if cid not in e.ivids:
+            mywarn("cid `{}` should a key in e.ivids".format(cid))
+
+    if not isinstance(e.vvids, dict):
+        myerror("e.vvids is not a dict.")
+    for cid in e.vvids:
+        if cid not in e.cids:
+            myerror("e.vvids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.vvids[cid], (list, tuple)):
+            myerror("e.vvids[{}] is not a list or a tuple.".format(cid))
+        for vid in e.vvids[cid]:
+            check_id(vid)
+    for cid in e.cids:
+        if cid not in e.vids:
+            mywarn("cid `{}` should be key in e.vids".format(cid))
+
+    if not isinstance(e.vids, dict):
+        myerror("e.vids is not a dict.")
+    for cid in e.vids:
+        if cid not in e.cids:
+            myerror("e.vids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.vids[cid], (list, tuple)):
+            myerror("e.vids[{}] is not a list or a tuple.".format(cid))
+        for vid in e.vids[cid]:
+            check_id(vid)
+    for cid in e.cids:
+        if cid not in e.vids:
+            mywarn("cid `{}` should be key in e.vids".format(cid))
 
     for cid in e.cids:
         for vvid in e.vvids[cid]:
             for ivid in e.ivids[cid]:
-                assert vvid != ivid, (cid, vvid, ivid)
+                if vvid == ivid:
+                    mywarn("e.vvids[{}] and e.ivids[{}] are not disjoint.".format(cid, cid))
 
-    assert isinstance(e.collection_type, dict)
+    if not isinstance(e.collection_type, dict):
+        myerror("e_collection_type is not a dict.")
     for pbcid in e.collection_type:
-        assert pbcid in e.pbcids, pbcid
-        assert e.collection_type[pbcid] in ["CVR", "noCVR"], \
-            e.collection_type[pbcid]
+        if pbcid not in e.pbcids:
+            mywarn("pbcid `{}` is not in e.pbcids".format(pbcid))
+        if e.collection_type[pbcid] not in ["CVR", "noCVR"]:
+            mywarn("e.collection_type[{}]==`{}` is not CVR or noCVR"
+                   .format(pbcid, e.collection_type[pbcid]))
     for pbcid in e.pbcids:
-        assert pbcid in e.collection_type, pbcid
+        if pbcid not in e.collection_type:
+            mywarn("pbcid `{}` not key in e.collection_type.".format(pbcid))
+
+    if warnings_given>0:
+        myerror("Too many errors; terminating.")
 
 def show_election_structure(e):
     myprint("====== Election structure ======")
@@ -391,83 +442,139 @@ def check_election_data(e):
 
     assert isinstance(e.t, dict)
     for cid in e.t:
-        assert cid in e.cids, cid
+        if cid not in e.cids:
+            mywarning("cid `{}` not in e.cids.".format(cid))
         for pbcid in e.t[cid]:
-                assert pbcid in e.pbcids, pbcid
-                for vid in e.t[cid][pbcid]:
-                    assert vid in e.vids[cid], vid
-                    assert isinstance(e.t[cid][pbcid][vid], int), \
-                        (cid, pbcid, vid, e.t[cid][pbcid][vid])
-                assert 0 <= e.t[cid][pbcid][vid] <= e.n[pbcid], \
-                    (cid, pbcid, vid, e.t[cid][pbcid][vid], "e.t out of range")
-                assert e.totvot[cid][vid] == \
-                    sum([e.t[cid][pbcid][vid] for pbcid in e.rel[cid]])
+            if pbcid not in e.pbcids:
+                mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
+            for vid in e.t[cid][pbcid]:
+                if vid not in e.vids[cid]:
+                    mywarning("vid `{}` is not in e.vids[{}].".format(vid, cid))
+                if not isinstance(e.t[cid][pbcid][vid], int):
+                    mywarning("value `e.t[{}][{}][{}] = `{}` is not an integer."
+                              .format(cid, pbcid, vid, e.t[cid][pbcid][vid]))
+                if not (0 <= e.t[cid][pbcid][vid] <= e.n[pbcid]):
+                    mywarning("value `e.t[{}][{}][{}] = `{}` is out of range 0:{}."
+                              .format(cid, pbcid, vid, e.t[cid][pbcid][vid], e.n[pbcid]))
+                if e.totvot[cid][vid] != \
+                    sum([e.t[cid][pbcid][vid] for pbcid in e.rel[cid]]):
+                    mywarning("sum of e.t[{}][*][{}] is not e.totvid[{}][{}]."
+                              .format(cid, vid, cid, vid))
     for cid in e.cids:
-        assert cid in e.t, cid
+        if cid not in e.t:
+            mywarning("cid `{}` is not a key for e.t".format(cid))
         for pbcid in e.rel[cid]:
-            assert pbcid in e.t[cid], (cid, pbcid)
+            if pbcid not in e.t[cid]:
+                mywarning("pbcid {} is not a key for e.t[{}].".format(pbcid, cid))
             # for vid in e.vids[cid]:
             #     assert vid in e.t[cid][pbcid], (cid, pbcid, vid)
             # ## not necessary, since missing vids have assumed t of 0
 
-    assert isinstance(e.totcid, dict)
+    if not isinstance(e.totcid, dict):
+        myerror("e.totcid is not a dict.")
     for cid in e.totcid:
-        assert cid in e.cids, cid
-        assert isinstance(e.totcid[cid], int), (cid, e.totcid[cid])
+        if cid not in e.cids:
+            mywarning("e.totcid key `{}` is not in e.cids.".format(cid))
+        if not isinstance(e.totcid[cid], int):
+            mywarning("e.totcid[{}] = {}  is not an integer.".format(cid, e.totcid[cid]))
     for cid in e.cids:
-        assert cid in e.totcid, cid
+        if cid not in e.totcid:
+            mywarning("cid `{}` is not a key for e.totcid".format(cid))
 
-    assert isinstance(e.totvot, dict)
+    if not isinstance(e.totvot, dict):
+        myerror("e.totvot is not a dict.")
     for cid in e.totvot:
-        assert cid in e.cids, cid
+        if cid not in e.cids:
+            mywarning("e.totvot key cid `{}` is not in e.cids".format(cid))
         for vid in e.totvot[cid]:
-            assert vid in e.vids[cid], (cid, vid)
-            assert isinstance(e.totvot[cid][vid], int)
+            if vid not in e.vids[cid]:
+                mywarning("e.totvot[{}] key `{}` is not in e.vids[{}]"
+                          .format(cid, vid, cid))
+            if not isinstance(e.totvot[cid][vid], int):
+                mywarning("e.totvot[{}][{}] = {} is not an integer."
+                          .format(cid, vid, e.totvot[cid][vid]))
     for cid in e.cids:
-        assert cid in e.totvot, cid
+        if cid not in e.totvot:
+            mywarning("cid `{}` is not a key for e.totvot".format(cid))
         for vid in e.vids[cid]:
-            assert vid in e.totvot[cid], (cid, vid)
+            if vid not in e.totvot[cid]:
+                mywarning("vid `{}` not a key for e.totvot[{}]."
+                          .format(vid, cid))
 
-    assert isinstance(e.bids, dict)
+    if not isinstance(e.bids, dict):
+        myerror("e.bids is not a dict.")
     for pbcid in e.pbcids:
-        assert isinstance(e.bids[pbcid], list), pbcid
+        if not isinstance(e.bids[pbcid], list):
+            myerror("e.bids[{}] is not a list.".format(pbcid))
 
-    assert isinstance(e.av, dict)
+    if not isinstance(e.av, dict):
+        myerror("e.av is not a dict.")
     for cid in e.av:
-        assert cid in e.cids, cid
+        if cid not in e.cids:
+            mywarning("e.av key {} is not in e.cids.".format(cid))
         for pbcid in e.av[cid]:
-            assert pbcid in e.pbcids, pbcid
-            assert isinstance(e.av[cid][pbcid], dict), (cid, pbcid)
+            if pbcid not in e.pbcids:
+                mywarning("e.av[{}] key `{}` is not in e.pbcids"
+                          .format(cid, pbcid))
+            if not isinstance(e.av[cid][pbcid], dict):
+                myerror("e.av[{}][{}] is not a dict.".format(cid, pbcid))
             bidsset = set(e.bids[pbcid])
             for bid in e.av[cid][pbcid]:
-                assert bid in bidsset, bid
-                assert e.av[cid][pbcid][bid] in e.vids[cid]
+                if bid not in bidsset:
+                    mywarning("bid `{}` from e.av[{}][{}] is not in e.bids[{}]."
+                              .format(bid, cid, pbcid, pbcid))
+                if e.av[cid][pbcid][bid] not in e.vids[cid]:
+                    mywarning("vid `{}` from e.av[{}][{}][{}] is not in e.vids[{}]."
+                              .format(e.av[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
-        assert cid in e.av, cid
+        if cid not in e.av:
+            mywarning("cid `{}` is not a key for e.av.".format(cid))
         for pbcid in e.rel[cid]:
-            assert pbcid in e.av[cid]
+            if pbcid not in e.av[cid]:
+                mywarning("pbcid `{}` is not in e.av[{}]."
+                          .format(pbcid, cid))
 
-    assert isinstance(e.rv, dict)
+    if not isinstance(e.rv, dict):
+        myerror("e.rv is not a dict.")
     for cid in e.rv:
-        assert cid in e.cids, cid
+        if cid not in e.cids:
+            mywarning("e.rv key `{}` is not in e.cids.".format(cid))
         for pbcid in e.rv[cid]:
-            assert pbcid in e.pbcids, pbcid
-            assert isinstance(e.rv[cid][pbcid], dict), (cid, pbcid)
+            if pbcid not in e.pbcids:
+                mywarning("e.rv[{}] key `{}` is not in e.pbcids."
+                          .format(cid, pbcid))
+            if not isinstance(e.rv[cid][pbcid], dict):
+                myerror("e.rv[{}][{}] is not a dict.".format(cid, pbcid))
             bidsset = set(e.bids[pbcid])
             for bid in e.rv[cid][pbcid]:
-                assert bid in bidsset, bid
-                assert e.rv[cid][pbcid][bid] in e.vids[cid]
+                if bid not in bidsset:
+                    mywarning("bid `{}` from e.rv[{}][{}] is not in e.bids[{}]."
+                              .format(bid, cid, pbcid, pbcid))
+                if e.rv[cid][pbcid][bid] not in e.vids[cid]:
+                    mywarning("vid `{}` from e.rv[{}][{}][{}] is not in e.vids[{}]."
+                              .format(e.rv[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
-        assert cid in e.rv, cid
+        if cid not in e.rv:
+            mywarning("cid `{}` is not a key in e.rv.".format(cid))
         for pbcid in e.rel[cid]:
-            assert pbcid in e.rv[cid]
+            if pbcid not in e.rv[cid]:
+                mywarning("pbcid `{}` from e.rel[{}] is not a key for e.rv[{}]."
+                          .format(pbcid, cid, cid))
                 
-    assert isinstance(e.ro, dict)
+    if not isinstance(e.ro, dict):
+        myerror("e.ro is not a dict.")
     for cid in e.ro:
-        assert cid in e.cids, cid
-        assert e.ro[cid] in e.vids[cid], (cid, e.ro[cid])
+        if cid not in e.cids:
+            mywarning("cid `{}` from e.rv is not in e.cids".format(cid))
+        if e.ro[cid] not in e.vids[cid]:
+            mywarning("e.ro[{}] = {} is not in e.vids[{}]."
+                      .format(cid, e.ro[cid], cid))
     for cid in e.cids:
-        assert cid in e.ro, cid
+        if cid not in e.ro:
+            mywarning("cid `{}` is not a key for e.ro.".format(cid))
+
+    if warnings_given>0:
+        myerror("Too many errors; terminating.")
 
 def show_election_data(e):
 
@@ -555,22 +662,39 @@ def plurality(d, vvids):
 
 def check_audit_parameters(e):
 
-    assert isinstance(e.risk_limit, dict)
+    if not isinstance(e.risk_limit, dict):
+        myerror("e.risk_limit is not a dict.")
     for cid in e.risk_limit:
-        assert cid in e.cids, cid
-        assert 0.0 <= e.risk_limit[cid] <= 1.0
+        if cid not in e.cids:
+            mywarning("e.risk_limit cid key `{}` is not in e.cids."
+                      .format(cid))
+        if not (0.0 <= e.risk_limit[cid] <= 1.0):
+            mywarning("e.risk_limit[{}] not in interval [0,1]".format(cid))
 
-    assert isinstance(e.audit_rate, dict)
+    if not isinstance(e.audit_rate, dict):
+        myerror("e.audit_rate is not a dict.")
     for pbcid in e.audit_rate:
-        assert pbcid in e.pbcids, pbcid
-        assert 0 <= e.audit_rate[pbcid]
+        if pbcid not in e.pbcids:
+            mywarning("pbcid `{}` is a key for e.audit_rate but not in e.pbcids."
+                      .format(pbcid))
+        if not 0 <= e.audit_rate[pbcid]:
+            mywarning("e.audit_rate[{}] must be nonnegative.".format(pbcid))
         
-    assert isinstance(e.contest_status, dict)
-    assert "0" in e.contest_status, e.contest_status
+    if not isinstance(e.contest_status, dict):
+        myerror("e.contest_status is not a dict.")
+    if "0" not in e.contest_status:
+        myerror("e.contest_status must have `0` as a key.")
     for cid in e.contest_status["0"]:
-        assert cid in e.cids, cid
-        assert e.contest_status["0"][cid] in ["Auditing", "Just Watching"], \
-            e.contest_status["0"][cid]
+        if cid not in e.cids:
+            mywarning("cid `{}` is key in e.contest_status but not in e.cids"
+                      .format(cid))
+        if e.contest_status["0"][cid] not in ["Auditing", "Just Watching"]:
+            mywarning("e.contest_status['0'][{}] must be `Auditing` or `Just Watching`."
+                      .format(cid))
+    
+    if warnings_given>0:
+        myerror("Too many errors; terminating.")
+
 
 def draw_sample(e):
     """ 
