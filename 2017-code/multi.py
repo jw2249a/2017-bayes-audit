@@ -199,11 +199,13 @@ def finish_election_structure(e):
     for cid in e.cids:
         e.vids[cid] = sorted(e.vvids[cid]+e.ivids[cid])
 
+
 def myerror(msg):
     """ Print error message and halt immediately """
     
     print("FATAL ERROR:", msg)
     raise Exception
+
 
 warnings_given = 0
 def mywarning(msg):
@@ -215,6 +217,7 @@ def mywarning(msg):
     warnings_given += 1
     print("WARNING: msg")
 
+
 def check_id(id):
     if not isinstance(id, str) or not id.isprintable():
         mywarning("id is not string or is not printable: {}".format(id))
@@ -222,6 +225,7 @@ def check_id(id):
         if c.isspace():
             mywarning("id `id` contains whitespace.")
             break
+
 
 def check_election_structure(e):
     
@@ -246,12 +250,12 @@ def check_election_structure(e):
         myerror("e.rel is not a dict.")
     for cid in e.rel:
         if cid not in e.cids:
-            mywarn("cid is not in e.cids: {}".format(cid))
+            mywarning("cid is not in e.cids: {}".format(cid))
         for pbcid in e.rel[cid]:
             if pbcid not in e.pbcids:
-                mywarn("pbcid is not in e.pbcids: {}".format(pbcid))
+                mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
             if e.rel[cid][pbcid]!=True:
-                mywarn("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
+                mywarning("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
 
     if not isinstance(e.ivids, dict):
         myerror("e.ivids is not a dict.")
@@ -264,7 +268,7 @@ def check_election_structure(e):
             check_id(ivid)
     for cid in e.cids:
         if cid not in e.ivids:
-            mywarn("cid `{}` should a key in e.ivids".format(cid))
+            mywarning("cid `{}` should a key in e.ivids".format(cid))
 
     if not isinstance(e.vvids, dict):
         myerror("e.vvids is not a dict.")
@@ -277,7 +281,7 @@ def check_election_structure(e):
             check_id(vid)
     for cid in e.cids:
         if cid not in e.vids:
-            mywarn("cid `{}` should be key in e.vids".format(cid))
+            mywarning("cid `{}` should be key in e.vids".format(cid))
 
     if not isinstance(e.vids, dict):
         myerror("e.vids is not a dict.")
@@ -290,28 +294,31 @@ def check_election_structure(e):
             check_id(vid)
     for cid in e.cids:
         if cid not in e.vids:
-            mywarn("cid `{}` should be key in e.vids".format(cid))
+            mywarning("cid `{}` should be key in e.vids".format(cid))
 
     for cid in e.cids:
         for vvid in e.vvids[cid]:
             for ivid in e.ivids[cid]:
                 if vvid == ivid:
-                    mywarn("e.vvids[{}] and e.ivids[{}] are not disjoint.".format(cid, cid))
+                    mywarning("e.vvids[{}] and e.ivids[{}] are not disjoint."
+                              .format(cid, cid))
 
     if not isinstance(e.collection_type, dict):
         myerror("e_collection_type is not a dict.")
     for pbcid in e.collection_type:
         if pbcid not in e.pbcids:
-            mywarn("pbcid `{}` is not in e.pbcids".format(pbcid))
+            mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
         if e.collection_type[pbcid] not in ["CVR", "noCVR"]:
-            mywarn("e.collection_type[{}]==`{}` is not CVR or noCVR"
-                   .format(pbcid, e.collection_type[pbcid]))
+            mywarning("e.collection_type[{}]==`{}` is not CVR or noCVR"
+                      .format(pbcid, e.collection_type[pbcid]))
     for pbcid in e.pbcids:
         if pbcid not in e.collection_type:
-            mywarn("pbcid `{}` not key in e.collection_type.".format(pbcid))
+            mywarning("pbcid `{}` not key in e.collection_type."
+                      .format(pbcid))
 
     if warnings_given>0:
         myerror("Too many errors; terminating.")
+
 
 def show_election_structure(e):
     myprint("====== Election structure ======")
@@ -379,6 +386,7 @@ def finish_election_data(e):
             e.totvot[cid][vid] = \
                 sum([e.t[cid][pbcid].get(vid, 0) for pbcid in e.rel[cid]])
 
+
 def compute_rv(e, cid, pbcid, bid, vid):
     """
     Compute reported vote for e.rv[cid][pbcid][bid]
@@ -399,6 +407,7 @@ def compute_rv(e, cid, pbcid, bid, vid):
     error_vids.remove(vid)
     # pick an error at random
     return error_vids[int(syntheticRandomState.uniform()*(m-1))]
+
 
 def compute_synthetic_votes(e):
     """
@@ -437,6 +446,7 @@ def compute_synthetic_votes(e):
                 e.av[cid][pbcid][bid] = vid
                 e.rv[cid][pbcid][bid] = compute_rv(e, cid, pbcid, bid, vid)
             i += e.n[pbcid]
+
 
 def check_election_data(e):
 
@@ -576,6 +586,7 @@ def check_election_data(e):
     if warnings_given>0:
         myerror("Too many errors; terminating.")
 
+
 def show_election_data(e):
 
     myprint("====== Reported election data ======")
@@ -627,6 +638,7 @@ def compute_tally(vec):
         tally[x] = tally.get(x, 0) + 1
     return tally
 
+
 def compute_tally2(vec):
     """
     Input vec is an iterable of (a, r) pairs. 
@@ -640,6 +652,7 @@ def compute_tally2(vec):
         if r not in tally2:
             tally2[r] = compute_tally([aa for (aa, rr) in vec if r==rr])
     return tally2
+
 
 def plurality(d, vvids):
     """
@@ -725,6 +738,7 @@ def draw_sample(e):
             e.st[e.stage][cid][pbcid] = compute_tally2(zvotes)
             for r in e.vids[cid]:
                 e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
+
                 
 def compute_contest_risk(e, cid, st):
     """ 
@@ -801,6 +815,7 @@ def compute_status(e, st):
     e.election_status[e.stage] = \
         sorted(list(set([e.contest_status[e.stage][cid] for cid in e.cids])))
 
+
 def show_status(e):
     """ Print election and contest status info. """
 
@@ -811,6 +826,7 @@ def show_status(e):
               e.contest_status[e.stage][cid])
     myprint("    Election status:", e.election_status[e.stage])
                 
+
 def plan_sample(e):
     """ Compute a sampling plan 
         Put in e.plan[e.stage] a dict of target sample sizes by pbcid) 
@@ -826,6 +842,7 @@ def plan_sample(e):
                 # exceeding size of paper ballot collection
                 e.plan[e.stage][pbcid] = min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
     return
+
 
 def show_audit_parameters(e):
 
@@ -857,6 +874,7 @@ def show_audit_parameters(e):
     myprint("e.audit_seed (seed for audit pseudorandom number generation)")
     myprint("    {}".format(e.audit_seed))
 
+
 def show_audit_stage_header(e, last_s):
 
     myprint("audit stage", e.stage)
@@ -867,6 +885,7 @@ def show_audit_stage_header(e, last_s):
                         e.plan[e.last_stage][pbcid],
                         e.plan[e.last_stage][pbcid]-last_s[pbcid]))
             
+
 def show_sample_counts(e):
 
     myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
@@ -879,6 +898,7 @@ def show_sample_counts(e):
                 for v in sorted(tally2[r].keys()):
                     myprint("  {}:{}".format(v, tally2[r][v]), end='')
                 myprint("  total:{}".format(e.sr[e.stage][cid][pbcid][r]))
+
 
 def show_audit_summary(e):
 
@@ -897,23 +917,14 @@ def show_audit_summary(e):
     myprint("Total number of ballots sampled: ", end='')
     myprint(sum([e.s[e.stage][pbcid] for pbcid in e.pbcids]))
     
+
 def audit(e):
 
     global auditRandomState
     auditRandomState = np.random.RandomState(e.audit_seed)
-    myprint("auditRandomState set")
 
     show_audit_parameters(e)
     myprint("====== Audit ======")
-
-    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r.
-    for cid in e.cids:
-        e.nr[cid] = {}
-        for pbcid in e.rel[cid]:
-            e.nr[cid][pbcid] = {}
-            for r in e.vids[cid]:
-                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
-                                           if e.rv[cid][pbcid][bid] == r])
 
     e.s["0"] = {}
     for pbcid in e.pbcids:                           
@@ -930,6 +941,7 @@ def audit(e):
         plan_sample(e)
         e.last_s = e.s[e.stage]
     show_audit_summary(e)
+
 
 def audit_stage(e):
 
@@ -985,6 +997,14 @@ def main():
     if e.election_type == "Synthetic":
         myprint("Synthetic vote generation seed:", e.synthetic_seed)
         compute_synthetic_votes(e)
+    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r.
+    for cid in e.cids:
+        e.nr[cid] = {}
+        for pbcid in e.rel[cid]:
+            e.nr[cid][pbcid] = {}
+            for r in e.vids[cid]:
+                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
+                                           if e.rv[cid][pbcid][bid] == r])
     check_election_data(e)
     show_election_data(e)
 
@@ -992,6 +1012,7 @@ def main():
     e.audit_seed = args.audit_seed          # (might be None)
     check_audit_parameters(e)
     audit(e)
+
 
 def copy_dict_tree(dest, source):
     """
@@ -1014,6 +1035,7 @@ def copy_dict_tree(dest, source):
             else:
                 # Maybe add option to disallow clobbering here??
                 dest[source_key] = source[source_key]
+
 
 def load_part_from_json(e, part_name):
     part_filename = os.path.join(e.elections_dir, e.election_name, part_name)
