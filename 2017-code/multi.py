@@ -1,12 +1,12 @@
 # multi.py
 # Ronald L. Rivest
-# June 15, 2017
+# June 23, 2017
 # python3
 
 """
 Prototype code for auditing an election having both multiple contests and
 multiple paper ballot collections (e.g. multiple jurisdictions).
-Possibly relevant to Colorado state-wide post-election audits in 2017.
+Possibly relevant to Colorado state-wide post-election audits in Nov 2017.
 """
 
 """
@@ -23,12 +23,11 @@ This code corresponds to the what Audit Central needs to do.
 
 import argparse
 import json
-import logging
 import numpy as np                
 import os
 
 ##############################################################################
-## myprint  (like logging, maybe, but simpler)
+## myprint  (like logging, maybe, but maybe simpler)
 ##############################################################################
 myprint_switches = ["std"]                 
 
@@ -788,7 +787,7 @@ def compute_status(e, st):
 
     for cid in e.cids:
         compute_contest_risk(e, cid, st)
-        # The following test was could be for !="Just Watching" or for =="Auditing"
+        # The following test could be for !="Just Watching" or for =="Auditing"
         # It may be better to have it so that once a contest has met its
         # risk limit once, it no longer goes back to "Auditing" status, even
         # if its risk drifts back up to be larger than its risk limit.
@@ -817,7 +816,7 @@ def compute_status(e, st):
 
 
 def show_status(e):
-    """ Print election and contest status info. """
+    """ SHow election and contest status info. """
 
     myprint("    Risk (that reported outcome is wrong) per cid and contest status:")
     for cid in e.cids:
@@ -958,62 +957,6 @@ def audit_stage(e):
     show_status(e)
 
         
-def main():
-
-    global myprint_switches
-
-    parser = argparse.ArgumentParser(description=\
-            """multi.py: A Bayesian post-election audit program for an
-            election with multiple contests and multiple paper ballot 
-            collections.""")
-    parser.add_argument("election_name", help="""
-                        The name of the election.  Same as the name of the 
-                        subdirectory within the 'elections' directory 
-                        for information about this election.""")
-    parser.add_argument("--elections_dir", help=\
-                        """The directory where the subdirectory for the
-                        election is to be found.  Defaults to "./elections".""",
-                        default="./elections")
-    parser.add_argument("--audit_seed",
-                        help="""Seed for the random number generator used for
-                        auditing (32-bit value). (If omitted, uses clock.)""")
-        
-    args = parser.parse_args()
-                        
-    myprint_switches = []       # put this after following line to suppress printing
-    myprint_switches = ["std"]
-
-    e = Election()
-    e.elections_dir = args.elections_dir
-    e.election_name = args.election_name
-
-    load_part_from_json(e, "structure.js")
-    finish_election_structure(e)
-    check_election_structure(e)
-    show_election_structure(e)
-
-    load_part_from_json(e, "data.js")
-    finish_election_data(e)
-    if e.election_type == "Synthetic":
-        myprint("Synthetic vote generation seed:", e.synthetic_seed)
-        compute_synthetic_votes(e)
-    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r.
-    for cid in e.cids:
-        e.nr[cid] = {}
-        for pbcid in e.rel[cid]:
-            e.nr[cid][pbcid] = {}
-            for r in e.vids[cid]:
-                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
-                                           if e.rv[cid][pbcid][bid] == r])
-    check_election_data(e)
-    show_election_data(e)
-
-    load_part_from_json(e, "audit_parameters.js")
-    e.audit_seed = args.audit_seed          # (might be None)
-    check_audit_parameters(e)
-    audit(e)
-
-
 def copy_dict_tree(dest, source):
     """
     Copy data from source dict tree to dest dict tree, recursively.
@@ -1043,7 +986,64 @@ def load_part_from_json(e, part_name):
     copy_dict_tree(e.__dict__, part)
     myprint("File {} loaded.".format(part_filename))
 
-Logger = logging.getLogger()
-main()    
 
+def main():
+
+    global myprint_switches
+    myprint_switches = []       # put this after following line to suppress printing
+    myprint_switches = ["std"]
+
+    parser = argparse.ArgumentParser(description=\
+            """multi.py: A Bayesian post-election audit program for an
+            election with multiple contests and multiple paper ballot 
+            collections.""")
+    parser.add_argument("election_name", help="""
+                        The name of the election.  Same as the name of the 
+                        subdirectory within the 'elections' directory 
+                        for information about this election.""")
+    parser.add_argument("--elections_dir", help=\
+                        """The directory where the subdirectory for the
+                        election is to be found.  Defaults to "./elections".""",
+                        default="./elections")
+    parser.add_argument("--audit_seed",
+                        help="""Seed for the random number generator used for
+                        auditing (32-bit value). (If omitted, uses clock.)""")
+    args = parser.parse_args()
+                        
+    e = Election()
+    e.elections_dir = args.elections_dir
+    e.election_name = args.election_name
+
+    load_part_from_json(e, "structure.js")
+    finish_election_structure(e)
+    check_election_structure(e)
+    show_election_structure(e)
+
+    load_part_from_json(e, "data.js")
+    finish_election_data(e)
+    if e.election_type == "Synthetic":
+        myprint("Synthetic vote generation seed:", e.synthetic_seed)
+        compute_synthetic_votes(e)
+    else:
+        myerror("For now, data must be synthetic!")
+
+    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r:
+    for cid in e.cids:
+        e.nr[cid] = {}
+        for pbcid in e.rel[cid]:
+            e.nr[cid][pbcid] = {}
+            for r in e.vids[cid]:
+                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
+                                           if e.rv[cid][pbcid][bid] == r])
+    check_election_data(e)
+    show_election_data(e)
+
+    load_part_from_json(e, "audit_parameters.js")
+    e.audit_seed = args.audit_seed          # (might be None)
+    check_audit_parameters(e)
+    audit(e)
+
+
+if __name__=="__main__":
+    main()    
 
