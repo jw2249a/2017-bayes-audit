@@ -14,10 +14,10 @@
 
   "pseudocount": 0.001,
 
-  "contest_status": {"I": "Auditing",
-                     "C1": "Auditing",
-                     "C2": "Auditing",
-                     "C3": "Auditing",
-                     "F23": "Auditing"}
+  "contest_status": {"0": {"I": "Auditing",
+                           "C1": "Auditing",
+                           "C2": "Auditing",
+                           "C3": "Auditing",
+                           "F23": "Auditing"}}
 }
 

@@ -102,8 +102,8 @@ class Election(object):
     strings or numbers.
 
     In comments: 
-       [dicts] an object of type "cids-->reals" is a dict mapping cids to reals,
-           and an object of type "cids-->pcbids-->vids-->string" is a nested 
+       [dicts] an object of type "cids->reals" is a dict mapping cids to reals,
+           and an object of type "cids->pcbids->vids->string" is a nested 
            set of dicts, the top level keyed by a cid, and so on.
        [lists] an object of type [bids] is a list of ballot ids.
     Glossary:
@@ -123,64 +123,65 @@ class Election(object):
         e.synthetic_seed = 8 # seed for synthetic generation of random votes
         e.cids = []          # [cids]           list of contest ids
         e.pbcids = []        # [pcbids]         list of paper ballot collection ids
-        e.bids = {}          # pbcid-->[bids]   list of ballot ids for each pcbid
-        e.rel = {}           # cid-->pbcid-->"True"
+        e.bids = {}          # pbcid->[bids]   list of ballot ids for each pcbid
+        e.rel = {}           # cid->pbcid->"True"
                              # (relevance; only relevant pbcids in e.rel[cid])
-        e.vvids = {}         # cid-->[vids]   givs list of valid (CANDIDATE) votes
+        e.vvids = {}         # cid->[vids]   givs list of valid (CANDIDATE) votes
                              # (which are strings)
-        e.ivids = {}         # cid-->[vids]  gives list of invalid (NONCANDIDATE)
+        e.ivids = {}         # cid->[vids]  gives list of invalid (NONCANDIDATE)
                              # votes (which are strings),
                              # must include "Invalid", "Overvote", "Undervote",
                              # and possibly "noCVR" (for noCVR pbcs)
-        e.vids = {}          # cid-->[vids]
+        e.vids = {}          # cid->[vids]
                              # maps cid to union of e.vvids[cid] and e.ivids[cid]
                              # note that e.vids is used for both reported votes
                              # (e.rv) and for actual votes (e.av)
-        e.collection_type = {}  # pbcid--> "CVR" or "noCVR"
+        e.collection_type = {}  # pbcid-> "CVR" or "noCVR"
 
         ### election data (reported election results)
         e.n = {}             # e.n[pbcid] number ballots cast in collection pbcid
-        e.t = {}             # cid-->pbcid--> vid-->reals    (counts)
-        e.ro = {}            # cid-->vid   (reported outcome)
+        e.t = {}             # cid->pbcid-> vid->reals    (counts)
+        e.ro = {}            # cid->vid   (reported outcome)
         # computed from the above 
-        e.totcid = {}        # cid-->reals  (total # votes cast in contest)
-        e.totvot = {}        # cid-->vid-->reals  (number of votes recd by vid in cid)
-        e.rv = {}            # cid-->pbcid-->bid-->[vids]     (reported votes)
+        e.totcid = {}        # cid->reals  (total # votes cast in contest)
+        e.totvot = {}        # cid->vid->reals  (number of votes recd by vid in cid)
+        e.rv = {}            # cid->pbcid->bid->[vids]     (reported votes)
                              # e.rv is like e.av (reported votes; actual votes)
-        e.error_rate = 0.0001  # error rate used in model for generating
-                               # synthetic reported votes
+        e.nr = {}            # cid->pbcid->vid->count
+                             # (vid is reported vote in whole pbcid)
+        e.error_rate = 0.0001# error rate used in model for generating
+                             # synthetic reported votes
 
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
-        e.risk_limit = {}     # cid-->reals  (risk limit for that contest)
-        e.audit_rate = {}     # pbcid-->int  (# ballots that can be audited per stage)
-        e.stage = 0           # current stage number (in progress) or last stage completed
+        e.risk_limit = {}     # cid->reals  (risk limit for that contest)
+        e.audit_rate = {}     # pbcid->int  (# ballots that can be audited per stage)
+        e.stage = "0"         # current stage number (in progress) or last stage completed
+        e.last_stage = "-1"   # previous stage (just one less, in string form)
         e.max_stages = 100    # maximum number of stages allowed in audit
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
-        e.recount_threshold = 0.95 # if e.risk[cid] exceeds 0.95,
+        e.recount_threshold = 0.95 # if e.risk[e.stage][cid] exceeds 0.95,
                                    # then full recount called for cid
         e.n_trials = 100000   # number of trials used to estimate risk
                               # in compute_contest_risk
-        ## stage-dependent: (fix to have stage # as input?)
-        e.plan = {}           # pbcid-->reals (sample size wantedafter next draw)
-        e.risk = {}           # cid-->reals  (risk (that e.ro[cid] is wrong))
-        e.contest_status = {} # cid--> one of 
+        ## stage-dependent: (stage # input is stage when computed)
+        e.plan = {}           # stage->pbcid->reals (sample size wanted after next draw)
+        e.risk = {}           # stage->cid->reals  (risk (that e.ro[cid] is wrong))
+        e.contest_status = {} # stage->cid-> one of 
                               # "Auditing", "Just Watching",
                               # "Risk Limit Reached", "Full Recount Needed"
                               # initially must be "Auditing" or "Just Watching"
-        e.election_status = []    # list of contest statuses, at most once each
+        e.election_status = {} # stage->list of contest statuses, at most once each
         # sample info
-        e.av = {}             # cid-->pbcid-->bid-->vid
+        e.av = {}             # cid->pbcid->bid->vid
                               # (actual votes; sampled ballots)
-        e.s = {}              # pbcid-->ints (number of ballots sampled so far)
+        e.s = {}              # stage->pbcid->ints (number of ballots sampled so far)
         # computed from the above
-        e.st = {}             # cid-->pbcid-->vid-->vid-->count
+        e.st = {}             # stage->cid->pbcid->vid->vid->count
                               # (first vid is reported vote, second is actual vote)
-        e.sr = {}             # cid-->pbcid-->vid-->count
+        e.sr = {}             # stage->cid->pbcid->vid->count
                               # (vid is reported vote in sample)
-        e.nr = {}             # cid-->pbcid-->vid-->count
-                              # (vid is reported vote in whole pbcid)
 
 ##############################################################################
 ## Election structure I/O and validation
@@ -565,44 +566,41 @@ def check_audit_parameters(e):
         assert 0 <= e.audit_rate[pbcid]
         
     assert isinstance(e.contest_status, dict)
-    for cid in e.contest_status:
+    assert "0" in e.contest_status, e.contest_status
+    for cid in e.contest_status["0"]:
         assert cid in e.cids, cid
-        assert e.contest_status[cid] in ["Auditing", "Just Watching"], \
-            e.contest_status[cid]
+        assert e.contest_status["0"][cid] in ["Auditing", "Just Watching"], \
+            e.contest_status["0"][cid]
 
 def draw_sample(e):
     """ 
-    "Draw sample", tally it, save sample tally in e.st[cid][pbcid]. 
-    Update e.sr and e.nr
+    "Draw sample", tally it, save sample tally in e.st[stage][cid][pbcid]. 
+    Update e.sr
 
     Draw sample is in quotes since it just looks at the first
-    e.s[pbcid] elements of e.av[cid][pbcid].
-    Code sets e.sr[cid][pbcid][r] to number in sample with reported vote r.
-    Code sets e.nr[cid][pbcid][r] to number in pbcid with reported vote r.
+    e.s[stage][pbcid] elements of e.av[cid][pbcid].
+    Code sets e.sr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
 
     Code sets e.s to number of ballots sampled in each pbc (equal to plan).
     Note that in real life actual sampling number might be different than planned;
     here it will be the same.  But code elsewhere allows for such differences.
     """
 
-    e.s = e.plan
+    e.s[e.stage] = e.plan[e.last_stage]
+    e.sr[e.stage] = {}
     for cid in e.cids:
-        e.st[cid] = {}
-        e.sr[cid] = {}
-        e.nr[cid] = {}
+        e.st[e.stage][cid] = {}
+        e.sr[e.stage][cid] = {}
         for pbcid in e.rel[cid]:
-            e.sr[cid][pbcid] = {}
-            e.nr[cid][pbcid] = {}
+            e.sr[e.stage][cid][pbcid] = {}
             avotes = [e.av[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[pbcid]]] # actual
+                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
             rvotes = [e.rv[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[pbcid]]] # reported
+                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
             zvotes = list(zip(avotes, rvotes)) # list of (actual, reported) vote pairs
-            e.st[cid][pbcid] = compute_tally2(zvotes)
+            e.st[e.stage][cid][pbcid] = compute_tally2(zvotes)
             for r in e.vids[cid]:
-                e.sr[cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
-                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
-                                           if e.rv[cid][pbcid][bid] == r])
+                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
                 
 def compute_contest_risk(e, cid, st):
     """ 
@@ -627,22 +625,23 @@ def compute_contest_risk(e, cid, st):
         for pbcid in e.rel[cid]:
             # draw from posterior for each paper ballot collection, sum them
             # stratify by reported vote
-            for r in e.st[cid][pbcid]:
-                tally = e.st[cid][pbcid][r].copy()
+            for r in e.st[e.stage][cid][pbcid]:
+                tally = e.st[e.stage][cid][pbcid][r].copy()
                 for vid in e.vids[cid]:
                     tally[vid] = tally.get(vid, 0)
                 for vid in tally:
                     tally[vid] += e.pseudocount
                 dirichlet_dict = dirichlet(tally)
-                nonsample_size = e.nr[cid][pbcid][r] - e.sr[cid][pbcid][r]
+                nonsample_size = e.nr[cid][pbcid][r] - e.sr[e.stage][cid][pbcid][r]
                 for vid in tally:
                     # increment actual tally for vid with reported vote r
                     test_tally[vid] += tally[vid]  
-                    if e.sr[cid][pbcid][r] > 0:
+                    if e.sr[e.stage][cid][pbcid][r] > 0:
                         test_tally[vid] += dirichlet_dict[vid] * nonsample_size
         if e.ro[cid] != plurality(test_tally, e.vvids[cid]):
             wrong_outcome_count += 1
-    e.risk[cid] = wrong_outcome_count/e.n_trials
+    e.risk[e.stage][cid] = wrong_outcome_count/e.n_trials
+
 
 def compute_status(e, st):
     """ 
@@ -664,41 +663,45 @@ def compute_status(e, st):
         # Note that a contest which has reached its risk limit could be set back to
         # Auditing because of any one of its pbc's, even if some of them aren't being
         # audited for a stage.
-        if e.contest_status[cid] != "Just Watching":
-            if all([e.n[pbcid]==e.s[pbcid] for pbcid in e.rel[cid]]):
-                e.contest_status[cid] = "All Relevant Ballots Sampled"
-            elif e.risk[cid] < e.risk_limit[cid]:
-                e.contest_status[cid] = "Risk Limit Reached"
-            elif e.risk[cid] > e.recount_threshold:
-                e.contest_status[cid] = "Full Recount Needed"
+        e.contest_status[e.stage][cid] = e.contest_status[e.last_stage][cid]
+        if e.contest_status[e.stage][cid] != "Just Watching":
+            if all([e.n[pbcid]==e.s[e.stage][pbcid] for pbcid in e.rel[cid]]):
+                e.contest_status[e.stage][cid] = "All Relevant Ballots Sampled"
+            elif e.risk[e.stage][cid] < e.risk_limit[cid]:
+                e.contest_status[e.stage][cid] = "Risk Limit Reached"
+            elif e.risk[e.stage][cid] > e.recount_threshold:
+                e.contest_status[e.stage][cid] = "Full Recount Needed"
             else:
-                e.contest_status[cid] = "Auditing"
+                e.contest_status[e.stage][cid] = "Auditing"
         
-    e.election_status = sorted(list(set([e.contest_status[cid] for cid in e.cids])))
+    e.election_status[e.stage] = \
+        sorted(list(set([e.contest_status[e.stage][cid] for cid in e.cids])))
 
 def show_status(e):
     """ Print election and contest status info. """
 
     myprint("    Risk (that reported outcome is wrong) per cid and contest status:")
     for cid in e.cids:
-        myprint("     ", cid, e.risk[cid], \
+        myprint("     ", cid, e.risk[e.stage][cid], \
               "(limit {})".format(e.risk_limit[cid]), \
-              e.contest_status[cid])
-    myprint("    Election status:", e.election_status)
+              e.contest_status[e.stage][cid])
+    myprint("    Election status:", e.election_status[e.stage])
                 
 def plan_sample(e):
-    """ Return a sampling plan (dict of target sample sizes by pbcid) """
+    """ Compute a sampling plan 
+        Put in e.plan[e.stage] a dict of target sample sizes by pbcid) 
+    """
 
     # for now, use simple strategy of looking at more ballots
     # only in those paper ballot collections that are still being audited
-    plan = e.s.copy()
+    e.plan[e.stage] = e.s[e.stage].copy()
     for cid in e.cids:
         for pbcid in e.rel[cid]:
-            if e.contest_status[cid] == "Auditing":
+            if e.contest_status[e.stage][cid] == "Auditing":
                 # if contest still being audited do as much as you can without
                 # exceeding size of paper ballot collection
-                plan[pbcid] = min(e.s[pbcid] + e.audit_rate[pbcid], e.n[pbcid])
-    return plan
+                e.plan[e.stage][pbcid] = min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
+    return
 
 def show_audit_parameters(e):
 
@@ -706,7 +709,7 @@ def show_audit_parameters(e):
 
     myprint("e.contest_status (initial audit status for each contest):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.contest_status[cid]))
+        myprint("    {}:{}".format(cid, e.contest_status["0"][cid]))
 
     myprint("e.risk_limit (risk limit per contest):")
     for cid in e.cids:
@@ -736,7 +739,9 @@ def show_audit_stage_header(e, last_s):
     myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
         myprint("      {}: {} (+{})"
-                .format(pbcid, e.plan[pbcid], e.plan[pbcid]-last_s[pbcid]))
+                .format(pbcid,
+                        e.plan[e.last_stage][pbcid],
+                        e.plan[e.last_stage][pbcid]-last_s[pbcid]))
             
 def show_sample_counts(e):
 
@@ -744,12 +749,12 @@ def show_sample_counts(e):
             "and actual votes:")
     for cid in e.cids:
         for pbcid in e.rel[cid]:
-            tally2 = e.st[cid][pbcid]
+            tally2 = e.st[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()): # r = reported vote
                 myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
                 for v in sorted(tally2[r].keys()):
                     myprint("  {}:{}".format(v, tally2[r][v]), end='')
-                myprint("  total:{}".format(e.sr[cid][pbcid][r]))
+                myprint("  total:{}".format(e.sr[e.stage][cid][pbcid][r]))
 
 def show_audit_summary(e):
 
@@ -758,14 +763,15 @@ def show_audit_summary(e):
     myprint("=============")
     myprint("Audit completed!")
 
-    myprint("All contests have a status in the following list:", e.election_status)
+    myprint("All contests have a status in the following list:",
+            e.election_status[e.stage])
 
     myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
-        myprint("  {}:{}".format(pbcid, e.s[pbcid]))
+        myprint("  {}:{}".format(pbcid, e.s[e.stage][pbcid]))
     myprint_switches = ["std"]
     myprint("Total number of ballots sampled: ", end='')
-    myprint(sum([e.s[pbcid] for pbcid in e.pbcids]))
+    myprint(sum([e.s[e.stage][pbcid] for pbcid in e.pbcids]))
     
 def audit(e):
 
@@ -776,20 +782,37 @@ def audit(e):
     show_audit_parameters(e)
     myprint("====== Audit ======")
 
+    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r.
+    for cid in e.cids:
+        e.nr[cid] = {}
+        for pbcid in e.rel[cid]:
+            e.nr[cid][pbcid] = {}
+            for r in e.vids[cid]:
+                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
+                                           if e.rv[cid][pbcid][bid] == r])
+
+    e.s["0"] = {}
     for pbcid in e.pbcids:                           
-        e.s[pbcid] = 0
-    e.last_s = e.s
-    e.plan = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
+        e.s["0"][pbcid] = 0
+    e.last_s = e.s["0"]
+    e.plan["0"] = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
     
-    for e.stage in range(1, e.max_stages):
+    for stage in range(1, e.max_stages):
+        e.last_stage = e.stage
+        e.stage = "{}".format(stage)      # must be string to be json key
         audit_stage(e)
-        if "Auditing" not in e.election_status:
-            show_audit_summary(e)
+        if "Auditing" not in e.election_status[e.stage]:
             break
-        e.plan = plan_sample(e)
-        e.last_s = e.s
+        plan_sample(e)
+        e.last_s = e.s[e.stage]
+    show_audit_summary(e)
 
 def audit_stage(e):
+
+    e.risk[e.stage] = {}
+    e.contest_status[e.stage] = {}
+    e.s[e.stage] = {}                      
+    e.st[e.stage] = {}
 
     draw_sample(e)
     compute_status(e, e.st)

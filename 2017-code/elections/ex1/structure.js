@@ -8,7 +8,7 @@
   "__comment": "three paper ballot collections",
   "pbcids": ["PBC1", "PBC2", "PBC3"],
 
-  "collection_type":  {"PBC1": "CVR",
+  "collection_type":  {"PBC1": "noCVR",
                        "PBC2": "CVR",
                        "PBC3": "CVR"},
 
