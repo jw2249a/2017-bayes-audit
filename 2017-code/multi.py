@@ -327,7 +327,7 @@ def show_election_structure(e):
     myprint("    {}".format(len(e.cids)))
     myprint("e.cids (contest ids):")
     myprint("    ", end='')
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint(cid, end=' ')
     myprint()
     myprint("Number of paper ballot collections)")
@@ -341,25 +341,25 @@ def show_election_structure(e):
     for pbcid in sorted(e.pbcids):
         myprint("    {}:{} ".format(pbcid, e.collection_type[pbcid]))
     myprint("e.rel (valid pbcids for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for pbcid in sorted(e.rel[cid]):
             myprint(pbcid, end=' ')
         myprint()
     myprint("e.vvids (valid vote ids for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for vvid in sorted(e.vvids[cid]):
             myprint(vvid, end=' ')
         myprint()
     myprint("e.ivids (invalid vote ids for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for ivid in sorted(e.ivids[cid]):
             myprint(ivid, end=' ')
         myprint()
     myprint("e.vids (valid or invalid vote ids for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for vid in sorted(e.vids[cid]):
             myprint(vid, end=' ')
@@ -591,7 +591,7 @@ def show_election_data(e):
     myprint("====== Reported election data ======")
 
     myprint("e.t (total votes for each vid by cid and pbcid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}: ".format(cid, pbcid), end='')
             for vid in sorted(e.vids[cid]):
@@ -599,18 +599,18 @@ def show_election_data(e):
             myprint()
 
     myprint("e.totcid (total votes cast for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: {}".format(cid, e.totcid[cid]))
 
     myprint("e.totvot (total cast for each vid for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for vid in sorted(e.vids[cid]):
             myprint("{}:{} ".format(vid, e.totvot[cid][vid]), end='')
         myprint()
 
     myprint("e.av (first five or so actual votes cast for each cid and pbcid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}:".format(cid, pbcid), end='')
             for j in range(min(5, len(e.bids[pbcid]))):
@@ -619,7 +619,7 @@ def show_election_data(e):
             myprint()
 
     myprint("e.ro (reported outcome for each cid):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}:{}".format(cid, e.ro[cid]))
 
 ##############################################################################
@@ -822,7 +822,7 @@ def show_status(e):
     """ SHow election and contest status info. """
 
     myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("     ", cid, e.risk[e.stage][cid], \
               "(limit {})".format(e.risk_limit[cid]), \
               e.contest_status[e.stage][cid])
@@ -842,7 +842,8 @@ def plan_sample(e):
             if e.contest_status[e.stage][cid] == "Auditing":
                 # if contest still being audited do as much as you can without
                 # exceeding size of paper ballot collection
-                e.plan[e.stage][pbcid] = min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
+                e.plan[e.stage][pbcid] = \
+                    min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
     return
 
 
@@ -851,11 +852,11 @@ def show_audit_parameters(e):
     myprint("====== Audit parameters ======")
 
     myprint("e.contest_status (initial audit status for each contest):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}:{}".format(cid, e.contest_status["0"][cid]))
 
     myprint("e.risk_limit (risk limit per contest):")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         myprint("    {}:{}".format(cid, e.risk_limit[cid]))
 
     myprint("e.audit_rate (max number of ballots audited/day per pbcid):")
@@ -893,7 +894,7 @@ def show_sample_counts(e):
 
     myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
             "and actual votes:")
-    for cid in sorted(e.cids):
+    for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             tally2 = e.st[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()): # r = reported vote
@@ -971,6 +972,7 @@ def copy_dict_tree(dest, source):
     Copy data from source dict tree to dest dict tree, recursively.
     Omit key/value pairs where key starts with "__".
     """
+    
     if not isinstance(dest, dict) or not isinstance(source, dict):
         myprint("copy_dict_tree: source or dest is not a dict.")
         return
