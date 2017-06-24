@@ -119,7 +119,7 @@ class Election(object):
 
         ### election structure
         e.election_type = "Synthetic"  # string, either "Synthetic" or "Real"
-        e.synthetic_seed = 8 # seed for synthetic generation of random votes
+        e.synthetic_seed = 2 # seed for synthetic generation of random votes
         e.cids = []          # [cids]           list of contest ids
         e.pbcids = []        # [pcbids]         list of paper ballot collection ids
         e.bids = {}          # pbcid->[bids]   list of ballot ids for each pcbid
@@ -157,7 +157,7 @@ class Election(object):
         e.audit_rate = {}     # pbcid->int  (# ballots that can be audited per stage)
         e.stage = "0"         # current stage number (in progress) or last stage completed
         e.last_stage = "-1"   # previous stage (just one less, in string form)
-        e.max_stages = 100    # maximum number of stages allowed in audit
+        e.max_stages = 20     # maximum number of stages allowed in audit
         e.pseudocount = 0.5   # hyperparameter for prior distribution
                               # (e.g. 0.5 for Jeffrey's distribution)
         e.recount_threshold = 0.95 # if e.risk[e.stage][cid] exceeds 0.95,
@@ -327,41 +327,41 @@ def show_election_structure(e):
     myprint("    {}".format(len(e.cids)))
     myprint("e.cids (contest ids):")
     myprint("    ", end='')
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint(cid, end=' ')
     myprint()
     myprint("Number of paper ballot collections)")
     myprint("    {}".format(len(e.pbcids)))
     myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
     myprint("    ", end='')
-    for pbcid in e.pbcids:
+    for pbcid in sorted(e.pbcids):
         myprint(pbcid, end=' ')
     myprint()
     myprint("e.collection_type (either CVR or noCVR) for each pbcid:")
-    for pbcid in e.pbcids:
+    for pbcid in sorted(e.pbcids):
         myprint("    {}:{} ".format(pbcid, e.collection_type[pbcid]))
     myprint("e.rel (valid pbcids for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: ".format(cid), end='')
-        for pbcid in e.rel[cid]:
+        for pbcid in sorted(e.rel[cid]):
             myprint(pbcid, end=' ')
         myprint()
     myprint("e.vvids (valid vote ids for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: ".format(cid), end='')
-        for vvid in e.vvids[cid]:
+        for vvid in sorted(e.vvids[cid]):
             myprint(vvid, end=' ')
         myprint()
     myprint("e.ivids (invalid vote ids for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: ".format(cid), end='')
-        for ivid in e.ivids[cid]:
+        for ivid in sorted(e.ivids[cid]):
             myprint(ivid, end=' ')
         myprint()
     myprint("e.vids (valid or invalid vote ids for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: ".format(cid), end='')
-        for vid in e.vids[cid]:
+        for vid in sorted(e.vids[cid]):
             myprint(vid, end=' ')
         myprint()
 
@@ -591,27 +591,27 @@ def show_election_data(e):
     myprint("====== Reported election data ======")
 
     myprint("e.t (total votes for each vid by cid and pbcid):")
-    for cid in e.cids:
-        for pbcid in e.rel[cid]:
+    for cid in sorted(e.cids):
+        for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}: ".format(cid, pbcid), end='')
-            for vid in e.vids[cid]:
+            for vid in sorted(e.vids[cid]):
                 myprint("{}:{} ".format(vid, e.t[cid][pbcid].get(vid, 0)), end='')
             myprint()
 
     myprint("e.totcid (total votes cast for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: {}".format(cid, e.totcid[cid]))
 
     myprint("e.totvot (total cast for each vid for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}: ".format(cid), end='')
-        for vid in e.vids[cid]:
+        for vid in sorted(e.vids[cid]):
             myprint("{}:{} ".format(vid, e.totvot[cid][vid]), end='')
         myprint()
 
     myprint("e.av (first five or so actual votes cast for each cid and pbcid):")
-    for cid in e.cids:
-        for pbcid in e.rel[cid]:
+    for cid in sorted(e.cids):
+        for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}:".format(cid, pbcid), end='')
             for j in range(min(5, len(e.bids[pbcid]))):
                 bid = e.bids[pbcid][j]
@@ -619,7 +619,7 @@ def show_election_data(e):
             myprint()
 
     myprint("e.ro (reported outcome for each cid):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}:{}".format(cid, e.ro[cid]))
 
 ##############################################################################
@@ -653,19 +653,22 @@ def compute_tally2(vec):
     return tally2
 
 
-def plurality(d, vvids):
+def plurality(e, cid, tally):
     """
-    Return, for input dict d mapping vids to (real) counts, vid with largest count.
+    Return, for input dict tally mapping vids to (real) counts, vid with largest count.
     (Tie-breaking done arbitrarily here.)
-    Winning vid must be a valid winner (member of vvids).
+    Winning vid must be a valid winner (member of vvids); an Exception is raised if
+    this is not possible.
     """
 
+    vvids = e.vvids[cid]     # allowed winners
     max_cnt = -1e90
     max_vid = None
-    for vid in d:
-        if d[vid]>max_cnt and vid in vvids:
-            max_cnt = d[vid]
+    for vid in tally:
+        if tally[vid]>max_cnt and vid in vvids:
+            max_cnt = tally[vid]
             max_vid = vid
+    assert "No winner allowed in plurality contest.", (tally, vvids)
     return max_vid
 
 ##############################################################################
@@ -775,7 +778,7 @@ def compute_contest_risk(e, cid, st):
                     test_tally[vid] += tally[vid]  
                     if e.sr[e.stage][cid][pbcid][r] > 0:
                         test_tally[vid] += dirichlet_dict[vid] * nonsample_size
-        if e.ro[cid] != plurality(test_tally, e.vvids[cid]):
+        if e.ro[cid] != plurality(e, cid, test_tally):
             wrong_outcome_count += 1
     e.risk[e.stage][cid] = wrong_outcome_count/e.n_trials
 
@@ -818,8 +821,8 @@ def compute_status(e, st):
 def show_status(e):
     """ SHow election and contest status info. """
 
-    myprint("    Risk (that reported outcome is wrong) per cid and contest status:")
-    for cid in e.cids:
+    myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
+    for cid in sorted(e.cids):
         myprint("     ", cid, e.risk[e.stage][cid], \
               "(limit {})".format(e.risk_limit[cid]), \
               e.contest_status[e.stage][cid])
@@ -848,21 +851,21 @@ def show_audit_parameters(e):
     myprint("====== Audit parameters ======")
 
     myprint("e.contest_status (initial audit status for each contest):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}:{}".format(cid, e.contest_status["0"][cid]))
 
     myprint("e.risk_limit (risk limit per contest):")
-    for cid in e.cids:
+    for cid in sorted(e.cids):
         myprint("    {}:{}".format(cid, e.risk_limit[cid]))
 
     myprint("e.audit_rate (max number of ballots audited/day per pbcid):")
-    for pbcid in e.pbcids:
+    for pbcid in sorted(e.pbcids):
         myprint("    {}:{}".format(pbcid, e.audit_rate[pbcid]))
 
     myprint("e.max_stages (max number of audit stages allowed):")
     myprint("    {}".format(e.max_stages))
 
-    myprint("e.n_trials (number of trials used to estimate risk"
+    myprint("e.n_trials (number of trials used to estimate risk "
             "in compute_contest_risk):")
     myprint("    {}".format(e.n_trials))
 
@@ -874,11 +877,12 @@ def show_audit_parameters(e):
     myprint("    {}".format(e.audit_seed))
 
 
-def show_audit_stage_header(e, last_s):
+def show_audit_stage_header(e):
 
     myprint("audit stage", e.stage)
     myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
+        last_s = e.s[e.last_stage]
         myprint("      {}: {} (+{})"
                 .format(pbcid,
                         e.plan[e.last_stage][pbcid],
@@ -889,8 +893,8 @@ def show_sample_counts(e):
 
     myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
             "and actual votes:")
-    for cid in e.cids:
-        for pbcid in e.rel[cid]:
+    for cid in sorted(e.cids):
+        for pbcid in sorted(e.rel[cid]):
             tally2 = e.st[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()): # r = reported vote
                 myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
@@ -908,6 +912,13 @@ def show_audit_summary(e):
 
     myprint("All contests have a status in the following list:",
             e.election_status[e.stage])
+    if "Auditing" not in e.election_status[e.stage]:
+        myprint("No contest still has `Auditing' status.")
+    if "Full Recount Needed" in e.election_status[e.stage]:
+        myprint("At least one contest needs a full recount.")
+    if int(e.stage)==e.max_stages:
+        myprint("Maximum number of audit stages ({}) reached."
+                .format(e.max_stages))
 
     myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
@@ -928,17 +939,15 @@ def audit(e):
     e.s["0"] = {}
     for pbcid in e.pbcids:                           
         e.s["0"][pbcid] = 0
-    e.last_s = e.s["0"]
     e.plan["0"] = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
     
-    for stage in range(1, e.max_stages):
+    for stage in range(1, e.max_stages+1):
         e.last_stage = e.stage
         e.stage = "{}".format(stage)      # must be string to be json key
         audit_stage(e)
         if "Auditing" not in e.election_status[e.stage]:
             break
         plan_sample(e)
-        e.last_s = e.s[e.stage]
     show_audit_summary(e)
 
 
@@ -952,7 +961,7 @@ def audit_stage(e):
     draw_sample(e)
     compute_status(e, e.st)
 
-    show_audit_stage_header(e, e.last_s)
+    show_audit_stage_header(e)
     show_sample_counts(e)
     show_status(e)
 
