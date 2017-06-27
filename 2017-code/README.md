@@ -10,8 +10,18 @@ spread across 64 counties.
 
 ## Election structure
 
-We presume that the election has a number of **contests**, a number of
-**voters**, each of whom submits a single **paper ballots**.
+We assume the following:
+   -- a number of **contests** (for now, all plurality contests),
+   -- a number of **voters**,
+   -- a single **paper ballot** from each voter,
+   -- paper ballots organized into a set of disjoint **collections**
+      (for example, one or a few collections per county),
+   -- each collection is managed by a **collection manager**,
+   -- an **Audit Coordinator** who coordinates the audit in collaboration
+      with the collection managers (the Coordinator might be from the
+      Secretary of State's office).
+
+
 
 
 
