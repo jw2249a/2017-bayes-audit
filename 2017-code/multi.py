@@ -31,7 +31,9 @@ import os
 ## datetime
 ##############################################################################
 
-def datetimestring():
+
+
+def datetime_string():
     """ Return current datetime as string e.g. '20170626-211830-688876' 
         YearMonthDay-HoursMinutesSeconds-Microseconds
         May be used in a filename (no colons or periods).
@@ -1012,8 +1014,7 @@ def show_audit_parameters(e):
             "in compute_contest_risk):")
     myprint("    {}".format(e.n_trials))
 
-    myprint("e.pseudocount (hyperparameter for prior distribution,"
-            "e.g. 0.5 for Jeffrey's prior)")
+    myprint("e.pseudocount (hyperparameter for prior distribution,")
     myprint("    {}".format(e.pseudocount))
 
     myprint("e.audit_seed (seed for audit pseudorandom number generation)")
@@ -1141,6 +1142,12 @@ def main():
     global myprint_switches
     myprint_switches = []       # put this after following line to suppress printing
     myprint_switches = ["std"]
+
+    print("multi.py -- Bayesian audit support program.")
+
+    global start_datetime_string
+    start_datetime_string = datetime_string()
+    print("Starting data/time:", start_time)
 
     args = parse_args()
     e = Election()
