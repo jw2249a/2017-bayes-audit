@@ -24,17 +24,17 @@
               "PBC3": true}},
 
   "__comment": "valid votes for each contest (can win)",
-  "vvids": {"I": ["0", "1"],
-            "C1": ["0", "1"],
-            "C2": ["0", "1"],
-            "C3": ["0", "1"],
-            "F23": ["0", "1"]},
+  "vvotids": {"I": ["0", "1"],
+              "C1": ["0", "1"],
+              "C2": ["0", "1"],
+              "C3": ["0", "1"],
+              "F23": ["0", "1"]},
 
   "__comment": "invalid votes for each contest (can't win)",
-  "ivids": {"I": ["Invalid", "Overvote", "Undervote"],
-            "C1": ["Invalid", "Overvote", "Undervote"],
-            "C2": ["Invalid", "Overvote", "Undervote"],
-            "C3": ["Invalid", "Overvote", "Undervote"],
-            "F23": ["Invalid", "Overvote", "Undervote"]}
+  "ivotids": {"I": ["Invalid", "Overvote", "Undervote"],
+              "C1": ["Invalid", "Overvote", "Undervote"],
+              "C2": ["Invalid", "Overvote", "Undervote"],
+              "C3": ["Invalid", "Overvote", "Undervote"],
+              "F23": ["Invalid", "Overvote", "Undervote"]}
 }            
             

@@ -22,9 +22,24 @@ This code corresponds to the what Audit Central needs to do.
 # MIT License
 
 import argparse
+import datetime
 import json
 import numpy as np                
 import os
+
+##############################################################################
+## datetime
+##############################################################################
+
+def datetimestring():
+    """ Return current datetime as string e.g. '20170626-211830-688876' 
+        YearMonthDay-HoursMinutesSeconds-Microseconds
+        May be used in a filename (no colons or periods).
+    """
+    # https://docs.python.org/3.6/library/datetime.html    
+
+    t = datetime.datetime.now()
+    return t.strftime("%Y%m%d-%H%M%S-%f")
 
 ##############################################################################
 ## myprint  (like logging, maybe, but maybe simpler)
@@ -43,6 +58,28 @@ def myprint(*args, **kwargs):
             print(*args, **kwargs)
     elif "std" in myprint_switches:
         print(*args, **kwargs)
+
+##############################################################################
+## error and warning messages
+
+def myerror(msg):
+    """ Print error message and halt immediately """
+    
+    print("FATAL ERROR:", msg)
+    raise Exception
+
+
+warnings_given = 0
+
+def mywarning(msg):
+    """ Print error message, but keep going.
+        Keep track of how many warnings have been given.
+    """
+
+    global warnings_given
+    warnings_given += 1
+    print("WARNING: msg")
+
 
 ##############################################################################
 ## Random number generation
@@ -76,14 +113,14 @@ def gamma(k, rs=None):
 
 def dirichlet(tally):
     """ 
-    Given tally dict mapping vote ids (vids) to nonnegative reals (counts), 
-    return dict mapping those vids to elements of Dirichlet distribution on
-    those vids, where tally values are used as Dirichlet hyperparameters.
+    Given tally dict mapping vote ids (votids) to nonnegative reals (counts), 
+    return dict mapping those votids to elements of Dirichlet distribution on
+    those votids, where tally values are used as Dirichlet hyperparameters.
     The values produced sum to one.
     """
-    dir = {vid: gamma(tally[vid]) for vid in tally}
+    dir = {votid: gamma(tally[votid]) for votid in tally}
     total = sum(dir.values())
-    dir = {vid: dir[vid]/total for vid in dir}
+    dir = {votid: dir[votid]/total for votid in dir}
     return dir
 
 ##############################################################################
@@ -98,19 +135,19 @@ class Election(object):
 
     For compatibility with json, an Election object should be viewed as 
     the root of a tree of dicts, where all keys are strings, and the leaves are
-    strings or numbers.
+    strings or numbers, or lists of strings or numbers.
 
     In comments: 
-       [dicts] an object of type "cids->reals" is a dict mapping cids to reals,
-           and an object of type "cids->pcbids->vids->string" is a nested 
-           set of dicts, the top level keyed by a cid, and so on.
-       [lists] an object of type [bids] is a list of ballot ids.
+       dicts: an object of type "cids->reals" is a dict mapping cids to reals,
+                and an object of type "cids->pcbids->votids->string" is a nested 
+                set of dicts, the top level keyed by a cid, and so on.
+       lists: an object of type [bids] is a list of ballot ids.
     Glossary:
         bid    a ballot id (e.g. "Arapahoe-Box12-234")
         cid    a contest id (e.g. "Denver-Mayor")
         pbcid  a paper-ballot collection id (e.g. "Denver-precinct24")
-        vid    a vote id (e.g. "Yes" or "JohnSmith")
-    All ids are required by this code to not contain whitespace.
+        votid  a vote id (e.g. "Yes" or "JohnSmith")
+    It is recommended (but not required) that ids not contain whitespace.
     """
 
     def __init__(self):
@@ -118,38 +155,41 @@ class Election(object):
         e = self
 
         ### election structure
+        e.election_name = "" # Name of election (e.g. "CO-Nov-2017")
+        e.elections_dir = "" # where the election data is e.g. "./elections", so
+                             # election data is all in "./elections/CO-Nov-2017"
         e.election_type = "Synthetic"  # string, either "Synthetic" or "Real"
-        e.synthetic_seed = 2 # seed for synthetic generation of random votes
         e.cids = []          # [cids]           list of contest ids
         e.pbcids = []        # [pcbids]         list of paper ballot collection ids
         e.bids = {}          # pbcid->[bids]   list of ballot ids for each pcbid
         e.rel = {}           # cid->pbcid->"True"
                              # (relevance; only relevant pbcids in e.rel[cid])
-        e.vvids = {}         # cid->[vids]   givs list of valid (CANDIDATE) votes
+        e.vvotids = {}       # cid->[votids]   givs list of valid (CANDIDATE) votes
                              # (which are strings)
-        e.ivids = {}         # cid->[vids]  gives list of invalid (NONCANDIDATE)
+        e.ivotids = {}       # cid->[votids]  gives list of invalid (NONCANDIDATE)
                              # votes (which are strings),
                              # must include "Invalid", "Overvote", "Undervote",
                              # and possibly "noCVR" (for noCVR pbcs)
-        e.vids = {}          # cid->[vids]
-                             # maps cid to union of e.vvids[cid] and e.ivids[cid]
-                             # note that e.vids is used for both reported votes
+        e.votids = {}        # cid->[votids]
+                             # maps cid to union of e.vvotids[cid] and e.ivotids[cid]
+                             # note that e.votids is used for both reported votes
                              # (e.rv) and for actual votes (e.av)
         e.collection_type = {}  # pbcid-> "CVR" or "noCVR"
 
         ### election data (reported election results)
         e.n = {}             # e.n[pbcid] number ballots cast in collection pbcid
-        e.t = {}             # cid->pbcid-> vid->reals    (counts)
-        e.ro = {}            # cid->vid   (reported outcome)
+        e.t = {}             # cid->pbcid-> votid->reals    (counts)
+        e.ro = {}            # cid->votid   (reported outcome)
         # computed from the above 
         e.totcid = {}        # cid->reals  (total # votes cast in contest)
-        e.totvot = {}        # cid->vid->reals  (number of votes recd by vid in cid)
-        e.rv = {}            # cid->pbcid->bid->[vids]     (reported votes)
+        e.totvot = {}        # cid->votid->reals  (number of votes recd by votid in cid)
+        e.rv = {}            # cid->pbcid->bid->[votids]     (reported votes)
                              # e.rv is like e.av (reported votes; actual votes)
-        e.nr = {}            # cid->pbcid->vid->count
-                             # (vid is reported vote in whole pbcid)
-        e.error_rate = 0.0001# error rate used in model for generating
-                             # synthetic reported votes
+        e.nr = {}            # cid->pbcid->votid->count
+                             # (votid is reported vote, count is in whole pbcid)
+        e.synthetic_seed = 2  # seed for generation of synthetic random votes
+        e.error_rate = 0.0001 # error rate used in model for generating
+                              # synthetic reported votes
 
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
@@ -173,57 +213,88 @@ class Election(object):
                               # initially must be "Auditing" or "Just Watching"
         e.election_status = {} # stage->list of contest statuses, at most once each
         # sample info
-        e.av = {}             # cid->pbcid->bid->vid
-                              # (actual votes; sampled ballots)
         e.s = {}              # stage->pbcid->ints (number of ballots sampled so far)
+        e.av = {}             # cid->pbcid->bid->votid
+                              # (actual votes; sampled ballots)
         # computed from the above
-        e.st = {}             # stage->cid->pbcid->vid->vid->count
-                              # (first vid is reported vote, second is actual vote)
-        e.sr = {}             # stage->cid->pbcid->vid->count
-                              # (vid is reported vote in sample)
+        e.st = {}             # stage->cid->pbcid->votid->votid->count  ("sample tally")
+                              # (first votid is reported vote, second is actual vote)
+        e.sr = {}             # stage->cid->pbcid->votid->count  ("sample tally by reported vote")
+                              # (votid is reported vote, count is in sample)
+
+
+##############################################################################
+## Low level i/o for reading election data structure
+
+
+def load_part_from_json(e, part_name):
+
+    part_filename = os.path.join(e.elections_dir, e.election_name, part_name)
+    part = json.load(open(part_filename, "r"))
+    copy_dict_tree(vars(e), part)
+    myprint("File {} loaded.".format(part_filename))
+
+
+def copy_dict_tree(dest, source):
+    """
+    Copy data from source dict tree to dest dict tree, recursively.
+    Omit key/value pairs where key starts with "__".
+    TODO?? Filter so only desired attributes are copied. 
+    """
+    
+    if not isinstance(dest, dict) or not isinstance(source, dict):
+        myprint("copy_dict_tree: source or dest is not a dict.")
+        return
+    for source_key in source:
+        if not source_key.startswith("__"):   # for comments, etc.
+            if isinstance(source[source_key], dict):
+                if not source_key in dest:
+                    dest_dict = {}
+                    dest[source_key] = dest_dict
+                else:
+                    dest_dict = dest[source_key]
+                source_dict = source[source_key]
+                copy_dict_tree(dest_dict, source_dict)
+            else:
+                # Maybe add option to disallow clobbering here??
+                dest[source_key] = source[source_key]
+
+
 
 ##############################################################################
 ## Election structure I/O and validation
 ##############################################################################
 
+def get_election_structure(e):
+
+    load_part_from_json(e, "structure.js")
+    finish_election_structure(e)
+    check_election_structure(e)
+    show_election_structure(e)
+
+
 def finish_election_structure(e):
     """ Compute attributes of e that are derivative from others. """
 
     for cid in e.cids:
-        if "noCVR" not in e.ivids[cid] and \
+        if "noCVR" not in e.ivotids[cid] and \
            any([e.collection_type[pbcid]=="noCVR" \
                 for pbcid in e.rel[cid]]):
-            e.ivids[cid].append("noCVR")
+            e.ivotids[cid].append("noCVR")
 
     for cid in e.cids:
-        e.vids[cid] = sorted(e.vvids[cid]+e.ivids[cid])
+        e.votids[cid] = sorted(e.vvotids[cid]+e.ivotids[cid])
 
 
-def myerror(msg):
-    """ Print error message and halt immediately """
-    
-    print("FATAL ERROR:", msg)
-    raise Exception
+def check_id(id, check_for_whitespace=False):
 
-
-warnings_given = 0
-def mywarning(msg):
-    """ Print error message, but keep going.
-        Keep track as to how many warnings have been given.
-    """
-
-    global warnings_given
-    warnings_given += 1
-    print("WARNING: msg")
-
-
-def check_id(id):
     if not isinstance(id, str) or not id.isprintable():
         mywarning("id is not string or is not printable: {}".format(id))
-    for c in id:
-        if c.isspace():
-            mywarning("id `id` contains whitespace.")
-            break
+    if check_for_whitespace:
+        for c in id:
+            if c.isspace():
+                mywarning("id `id` contains whitespace.")
+                break
 
 
 def check_election_structure(e):
@@ -256,50 +327,50 @@ def check_election_structure(e):
             if e.rel[cid][pbcid]!=True:
                 mywarning("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
 
-    if not isinstance(e.ivids, dict):
-        myerror("e.ivids is not a dict.")
-    for cid in e.ivids:
+    if not isinstance(e.ivotids, dict):
+        myerror("e.ivotids is not a dict.")
+    for cid in e.ivotids:
         if cid not in e.cids:
-            myerror("e.ivids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.ivids[cid], (list, tuple)):
-            myerror("e.ivids[{}] is not a list or a tuple.".format(cid))
-        for ivid in e.ivids[cid]:
-            check_id(ivid)
+            myerror("e.ivotids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.ivotids[cid], (list, tuple)):
+            myerror("e.ivotids[{}] is not a list or a tuple.".format(cid))
+        for ivotid in e.ivotids[cid]:
+            check_id(ivotid)
     for cid in e.cids:
-        if cid not in e.ivids:
-            mywarning("cid `{}` should a key in e.ivids".format(cid))
+        if cid not in e.ivotids:
+            mywarning("cid `{}` should a key in e.ivotids".format(cid))
 
-    if not isinstance(e.vvids, dict):
-        myerror("e.vvids is not a dict.")
-    for cid in e.vvids:
+    if not isinstance(e.vvotids, dict):
+        myerror("e.vvotids is not a dict.")
+    for cid in e.vvotids:
         if cid not in e.cids:
-            myerror("e.vvids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.vvids[cid], (list, tuple)):
-            myerror("e.vvids[{}] is not a list or a tuple.".format(cid))
-        for vid in e.vvids[cid]:
-            check_id(vid)
+            myerror("e.vvotids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.vvotids[cid], (list, tuple)):
+            myerror("e.vvotids[{}] is not a list or a tuple.".format(cid))
+        for votid in e.vvotids[cid]:
+            check_id(votid)
     for cid in e.cids:
-        if cid not in e.vids:
-            mywarning("cid `{}` should be key in e.vids".format(cid))
+        if cid not in e.votids:
+            mywarning("cid `{}` should be key in e.votids".format(cid))
 
-    if not isinstance(e.vids, dict):
-        myerror("e.vids is not a dict.")
-    for cid in e.vids:
+    if not isinstance(e.votids, dict):
+        myerror("e.votids is not a dict.")
+    for cid in e.votids:
         if cid not in e.cids:
-            myerror("e.vids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.vids[cid], (list, tuple)):
-            myerror("e.vids[{}] is not a list or a tuple.".format(cid))
-        for vid in e.vids[cid]:
-            check_id(vid)
+            myerror("e.votids has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.votids[cid], (list, tuple)):
+            myerror("e.votids[{}] is not a list or a tuple.".format(cid))
+        for votid in e.votids[cid]:
+            check_id(votid)
     for cid in e.cids:
-        if cid not in e.vids:
-            mywarning("cid `{}` should be key in e.vids".format(cid))
+        if cid not in e.votids:
+            mywarning("cid `{}` should be key in e.votids".format(cid))
 
     for cid in e.cids:
-        for vvid in e.vvids[cid]:
-            for ivid in e.ivids[cid]:
-                if vvid == ivid:
-                    mywarning("e.vvids[{}] and e.ivids[{}] are not disjoint."
+        for vvotid in e.vvotids[cid]:
+            for ivotid in e.ivotids[cid]:
+                if vvotid == ivotid:
+                    mywarning("e.vvotids[{}] and e.ivotids[{}] are not disjoint."
                               .format(cid, cid))
 
     if not isinstance(e.collection_type, dict):
@@ -346,28 +417,50 @@ def show_election_structure(e):
         for pbcid in sorted(e.rel[cid]):
             myprint(pbcid, end=' ')
         myprint()
-    myprint("e.vvids (valid vote ids for each cid):")
+    myprint("e.vvotids (valid vote ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for vvid in sorted(e.vvids[cid]):
-            myprint(vvid, end=' ')
+        for vvotid in sorted(e.vvotids[cid]):
+            myprint(vvotid, end=' ')
         myprint()
-    myprint("e.ivids (invalid vote ids for each cid):")
+    myprint("e.ivotids (invalid vote ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for ivid in sorted(e.ivids[cid]):
-            myprint(ivid, end=' ')
+        for ivotid in sorted(e.ivotids[cid]):
+            myprint(ivotid, end=' ')
         myprint()
-    myprint("e.vids (valid or invalid vote ids for each cid):")
+    myprint("e.votids (valid or invalid vote ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for vid in sorted(e.vids[cid]):
-            myprint(vid, end=' ')
+        for votid in sorted(e.votids[cid]):
+            myprint(votid, end=' ')
         myprint()
 
 ##############################################################################
 ## Election data I/O and validation (stuff that depends on cast votes)
 ##############################################################################
+
+def get_election_data(e):    
+
+    load_part_from_json(e, "data.js")
+    finish_election_data(e)
+    if e.election_type == "Synthetic":
+        myprint("Synthetic vote generation seed:", e.synthetic_seed)
+        compute_synthetic_votes(e)
+    else:
+        myerror("For now, data must be synthetic!")
+
+    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r:
+    for cid in e.cids:
+        e.nr[cid] = {}
+        for pbcid in e.rel[cid]:
+            e.nr[cid][pbcid] = {}
+            for r in e.votids[cid]:
+                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
+                                           if e.rv[cid][pbcid][bid] == r])
+    check_election_data(e)
+    show_election_data(e)
+
 
 def finish_election_data(e):
     """ 
@@ -378,34 +471,34 @@ def finish_election_data(e):
     for cid in e.cids:
         e.totcid[cid] = sum([e.n[pbcid] for pbcid in e.rel[cid]])
 
-    # e.totvid[cid][vid] is total number cast for vid in cid
+    # e.totvotid[cid][votid] is total number cast for votid in cid
     for cid in e.cids:
         e.totvot[cid] = {}
-        for vid in e.vids[cid]:
-            e.totvot[cid][vid] = \
-                sum([e.t[cid][pbcid].get(vid, 0) for pbcid in e.rel[cid]])
+        for votid in e.votids[cid]:
+            e.totvot[cid][votid] = \
+                sum([e.t[cid][pbcid].get(votid, 0) for pbcid in e.rel[cid]])
 
 
-def compute_rv(e, cid, pbcid, bid, vid):
+def compute_rv(e, cid, pbcid, bid, votid):
     """
     Compute reported vote for e.rv[cid][pbcid][bid]
     based on whether pbcid is CVR or noCVR, and based on
-    a prior for errors.  Here vid is the actual vote.
+    a prior for errors.  Here votid is the actual vote.
     e.error_rate (default 0.0001) is chance that 
     reported vote != actual vote.  If they differ all 
     other possibilities are equally likely to occur.
     """
     if e.collection_type[pbcid]=="noCVR":
-        assert "noCVR" in e.vids[cid], cid   # assume noCVR is legit vid
+        assert "noCVR" in e.votids[cid], cid   # assume noCVR is legit votid
         return "noCVR"
     # Otherwise, we generate a reported vote
-    m = len(e.vids[cid])          # number of vote options for this cid
+    m = len(e.votids[cid])          # number of vote options for this cid
     if syntheticRandomState.uniform()>e.error_rate or m==1:
-        return vid                # no error is typical case
-    error_vids = e.vids[cid].copy()
-    error_vids.remove(vid)
+        return votid                # no error is typical case
+    error_votids = e.votids[cid].copy()
+    error_votids.remove(votid)
     # pick an error at random
-    return error_vids[int(syntheticRandomState.uniform()*(m-1))]
+    return error_votids[int(syntheticRandomState.uniform()*(m-1))]
 
 
 def compute_synthetic_votes(e):
@@ -431,8 +524,8 @@ def compute_synthetic_votes(e):
         e.av[cid] = {}
         # make up all votes first, so overall tally for cid is right
         votes = []
-        for vid in e.vids[cid]:
-            votes.extend([vid]*e.totvot[cid][vid])
+        for votid in e.votids[cid]:
+            votes.extend([votid]*e.totvot[cid][votid])
         syntheticRandomState.shuffle(votes)          # in-place shuffle!
         # break votes up into pieces by pbcid
         i = 0
@@ -441,9 +534,9 @@ def compute_synthetic_votes(e):
             e.rv[cid][pbcid] = {}
             for j in range(e.n[pbcid]):
                 bid = e.bids[pbcid][j]
-                vid = votes[j]
-                e.av[cid][pbcid][bid] = vid
-                e.rv[cid][pbcid][bid] = compute_rv(e, cid, pbcid, bid, vid)
+                votid = votes[j]
+                e.av[cid][pbcid][bid] = votid
+                e.rv[cid][pbcid][bid] = compute_rv(e, cid, pbcid, bid, votid)
             i += e.n[pbcid]
 
 
@@ -456,28 +549,28 @@ def check_election_data(e):
         for pbcid in e.t[cid]:
             if pbcid not in e.pbcids:
                 mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
-            for vid in e.t[cid][pbcid]:
-                if vid not in e.vids[cid]:
-                    mywarning("vid `{}` is not in e.vids[{}].".format(vid, cid))
-                if not isinstance(e.t[cid][pbcid][vid], int):
+            for votid in e.t[cid][pbcid]:
+                if votid not in e.votids[cid]:
+                    mywarning("votid `{}` is not in e.votids[{}].".format(votid, cid))
+                if not isinstance(e.t[cid][pbcid][votid], int):
                     mywarning("value `e.t[{}][{}][{}] = `{}` is not an integer."
-                              .format(cid, pbcid, vid, e.t[cid][pbcid][vid]))
-                if not (0 <= e.t[cid][pbcid][vid] <= e.n[pbcid]):
+                              .format(cid, pbcid, votid, e.t[cid][pbcid][votid]))
+                if not (0 <= e.t[cid][pbcid][votid] <= e.n[pbcid]):
                     mywarning("value `e.t[{}][{}][{}] = `{}` is out of range 0:{}."
-                              .format(cid, pbcid, vid, e.t[cid][pbcid][vid], e.n[pbcid]))
-                if e.totvot[cid][vid] != \
-                    sum([e.t[cid][pbcid][vid] for pbcid in e.rel[cid]]):
-                    mywarning("sum of e.t[{}][*][{}] is not e.totvid[{}][{}]."
-                              .format(cid, vid, cid, vid))
+                              .format(cid, pbcid, votid, e.t[cid][pbcid][votid], e.n[pbcid]))
+                if e.totvot[cid][votid] != \
+                    sum([e.t[cid][pbcid][votid] for pbcid in e.rel[cid]]):
+                    mywarning("sum of e.t[{}][*][{}] is not e.totvotid[{}][{}]."
+                              .format(cid, votid, cid, votid))
     for cid in e.cids:
         if cid not in e.t:
             mywarning("cid `{}` is not a key for e.t".format(cid))
         for pbcid in e.rel[cid]:
             if pbcid not in e.t[cid]:
                 mywarning("pbcid {} is not a key for e.t[{}].".format(pbcid, cid))
-            # for vid in e.vids[cid]:
-            #     assert vid in e.t[cid][pbcid], (cid, pbcid, vid)
-            # ## not necessary, since missing vids have assumed t of 0
+            # for votid in e.votids[cid]:
+            #     assert votid in e.t[cid][pbcid], (cid, pbcid, votid)
+            # ## not necessary, since missing votids have assumed t of 0
 
     if not isinstance(e.totcid, dict):
         myerror("e.totcid is not a dict.")
@@ -495,20 +588,20 @@ def check_election_data(e):
     for cid in e.totvot:
         if cid not in e.cids:
             mywarning("e.totvot key cid `{}` is not in e.cids".format(cid))
-        for vid in e.totvot[cid]:
-            if vid not in e.vids[cid]:
-                mywarning("e.totvot[{}] key `{}` is not in e.vids[{}]"
-                          .format(cid, vid, cid))
-            if not isinstance(e.totvot[cid][vid], int):
+        for votid in e.totvot[cid]:
+            if votid not in e.votids[cid]:
+                mywarning("e.totvot[{}] key `{}` is not in e.votids[{}]"
+                          .format(cid, votid, cid))
+            if not isinstance(e.totvot[cid][votid], int):
                 mywarning("e.totvot[{}][{}] = {} is not an integer."
-                          .format(cid, vid, e.totvot[cid][vid]))
+                          .format(cid, votid, e.totvot[cid][votid]))
     for cid in e.cids:
         if cid not in e.totvot:
             mywarning("cid `{}` is not a key for e.totvot".format(cid))
-        for vid in e.vids[cid]:
-            if vid not in e.totvot[cid]:
-                mywarning("vid `{}` not a key for e.totvot[{}]."
-                          .format(vid, cid))
+        for votid in e.votids[cid]:
+            if votid not in e.totvot[cid]:
+                mywarning("votid `{}` not a key for e.totvot[{}]."
+                          .format(votid, cid))
 
     if not isinstance(e.bids, dict):
         myerror("e.bids is not a dict.")
@@ -532,8 +625,8 @@ def check_election_data(e):
                 if bid not in bidsset:
                     mywarning("bid `{}` from e.av[{}][{}] is not in e.bids[{}]."
                               .format(bid, cid, pbcid, pbcid))
-                if e.av[cid][pbcid][bid] not in e.vids[cid]:
-                    mywarning("vid `{}` from e.av[{}][{}][{}] is not in e.vids[{}]."
+                if e.av[cid][pbcid][bid] not in e.votids[cid]:
+                    mywarning("votid `{}` from e.av[{}][{}][{}] is not in e.votids[{}]."
                               .format(e.av[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
         if cid not in e.av:
@@ -559,8 +652,8 @@ def check_election_data(e):
                 if bid not in bidsset:
                     mywarning("bid `{}` from e.rv[{}][{}] is not in e.bids[{}]."
                               .format(bid, cid, pbcid, pbcid))
-                if e.rv[cid][pbcid][bid] not in e.vids[cid]:
-                    mywarning("vid `{}` from e.rv[{}][{}][{}] is not in e.vids[{}]."
+                if e.rv[cid][pbcid][bid] not in e.votids[cid]:
+                    mywarning("votid `{}` from e.rv[{}][{}][{}] is not in e.votids[{}]."
                               .format(e.rv[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
         if cid not in e.rv:
@@ -575,8 +668,8 @@ def check_election_data(e):
     for cid in e.ro:
         if cid not in e.cids:
             mywarning("cid `{}` from e.rv is not in e.cids".format(cid))
-        if e.ro[cid] not in e.vids[cid]:
-            mywarning("e.ro[{}] = {} is not in e.vids[{}]."
+        if e.ro[cid] not in e.votids[cid]:
+            mywarning("e.ro[{}] = {} is not in e.votids[{}]."
                       .format(cid, e.ro[cid], cid))
     for cid in e.cids:
         if cid not in e.ro:
@@ -590,23 +683,23 @@ def show_election_data(e):
 
     myprint("====== Reported election data ======")
 
-    myprint("e.t (total votes for each vid by cid and pbcid):")
+    myprint("e.t (total votes for each votid by cid and pbcid):")
     for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}: ".format(cid, pbcid), end='')
-            for vid in sorted(e.vids[cid]):
-                myprint("{}:{} ".format(vid, e.t[cid][pbcid].get(vid, 0)), end='')
+            for votid in sorted(e.votids[cid]):
+                myprint("{}:{} ".format(votid, e.t[cid][pbcid].get(votid, 0)), end='')
             myprint()
 
     myprint("e.totcid (total votes cast for each cid):")
     for cid in e.cids:
         myprint("    {}: {}".format(cid, e.totcid[cid]))
 
-    myprint("e.totvot (total cast for each vid for each cid):")
+    myprint("e.totvot (total cast for each votid for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for vid in sorted(e.vids[cid]):
-            myprint("{}:{} ".format(vid, e.totvot[cid][vid]), end='')
+        for votid in sorted(e.votids[cid]):
+            myprint("{}:{} ".format(votid, e.totvot[cid][votid]), end='')
         myprint()
 
     myprint("e.av (first five or so actual votes cast for each cid and pbcid):")
@@ -655,25 +748,210 @@ def compute_tally2(vec):
 
 def plurality(e, cid, tally):
     """
-    Return, for input dict tally mapping vids to (real) counts, vid with largest count.
-    (Tie-breaking done arbitrarily here.)
-    Winning vid must be a valid winner (member of vvids); an Exception is raised if
-    this is not possible.
+    Return, for input dict tally mapping votids to (real) counts, 
+    votid with largest count.  (Tie-breaking done arbitrarily here.)
+    Winning votid must be a valid winner (member of vvotids); 
+    an Exception is raised if this is not possible.
     """
 
-    vvids = e.vvids[cid]     # allowed winners
+    vvotids = e.vvotids[cid]     # allowed winners
     max_cnt = -1e90
-    max_vid = None
-    for vid in tally:
-        if tally[vid]>max_cnt and vid in vvids:
-            max_cnt = tally[vid]
-            max_vid = vid
-    assert "No winner allowed in plurality contest.", (tally, vvids)
-    return max_vid
+    max_votid = None
+    for votid in tally:
+        if tally[votid]>max_cnt and votid in vvotids:
+            max_cnt = tally[votid]
+            max_votid = votid
+    assert "No winner allowed in plurality contest.", (tally, vvotids)
+    return max_votid
 
 ##############################################################################
 ## Audit I/O and validation
 ##############################################################################
+
+
+def draw_sample(e):
+    """ 
+    "Draw sample", tally it, save sample tally in e.st[stage][cid][pbcid]. 
+    Update e.sr
+
+    Draw sample is in quotes since it just looks at the first
+    e.s[stage][pbcid] elements of e.av[cid][pbcid].
+    Code sets e.sr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
+
+    Code sets e.s to number of ballots sampled in each pbc (equal to plan).
+    Note that in real life actual sampling number might be different than planned;
+    here it will be the same.  But code elsewhere allows for such differences.
+    """
+
+    e.s[e.stage] = e.plan[e.last_stage]
+    e.sr[e.stage] = {}
+    for cid in e.cids:
+        e.st[e.stage][cid] = {}
+        e.sr[e.stage][cid] = {}
+        for pbcid in e.rel[cid]:
+            e.sr[e.stage][cid][pbcid] = {}
+            avotes = [e.av[cid][pbcid][bid] \
+                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
+            rvotes = [e.rv[cid][pbcid][bid] \
+                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
+            zvotes = list(zip(avotes, rvotes)) # list of (actual, reported) vote pairs
+            e.st[e.stage][cid][pbcid] = compute_tally2(zvotes)
+            for r in e.votids[cid]:
+                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
+
+                
+def show_sample_counts(e):
+
+    myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
+            "and actual votes:")
+    for cid in e.cids:
+        for pbcid in sorted(e.rel[cid]):
+            tally2 = e.st[e.stage][cid][pbcid]
+            for r in sorted(tally2.keys()): # r = reported vote
+                myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
+                for v in sorted(tally2[r].keys()):
+                    myprint("  {}:{}".format(v, tally2[r][v]), end='')
+                myprint("  total:{}".format(e.sr[e.stage][cid][pbcid][r]))
+
+
+##############################################################################
+## Risk measurement
+
+def compute_contest_risk(e, cid, st):
+    """ 
+    Compute Bayesian risk (chance that reported outcome is wrong for cid).
+    We take st here as argument rather than e.st so
+    we can call compute_contest_risk with modified sample counts.
+    (This option not yet used, but might be later.)
+
+    This is the heart of the Bayesian post-election audit method.
+    But it could be replaced by a frequentist approach instead, at
+    least for those outcome rules and mixes of collection types for
+    which a frequentist method is known.
+
+    The comparison and ballot-polling audits are blended here; the
+    election data just records an "noCVR" for the reported type of each vote
+    in a noCVR paper ballot collection.
+    """
+
+    wrong_outcome_count = 0
+    for trial in range(e.n_trials):
+        test_tally = {votid:0 for votid in e.votids[cid]} 
+        for pbcid in e.rel[cid]:
+            # draw from posterior for each paper ballot collection, sum them
+            # stratify by reported vote
+            for r in e.st[e.stage][cid][pbcid]:
+                tally = e.st[e.stage][cid][pbcid][r].copy()
+                for votid in e.votids[cid]:
+                    tally[votid] = tally.get(votid, 0)
+                for votid in tally:
+                    tally[votid] += e.pseudocount
+                dirichlet_dict = dirichlet(tally)
+                nonsample_size = e.nr[cid][pbcid][r] - e.sr[e.stage][cid][pbcid][r]
+                for votid in tally:
+                    # increment actual tally for votid with reported vote r
+                    test_tally[votid] += tally[votid]  
+                    if e.sr[e.stage][cid][pbcid][r] > 0:
+                        test_tally[votid] += dirichlet_dict[votid] * nonsample_size
+        if e.ro[cid] != plurality(e, cid, test_tally):
+            wrong_outcome_count += 1
+    e.risk[e.stage][cid] = wrong_outcome_count/e.n_trials
+
+
+def compute_contest_risks(e, st):
+
+    for cid in e.cids:
+        compute_contest_risk(e, cid, st)
+
+##############################################################################
+## Compute status of each contest and of election
+
+def compute_contest_and_election_statuses(e):
+    """ 
+    compute status of each contest and of election, from 
+    already-computed contest risks.
+    """
+
+    for cid in e.cids:
+        # The following test could be for !="Just Watching" or for =="Auditing"
+        # It may be better to have it so that once a contest has met its
+        # risk limit once, it no longer goes back to "Auditing" status, even
+        # if its risk drifts back up to be larger than its risk limit.
+        # Mathematically, this is OK, although it could conceivably look
+        # strange to an observer or an election official to have a contest
+        # whose status is "Risk Limit Reached" but whose current risk is
+        # more than the risk limit.  If this test compares to "Just Watching",
+        # then a contest of status "Risk Limit Reached" could have its status
+        # set back to "Auditing" if the risk then rises too much...  Which is better UI?
+        # Note that a contest which has reached its risk limit could be set back to
+        # Auditing because of any one of its pbc's, even if some of them aren't being
+        # audited for a stage.
+        e.contest_status[e.stage][cid] = e.contest_status[e.last_stage][cid]
+        if e.contest_status[e.stage][cid] != "Just Watching":
+            if all([e.n[pbcid]==e.s[e.stage][pbcid] for pbcid in e.rel[cid]]):
+                e.contest_status[e.stage][cid] = "All Relevant Ballots Sampled"
+            elif e.risk[e.stage][cid] < e.risk_limit[cid]:
+                e.contest_status[e.stage][cid] = "Risk Limit Reached"
+            elif e.risk[e.stage][cid] > e.recount_threshold:
+                e.contest_status[e.stage][cid] = "Full Recount Needed"
+            else:
+                e.contest_status[e.stage][cid] = "Auditing"
+        
+    e.election_status[e.stage] = \
+        sorted(list(set([e.contest_status[e.stage][cid] for cid in e.cids])))
+
+
+def show_risks_and_statuses(e):
+    """ 
+    Show election and contest statuses for current stage. 
+    """
+
+    myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
+    for cid in e.cids:
+        myprint("     ", cid, e.risk[e.stage][cid], \
+              "(limit {})".format(e.risk_limit[cid]), \
+              e.contest_status[e.stage][cid])
+    myprint("    Election status:", e.election_status[e.stage])
+                
+
+##############################################################################
+## Compute audit plan for next stage
+
+def compute_plan(e):
+    """ Compute a sampling plan for the next stage.
+        Put in e.plan[e.stage] a dict of target sample sizes keyed by pbcid. 
+        Only input is contest statuses, pbcid audit rates, pbcid current
+        sample size, and pcbid size.
+    """
+
+    # for now, use simple strategy of looking at more ballots
+    # only in those paper ballot collections that are still being audited
+    e.plan[e.stage] = e.s[e.stage].copy()
+    for cid in e.cids:
+        for pbcid in e.rel[cid]:
+            if e.contest_status[e.stage][cid] == "Auditing":
+                # if contest still being audited do as much as you can without
+                # exceeding size of paper ballot collection
+                e.plan[e.stage][pbcid] = \
+                    min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
+    return
+
+
+##############################################################################
+## Audit parameters
+
+def get_audit_seed(e, args):
+
+    global auditRandomState
+    e.audit_seed = args.audit_seed          # (might be None)
+    auditRandomState = np.random.RandomState(e.audit_seed)
+
+def get_audit_parameters(e, args):
+
+    load_part_from_json(e, "audit_parameters.js")
+    get_audit_seed(e, args)       # command line can override .js file CHECK THIS
+    check_audit_parameters(e)
+
 
 def check_audit_parameters(e):
 
@@ -711,142 +989,6 @@ def check_audit_parameters(e):
         myerror("Too many errors; terminating.")
 
 
-def draw_sample(e):
-    """ 
-    "Draw sample", tally it, save sample tally in e.st[stage][cid][pbcid]. 
-    Update e.sr
-
-    Draw sample is in quotes since it just looks at the first
-    e.s[stage][pbcid] elements of e.av[cid][pbcid].
-    Code sets e.sr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
-
-    Code sets e.s to number of ballots sampled in each pbc (equal to plan).
-    Note that in real life actual sampling number might be different than planned;
-    here it will be the same.  But code elsewhere allows for such differences.
-    """
-
-    e.s[e.stage] = e.plan[e.last_stage]
-    e.sr[e.stage] = {}
-    for cid in e.cids:
-        e.st[e.stage][cid] = {}
-        e.sr[e.stage][cid] = {}
-        for pbcid in e.rel[cid]:
-            e.sr[e.stage][cid][pbcid] = {}
-            avotes = [e.av[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
-            rvotes = [e.rv[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
-            zvotes = list(zip(avotes, rvotes)) # list of (actual, reported) vote pairs
-            e.st[e.stage][cid][pbcid] = compute_tally2(zvotes)
-            for r in e.vids[cid]:
-                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
-
-                
-def compute_contest_risk(e, cid, st):
-    """ 
-    Compute Bayesian risk (chance that reported outcome is wrong for cid).
-    We take st here as argument rather than e.st so
-    we can call compute_contest_risk with modified sample counts.
-    (This option not yet used, but might be later.)
-
-    This is the heart of the Bayesian post-election audit method.
-    But it could be replaced by a frequentist approach instead, at
-    least for those outcome rules and mixes of collection types for
-    which a frequentist method is known.
-
-    The comparison and ballot-polling audits are blended here; the
-    election data just records an "noCVR" for the reported type of each vote
-    in a noCVR paper ballot collection.
-    """
-
-    wrong_outcome_count = 0
-    for trial in range(e.n_trials):
-        test_tally = {vid:0 for vid in e.vids[cid]} 
-        for pbcid in e.rel[cid]:
-            # draw from posterior for each paper ballot collection, sum them
-            # stratify by reported vote
-            for r in e.st[e.stage][cid][pbcid]:
-                tally = e.st[e.stage][cid][pbcid][r].copy()
-                for vid in e.vids[cid]:
-                    tally[vid] = tally.get(vid, 0)
-                for vid in tally:
-                    tally[vid] += e.pseudocount
-                dirichlet_dict = dirichlet(tally)
-                nonsample_size = e.nr[cid][pbcid][r] - e.sr[e.stage][cid][pbcid][r]
-                for vid in tally:
-                    # increment actual tally for vid with reported vote r
-                    test_tally[vid] += tally[vid]  
-                    if e.sr[e.stage][cid][pbcid][r] > 0:
-                        test_tally[vid] += dirichlet_dict[vid] * nonsample_size
-        if e.ro[cid] != plurality(e, cid, test_tally):
-            wrong_outcome_count += 1
-    e.risk[e.stage][cid] = wrong_outcome_count/e.n_trials
-
-
-def compute_status(e, st):
-    """ 
-    compute status of each contest and of election
-    """
-
-    for cid in e.cids:
-        compute_contest_risk(e, cid, st)
-        # The following test could be for !="Just Watching" or for =="Auditing"
-        # It may be better to have it so that once a contest has met its
-        # risk limit once, it no longer goes back to "Auditing" status, even
-        # if its risk drifts back up to be larger than its risk limit.
-        # Mathematically, this is OK, although it could conceivably look
-        # strange to an observer or an election official to have a contest
-        # whose status is "Risk Limit Reached" but whose current risk is
-        # more than the risk limit.  If this test compares to "Just Watching",
-        # then a contest of status "Risk Limit Reached" could have its status
-        # set back to "Auditing" if the risk then rises too much...  Which is better UI?
-        # Note that a contest which has reached its risk limit could be set back to
-        # Auditing because of any one of its pbc's, even if some of them aren't being
-        # audited for a stage.
-        e.contest_status[e.stage][cid] = e.contest_status[e.last_stage][cid]
-        if e.contest_status[e.stage][cid] != "Just Watching":
-            if all([e.n[pbcid]==e.s[e.stage][pbcid] for pbcid in e.rel[cid]]):
-                e.contest_status[e.stage][cid] = "All Relevant Ballots Sampled"
-            elif e.risk[e.stage][cid] < e.risk_limit[cid]:
-                e.contest_status[e.stage][cid] = "Risk Limit Reached"
-            elif e.risk[e.stage][cid] > e.recount_threshold:
-                e.contest_status[e.stage][cid] = "Full Recount Needed"
-            else:
-                e.contest_status[e.stage][cid] = "Auditing"
-        
-    e.election_status[e.stage] = \
-        sorted(list(set([e.contest_status[e.stage][cid] for cid in e.cids])))
-
-
-def show_status(e):
-    """ SHow election and contest status info. """
-
-    myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
-    for cid in e.cids:
-        myprint("     ", cid, e.risk[e.stage][cid], \
-              "(limit {})".format(e.risk_limit[cid]), \
-              e.contest_status[e.stage][cid])
-    myprint("    Election status:", e.election_status[e.stage])
-                
-
-def plan_sample(e):
-    """ Compute a sampling plan 
-        Put in e.plan[e.stage] a dict of target sample sizes by pbcid) 
-    """
-
-    # for now, use simple strategy of looking at more ballots
-    # only in those paper ballot collections that are still being audited
-    e.plan[e.stage] = e.s[e.stage].copy()
-    for cid in e.cids:
-        for pbcid in e.rel[cid]:
-            if e.contest_status[e.stage][cid] == "Auditing":
-                # if contest still being audited do as much as you can without
-                # exceeding size of paper ballot collection
-                e.plan[e.stage][pbcid] = \
-                    min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
-    return
-
-
 def show_audit_parameters(e):
 
     myprint("====== Audit parameters ======")
@@ -878,6 +1020,17 @@ def show_audit_parameters(e):
     myprint("    {}".format(e.audit_seed))
 
 
+
+
+def initialize_audit(e):
+
+    e.s["0"] = {}
+    for pbcid in e.pbcids:                           
+        e.s["0"][pbcid] = 0
+    # Initial plan size is just audit rate, for each pbcid.
+    e.plan["0"] = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
+    
+
 def show_audit_stage_header(e):
 
     myprint("audit stage", e.stage)
@@ -890,18 +1043,43 @@ def show_audit_stage_header(e):
                         e.plan[e.last_stage][pbcid]-last_s[pbcid]))
             
 
-def show_sample_counts(e):
+def audit_stage(e, stage):
 
-    myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
-            "and actual votes:")
-    for cid in e.cids:
-        for pbcid in sorted(e.rel[cid]):
-            tally2 = e.st[e.stage][cid][pbcid]
-            for r in sorted(tally2.keys()): # r = reported vote
-                myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
-                for v in sorted(tally2[r].keys()):
-                    myprint("  {}:{}".format(v, tally2[r][v]), end='')
-                myprint("  total:{}".format(e.sr[e.stage][cid][pbcid][r]))
+    e.last_stage = "{}".format(stage-1)   # json keys must be strings
+    e.stage = "{}".format(stage)      
+    e.risk[e.stage] = {}
+    e.contest_status[e.stage] = {}
+    e.s[e.stage] = {}                      
+    e.st[e.stage] = {}
+
+    draw_sample(e)
+    compute_contest_risks(e, e.st)
+    compute_contest_and_election_statuses(e)
+
+    show_audit_stage_header(e)
+    show_sample_counts(e)
+    show_risks_and_statuses(e)
+
+
+def stop_audit(e):
+
+    return "Auditing" not in e.election_status[e.stage]
+
+
+def audit(e, args):
+
+    get_audit_seed(e, args)
+    initialize_audit(e)
+    show_audit_parameters(e)
+
+    myprint("====== Audit ======")
+
+    for stage in range(1, e.max_stages+1):
+        audit_stage(e, stage)
+        if stop_audit(e):
+            break
+        compute_plan(e)
+    show_audit_summary(e)
 
 
 def show_audit_summary(e):
@@ -928,82 +1106,12 @@ def show_audit_summary(e):
     myprint("Total number of ballots sampled: ", end='')
     myprint(sum([e.s[e.stage][pbcid] for pbcid in e.pbcids]))
     
-
-def audit(e):
-
-    global auditRandomState
-    auditRandomState = np.random.RandomState(e.audit_seed)
-
-    show_audit_parameters(e)
-    myprint("====== Audit ======")
-
-    e.s["0"] = {}
-    for pbcid in e.pbcids:                           
-        e.s["0"][pbcid] = 0
-    e.plan["0"] = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
-    
-    for stage in range(1, e.max_stages+1):
-        e.last_stage = e.stage
-        e.stage = "{}".format(stage)      # must be string to be json key
-        audit_stage(e)
-        if "Auditing" not in e.election_status[e.stage]:
-            break
-        plan_sample(e)
-    show_audit_summary(e)
-
-
-def audit_stage(e):
-
-    e.risk[e.stage] = {}
-    e.contest_status[e.stage] = {}
-    e.s[e.stage] = {}                      
-    e.st[e.stage] = {}
-
-    draw_sample(e)
-    compute_status(e, e.st)
-
-    show_audit_stage_header(e)
-    show_sample_counts(e)
-    show_status(e)
-
         
-def copy_dict_tree(dest, source):
-    """
-    Copy data from source dict tree to dest dict tree, recursively.
-    Omit key/value pairs where key starts with "__".
-    """
+##############################################################################
+## Command-line arguments
+
+def parse_args():
     
-    if not isinstance(dest, dict) or not isinstance(source, dict):
-        myprint("copy_dict_tree: source or dest is not a dict.")
-        return
-    for source_key in source:
-        if not source_key.startswith("__"):   # for comments, etc.
-            if isinstance(source[source_key], dict):
-                if not source_key in dest:
-                    dest_dict = {}
-                    dest[source_key] = dest_dict
-                else:
-                    dest_dict = dest[source_key]
-                source_dict = source[source_key]
-                copy_dict_tree(dest_dict, source_dict)
-            else:
-                # Maybe add option to disallow clobbering here??
-                dest[source_key] = source[source_key]
-
-
-def load_part_from_json(e, part_name):
-    part_filename = os.path.join(e.elections_dir, e.election_name, part_name)
-    part = json.load(open(part_filename, "r"))
-    copy_dict_tree(e.__dict__, part)
-    myprint("File {} loaded.".format(part_filename))
-
-
-def main():
-
-    global myprint_switches
-    myprint_switches = []       # put this after following line to suppress printing
-    myprint_switches = ["std"]
-
     parser = argparse.ArgumentParser(description=\
             """multi.py: A Bayesian post-election audit program for an
             election with multiple contests and multiple paper ballot 
@@ -1019,40 +1127,28 @@ def main():
     parser.add_argument("--audit_seed",
                         help="""Seed for the random number generator used for
                         auditing (32-bit value). (If omitted, uses clock.)""")
-    args = parser.parse_args()
-                        
-    e = Election()
+    return parser.parse_args()
+
+
+def process_args(e, args):
+
     e.elections_dir = args.elections_dir
     e.election_name = args.election_name
 
-    load_part_from_json(e, "structure.js")
-    finish_election_structure(e)
-    check_election_structure(e)
-    show_election_structure(e)
 
-    load_part_from_json(e, "data.js")
-    finish_election_data(e)
-    if e.election_type == "Synthetic":
-        myprint("Synthetic vote generation seed:", e.synthetic_seed)
-        compute_synthetic_votes(e)
-    else:
-        myerror("For now, data must be synthetic!")
+def main():
 
-    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r:
-    for cid in e.cids:
-        e.nr[cid] = {}
-        for pbcid in e.rel[cid]:
-            e.nr[cid][pbcid] = {}
-            for r in e.vids[cid]:
-                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
-                                           if e.rv[cid][pbcid][bid] == r])
-    check_election_data(e)
-    show_election_data(e)
+    global myprint_switches
+    myprint_switches = []       # put this after following line to suppress printing
+    myprint_switches = ["std"]
 
-    load_part_from_json(e, "audit_parameters.js")
-    e.audit_seed = args.audit_seed          # (might be None)
-    check_audit_parameters(e)
-    audit(e)
+    args = parse_args()
+    e = Election()
+    process_args(e, args)
+    get_election_structure(e)
+    get_election_data(e)
+    get_audit_parameters(e, args)
+    audit(e, args)
 
 
 if __name__=="__main__":

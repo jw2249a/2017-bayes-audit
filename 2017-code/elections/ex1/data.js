@@ -5,7 +5,7 @@
         "PBC2": 10000,
         "PBC3": 10000},
 
-  "__comment": "e.t = vote totals for each cid pbcid vid combo",
+  "__comment": "e.t = vote totals for each cid pbcid votid combo",
  "t": { "I": {"PBC1": {"1": 5050,
                        "0": 4950},
               "PBC2": {"1": 5050,
