@@ -11,6 +11,7 @@ spread across 64 counties.
 ## Election structure
 
 We assume the following:
+
    -- a number of **contests** (for now, all plurality contests),
    -- a number of **voters**,
    -- a single **paper ballot** from each voter,
