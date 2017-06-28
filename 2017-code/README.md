@@ -118,8 +118,8 @@ We have:
 * **Contest Identifiers** (example: ``"Denver Mayor"``)
   A contest identifier is called a ``"cid"`` in the code.
 
-* **Vote Identifiers** (examples: ``"Yes"`` or ``"John Smith"`` or ``"Undervote"``)
-  A vote identifier is called a ``"votid"`` in the code.
+* **Selection Identifiers** (examples: ``"Yes"`` or ``"John Smith"`` or ``"Undervote"``)
+  A selection identifier is called a ``"selid"`` in the code.
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
@@ -162,17 +162,17 @@ Something like this:
 
     ``
     010-structure
-    020-reported-votes
+    020-reported-selections
     030-ballot-manifests
     040-audit-seeds
     050-sample-orders
-    060-audit-votes
+    060-audited-selections
     070-audit-stages
 
     ./010-structure:
     structure-2017-06-26-22-35-59.js
 
-    ./020-reported-votes:
+    ./020-reported-selections:
     DEN-2017-06-27-08-03-49.csv
     LOG-2017-06-28-08-03-49.csv
 
@@ -187,7 +187,7 @@ Something like this:
     DEN-2017-07-01-07-08-35.csv
     LOG-2017-07-01-07-08-35.csv
 
-    ./060-audit-votes:
+    ./060-audited-selections:
     DEN-2017-07-02-05-22.11.csv
     LOG-2017-07-02-06-23.10.csv
 
