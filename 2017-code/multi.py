@@ -26,40 +26,41 @@ import datetime
 import json
 import numpy as np                
 import os
+import sys
 
 ##############################################################################
 ## datetime
 ##############################################################################
 
 
-
 def datetime_string():
-    """ Return current datetime as string e.g. '20170626-211830-688876' 
-        YearMonthDay-HoursMinutesSeconds-Microseconds
+    """ Return current datetime as string e.g. '2017-06-26-21-18-30' 
+        Year-Month-Day-Hours-Minutes-Seconds
         May be used in a filename (no colons or periods).
     """
     # https://docs.python.org/3.6/library/datetime.html    
 
     t = datetime.datetime.now()
-    return t.strftime("%Y%m%d-%H%M%S-%f")
+    return t.strftime("%Y-%m-%d-%H-%M-%S")
+
 
 ##############################################################################
 ## myprint  (like logging, maybe, but maybe simpler)
 ##############################################################################
-myprint_switches = ["std"]                 
+myprint_files = {"stdout": sys.stdout}
 
 def myprint(*args, **kwargs):
-    """ variant print statement, 
-        with myprint_switch="foo" kwarg allowed.
-        if no myprint_switch given, then myprint_switch=std is assumed.
-    """
-    if "myprint_switch" in kwargs:
-        switch = kwargs["myprint_switch"]
-        if switch in myprint_switches:
-            del kwargs["myprint_switch"]
-            print(*args, **kwargs)
-    elif "std" in myprint_switches:
+    """ variant print statement; prints to all files in myprint_files. """
+
+    for output_file_name in myprint_files:
+        kwargs["file"] = myprint_files[output_file_name]
         print(*args, **kwargs)
+
+def close_myprint_files():
+
+    for output_file_name in myprint_files:
+        if output_file_name not in ["stdout", "stderr"]:
+            myprint_files[output_file_name].close()
 
 ##############################################################################
 ## error and warning messages
@@ -1147,7 +1148,7 @@ def main():
 
     global start_datetime_string
     start_datetime_string = datetime_string()
-    print("Starting data/time:", start_time)
+    print("Starting data/time:", start_datetime_string)
 
     args = parse_args()
     e = Election()
@@ -1157,6 +1158,7 @@ def main():
     get_audit_parameters(e, args)
     audit(e, args)
 
+    close_myprint_files()
 
 if __name__=="__main__":
     main()    

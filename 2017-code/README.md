@@ -118,23 +118,96 @@ We have:
 * **Contest Identifiers** (example: ``"Denver Mayor"``)
   A contest identifier is called a ``"cid"`` in the code.
 
-# **Vote Identifiers** (examples: ``"Yes"`` or ``"John Smith"`` or ``"Undervote"``)
+* **Vote Identifiers** (examples: ``"Yes"`` or ``"John Smith"`` or ``"Undervote"``)
   A vote identifier is called a ``"votid"`` in the code.
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
+  A pbcid may be used as part of a filename so it should preferable not
+  contain blanks, special characters, or depend on capitalization.
 
 * A **Ballot Identifier** is a unique identifier assigned to a particular
-  paper ballot (example: ``"DN-25-72"'').
+  paper ballot (example: ``"DN-25-72"``).
   A ballot id is called a ``"bid"`` in the code.
-  Ballots within a collection must have unique ids, but it is not
+  Ballots within a collection must have unique bids, but it is not
   necessary that ballots in different collections have different
-  ids.  A ballot id may encode the physical storage location of
+  bids.  A ballot id may encode the physical storage location of
   the ballot (e.g. the box number and position within box), but
   need not do so.  The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
 
-###  Code inputs
+### File names
+
+During an audit, data may be augmented or improved somehow.  We
+use a file naming scheme that doesn't overwrite older data.
+
+This is done by making date and times part of the file name.
+For example, we might have a file name of the form
+
+    ``DEN-2017-07-02-05-22.11.csv``
+
+to record the votes from a sample from the paper ballot collection
+with pbcid DEN.
+
+If this sample is augmented, the above file is not changed, but
+a new file with a later date is just added to the directory.
+
+Within a directory, if two files differ only in the date or time,
+then the later file is operative, and the earlier one is ignored
+(but kept around for archival purposes).
+
+###  Directory structure
+
+Something like this:
+
+    ``
+    010-structure
+    020-reported-votes
+    030-ballot-manifests
+    040-audit-seeds
+    050-sample-orders
+    060-audit-votes
+    070-audit-stages
+
+    ./010-structure:
+    structure-2017-06-26-22-35-59.js
+
+    ./020-reported-votes:
+    DEN-2017-06-27-08-03-49.csv
+    LOG-2017-06-28-08-03-49.csv
+
+    ./030-ballot-manifests:
+    DEN-2017-06-27-08-03-50.csv
+    LOG-2017-06-28-09-10-33.csv
+
+    ./040-audit-seeds:
+    seed-2017-06-30-13-01-22.js
+
+    ./050-sample-orders:
+    DEN-2017-07-01-07-08-35.csv
+    LOG-2017-07-01-07-08-35.csv
+
+    ./060-audit-votes:
+    DEN-2017-07-02-05-22.11.csv
+    LOG-2017-07-02-06-23.10.csv
+
+    ./070-audit-stages:
+    001
+    002
+    003
+
+    ./070-audit-stages/001:
+    audit-inputs-2017-07-02-06-33-40.csv
+    audit-outputs-2017-07-02-06-33-40.csv
+    audit-parameters-2017-07-02-06-33-40.csv
+    audit-plan-2017-07-02-06-33-40.csv
+
+    ./070-audit-stages/002:
+    audit-inputs-2017-07-03-10-44-34.csv
+    audit-outputs-2017-07-02-06-33-40.csv
+    audit-parameters-2017-07-03-10-44-34.js
+    audit-plan-2017-07-03-10-44-34.csv
+    ``
 
 ###  Random number generation
 
