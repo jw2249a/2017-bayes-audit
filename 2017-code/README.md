@@ -236,39 +236,40 @@ nature of the sampling is also indicated.
 
 Here are the fields of a row of a vote file:
 
-1. ``**row type**`` (rt): one of four values:
-  * ``**RS**``: a single reported vote
-  * ``**RT**``: a tally of one or more reported votes
-  * ``**AS**``: a single actual vote (from audit)
-  * ``**AT**``: a tally of one or more actual votes
+1. **row type** (rt): one of four values:
 
-2. ``**source**`` (src): one of four values:
-  * ``**L**``: a complete list of relevant ballots
-  * ``**P**``: a ballot chosen uniformly from PBC
-  * ``**PC**``: a ballot chosen uniformly from all ballots
+  * **RS**: a single reported vote
+  * **RT**: a tally of one or more reported votes
+  * **AS**: a single actual vote (from audit)
+  * **AT**: a tally of one or more actual votes
+
+2. **source** (src): one of four values:
+  * **L**: a complete list of relevant ballots
+  * **P**: a ballot chosen uniformly from PBC
+  * **PC**: a ballot chosen uniformly from all ballots
      within the PBC for a particular contest
-  * ``**PCR**``: a ballot chosen uniformly from all ballots
+  * **PCR**: a ballot chosen uniformly from all ballots
      within the PBC for a particular contest having a particular
      reported vote.
 
-  The ``**L**`` label is appropriate for a listing of reported votes.
+  The **L** label is appropriate for a listing of reported votes.
   The others may be used for statistical samples in the audit.
   If the sample was restricted to a particular contest or reported
   vote, then that information was obtained from the CVR records
-  (i.e. with row types ``**RS**`` or ``**AS**``.
+  (i.e. with row types **RS** or **AS**.
 
-3. ``**pbcid**``
+3. **pbcid**
 
-4: ``**bid**``: blank for rows of type ``**RT**`` or ``**AT**``, since
+4: **bid**: blank for rows of type **RT** or **AT**, since
    these are aggregate tally rows.  Otherwise gives the bid for a single
    ballot.
 
-5: ``**tally**``: blank (or equivalently, 1) for rows of type ``**RS**``
-   ``**AS**``.  Otherwise, gives the tally (a nonnegative integer).
+5: **tally**: blank (or equivalently, 1) for rows of type **RS**
+   **AS**.  Otherwise, gives the tally (a nonnegative integer).
 
-6. ``**cid**``
+6. **cid**
 
-7. ``**vote**``: Columns 7 and on are to record the voter's choices
+7. **vote**: Columns 7 and on are to record the voter's choices
    for that contest.  A typical plurality election will only have one
    choice, so the selection id (selid) is entered in column 7.  For
    other contest types (e.g. approval voting) there may be more than
