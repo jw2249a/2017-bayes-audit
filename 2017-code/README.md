@@ -291,10 +291,10 @@ Example:
 
 
 
-    | RT | SRC | PBCID | BID | Tally | Contest | Selections | ... |
-    | ---| --- | ---   | --- | ---   | ---     | ---        | --- |
-    | AS |   P | DEN12 | B23 | 1     | Clerk   | BobStone   |    |
-    | AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones``|
+| RT | SRC | PBCID | BID | Tally | Contest | Selections | ...       |
+| ---| --- | ---   | --- | ---   | ---     | ---        | ---       |
+| AS |   P | DEN12 | B23 | 1     | Clerk   | BobStone   |           |
+| AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones |
 
     The second row is an overvote.
 
