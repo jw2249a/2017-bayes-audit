@@ -252,19 +252,19 @@ Here are the fields of a row of a vote file:
       within the PBC for a particular contest having a particular
       reported vote.
 
-  The **L** label is appropriate for a listing of reported votes.
-  The others may be used for statistical samples in the audit.
-  If the sample was restricted to a particular contest or reported
-  vote, then that information was obtained from the CVR records
-  (i.e. with row types **RS** or **AS**.
+    The **L** label is appropriate for a listing of reported votes.
+    The others may be used for statistical samples in the audit.
+    If the sample was restricted to a particular contest or reported
+    vote, then that information was obtained from the CVR records
+    (i.e. with row types **RS** or **AS**.
 
 3. **pbcid**
 
-4: **bid**: blank for rows of type **RT** or **AT**, since
+4. **bid**: blank for rows of type **RT** or **AT**, since
    these are aggregate tally rows.  Otherwise gives the bid for a single
    ballot.
 
-5: **tally**: blank (or equivalently, 1) for rows of type **RS**
+5. **tally**: blank (or equivalently, 1) for rows of type **RS**
    **AS**.  Otherwise, gives the tally (a nonnegative integer).
 
 6. **cid**
@@ -289,7 +289,8 @@ Here are the fields of a row of a vote file:
 
 Example:
 
-   
+
+
     RT | SRC | PBCID | BID | Tally | Contest | Selections | 
     ---| --- | ---   | --- | ---   | ---     | ---        | ---
     AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones``
