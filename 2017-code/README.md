@@ -113,18 +113,21 @@ The election definition phase answers the questions:
 
 The data structure for ``multi.py`` use identifiers extensively.
 Identifiers are more-or-less arbitrary strings of characters.
+Identifiers may be used as part of a filename so it should preferably
+not contain blanks, special characters, or depend on capitalization.
+(Blanks could be used, but may require escaping in some contexts, e.g.,
+writing as "John\ Smith".)
+
 We have:
 
-* **Contest Identifiers** (example: ``"Denver Mayor"``)
+* **Contest Identifiers** (example: ``"DenverMayor"``)
   A contest identifier is called a ``"cid"`` in the code.
 
-* **Selection Identifiers** (examples: ``"Yes"`` or ``"John Smith"`` or ``"Undervote"``)
+* **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"`` or ``"Undervote"``)
   A selection identifier is called a ``"selid"`` in the code.
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
-  A pbcid may be used as part of a filename so it should preferable not
-  contain blanks, special characters, or depend on capitalization.
 
 * A **Ballot Identifier** is a unique identifier assigned to a particular
   paper ballot (example: ``"DN-25-72"``).
@@ -144,7 +147,7 @@ use a file naming scheme that doesn't overwrite older data.
 This is done by making date and times part of the file name.
 For example, we might have a file name of the form
 
-    ``DEN-2017-07-02-05-22.11.csv``
+    ``DEN-2017-07-02-05-22-11.csv``
 
 to record the votes from a sample from the paper ballot collection
 with pbcid DEN.
@@ -212,6 +215,79 @@ Something like this:
 ###  Random number generation
 
 ###  Sampling
+
+### Vote file formats
+
+A **vote file** is a CSV format file containing a number of
+rows, where each row represents a voter's choices for a
+particular contest.
+
+The format is common for vote files representing cast vote
+records and for vote files representing sampled ballots.
+The format is capable of representing votes in more
+complex voting schemes, like approval or instant runoff (IRV).
+
+The format is also the same for representing a tally of votes,
+where aggregation has been performed.  In this case the ballot
+identifiers are omitted by the tally field is used.
+
+When the vote file is used to represent a sample of ballots, the
+nature of the sampling is also indicated.
+
+Here are the fields of a row of a vote file:
+
+1. ``**row type**`` (rt): one of four values:
+  * ``**RS**``: a single reported vote
+  * ``**RT**``: a tally of one or more reported votes
+  * ``**AS**``: a single actual vote (from audit)
+  * ``**AT**``: a tally of one or more actual votes
+
+2. ``**source**`` (src): one of four values:
+  * ``**L**``: a complete list of relevant ballots
+  * ``**P**``: a ballot chosen uniformly from PBC
+  * ``**PC**``: a ballot chosen uniformly from all ballots
+     within the PBC for a particular contest
+  * ``**PCR**``: a ballot chosen uniformly from all ballots
+     within the PBC for a particular contest having a particular
+     reported vote.
+
+  The ``**L**`` label is appropriate for a listing of reported votes.
+  The others may be used for statistical samples in the audit.
+  If the sample was restricted to a particular contest or reported
+  vote, then that information was obtained from the CVR records
+  (i.e. with row types ``**RS**`` or ``**AS**``.
+
+3. ``**pbcid**``
+
+4: ``**bid**``: blank for rows of type ``**RT**`` or ``**AT**``, since
+   these are aggregate tally rows.  Otherwise gives the bid for a single
+   ballot.
+
+5: ``**tally**``: blank (or equivalently, 1) for rows of type ``**RS**``
+   ``**AS**``.  Otherwise, gives the tally (a nonnegative integer).
+
+6. ``**cid**``
+
+7. ``**vote**``: Columns 7 and on are to record the voter's choices
+   for that contest.  A typical plurality election will only have one
+   choice, so the selection id (selid) is entered in column 7.  For
+   other contest types (e.g. approval voting) there may be more than
+   one selection, so they are listed in columns 7, 8, ...
+   In general, each selection id corresponds to a single bubble that
+   the voter may fill in on the ballot.  Preferential voting can
+   also be handled with these fields.
+
+   An undervote for a plurality vote will have columns 7-... blank,
+   whereas an overvote will have more than one such column filled in.
+
+   Implementation note: the voter's selections are combined into
+   a python ``tuple''.  An empty vote is the zero-length python
+   tuple ``(,)``.  The representation uses tuples, and not lists,
+   since tuples are hashable and so may be used as keys in
+   python dictionaries.
+
+
+
 
 
 

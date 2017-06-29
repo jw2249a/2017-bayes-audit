@@ -167,16 +167,17 @@ class Election(object):
         e.bids = {}          # pbcid->[bids]   list of ballot ids for each pcbid
         e.rel = {}           # cid->pbcid->"True"
                              # (relevance; only relevant pbcids in e.rel[cid])
-        e.vselids = {}       # cid->[selids]   givs list of valid (CANDIDATE) votes
+                             # True means the pbcid *might* contains ballots relevant to cid
+        e.vselids = {}       # cid->[selids]   givs list of valid (CANDIDATE) selections
                              # (which are strings)
         e.iselids = {}       # cid->[selids]  gives list of invalid (NONCANDIDATE)
-                             # votes (which are strings),
+                             # selections (which are strings),
                              # must include "Invalid", "Overvote", "Undervote",
                              # and possibly "noCVR" (for noCVR pbcs)
         e.selids = {}        # cid->[selids]
                              # maps cid to union of e.vselids[cid] and e.iselids[cid]
-                             # note that e.selids is used for both reported votes
-                             # (e.rv) and for actual votes (e.av)
+                             # note that e.selids is used for both reported selections
+                             # (e.rv) and for actual selections (e.av)
         e.collection_type = {}  # pbcid-> "CVR" or "noCVR"
 
         ### election data (reported election results)
@@ -185,14 +186,14 @@ class Election(object):
         e.ro = {}            # cid->selid   (reported outcome)
         # computed from the above 
         e.totcid = {}        # cid->reals  (total # votes cast in contest)
-        e.totvot = {}        # cid->selid->reals  (number of votes recd by selid in cid)
-        e.rv = {}            # cid->pbcid->bid->[selids]     (reported votes)
-                             # e.rv is like e.av (reported votes; actual votes)
+        e.totvot = {}        # cid->selid->reals  (number of votes recd, for each selid in cid)
+        e.rv = {}            # cid->pbcid->bid->[selids]     (reported selections)
+                             # e.rv is like e.av (reported selections; actual selections)
         e.nr = {}            # cid->pbcid->selid->count
-                             # (selid is reported vote, count is over pbcid)
-        e.synthetic_seed = 2  # seed for generation of synthetic random votes
+                             # (selid is reported selection, count is over pbcid)
+        e.synthetic_seed = 2  # seed for generation of synthetic random selections
         e.error_rate = 0.0001 # error rate used in model for generating
-                              # synthetic reported votes
+                              # synthetic reported selections
 
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
@@ -218,12 +219,12 @@ class Election(object):
         # sample info
         e.s = {}              # stage->pbcid->ints (number of ballots sampled so far)
         e.av = {}             # cid->pbcid->bid->selid
-                              # (actual votes; sampled ballots)
+                              # (actual selections; sampled ballots)
         # computed from the above
         e.st = {}             # stage->cid->pbcid->selid->selid->count  ("sample tally")
-                              # (first selid is reported vote, second is actual vote)
-        e.sr = {}             # stage->cid->pbcid->selid->count  ("sample tally by reported vote")
-                              # (selid is reported vote, count is in sample)
+                              # (first selid is reported selection, second is actual selection)
+        e.sr = {}             # stage->cid->pbcid->selid->count  ("sample tally by reported selection")
+                              # (selid is reported selection, count is in sample)
 
 
 ##############################################################################
@@ -414,7 +415,7 @@ def show_election_structure(e):
     myprint("e.collection_type (either CVR or noCVR) for each pbcid:")
     for pbcid in sorted(e.pbcids):
         myprint("    {}:{} ".format(pbcid, e.collection_type[pbcid]))
-    myprint("e.rel (valid pbcids for each cid):")
+    myprint("e.rel (possible pbcids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for pbcid in sorted(e.rel[cid]):
@@ -446,10 +447,9 @@ def show_election_structure(e):
 def get_election_data(e):    
 
     load_part_from_json(e, "data.js")
-    finish_election_data(e)
     if e.election_type == "Synthetic":
-        myprint("Synthetic vote generation seed:", e.synthetic_seed)
-        compute_synthetic_votes(e)
+        myprint("Synthetic selection generation seed:", e.synthetic_seed)
+        compute_synthetic_selections(e)
     else:
         myerror("For now, data must be synthetic!")
 
@@ -461,6 +461,8 @@ def get_election_data(e):
             for r in e.selids[cid]:
                 e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
                                            if e.rv[cid][pbcid][bid] == r])
+                print("***", cid, pbcid, r, e.nr[cid][pbcid][r])
+    finish_election_data(e)
     check_election_data(e)
     show_election_data(e)
 
@@ -472,7 +474,10 @@ def finish_election_data(e):
 
     # e.totcid[cid] is total number of votes cast for cid
     for cid in e.cids:
-        e.totcid[cid] = sum([e.n[pbcid] for pbcid in e.rel[cid]])
+        print("***", cid, e.rel[cid], e.selids[cid])
+        e.totcid[cid] = sum([e.nr[cid][pbcid][r] \
+                             for pbcid in e.rel[cid] \
+                             for r in e.selids[cid]])
 
     # e.totselid[cid][selid] is total number cast for selid in cid
     for cid in e.cids:
@@ -486,7 +491,7 @@ def compute_rv(e, cid, pbcid, bid, selid):
     """
     Compute reported selection for e.rv[cid][pbcid][bid]
     based on whether pbcid is CVR or noCVR, and based on
-    a prior for errors.  Here selid is the actual vote.
+    a prior for errors.  Here selid is the actual selection.
     e.error_rate (default 0.0001) is chance that 
     reported selection != actual selection.  If they differ all 
     other possibilities are equally likely to occur.
@@ -494,7 +499,7 @@ def compute_rv(e, cid, pbcid, bid, selid):
     if e.collection_type[pbcid]=="noCVR":
         assert "noCVR" in e.selids[cid], cid   # assume noCVR is legit selid
         return "noCVR"
-    # Otherwise, we generate a reported vote
+    # Otherwise, we generate a reported selection
     m = len(e.selids[cid])          # number of selection options for this cid
     if syntheticRandomState.uniform()>e.error_rate or m==1:
         return selid                # no error is typical case
@@ -504,11 +509,11 @@ def compute_rv(e, cid, pbcid, bid, selid):
     return error_selids[int(syntheticRandomState.uniform()*(m-1))]
 
 
-def compute_synthetic_votes(e):
+def compute_synthetic_selections(e):
     """
-    Make up actual votes and randomly permute their order.
+    Make up actual selections and randomly permute their order.
     Only useful for test elections, not for real elections.
-    Form of bid is e.b. PBC1::576
+    Form of bid is e.g. PBC1::576
     """
     
     global syntheticRandomState
@@ -521,11 +526,19 @@ def compute_synthetic_votes(e):
             bid = pbcid + "::" + "%d"%j
             e.bids[pbcid].append(bid)
         i += e.n[pbcid]
-    # make up votes
+    # get totvot from syntotvot (needs to be computed early, in order to make up selections)
+    for cid in e.cids:
+        e.totvot[cid] = {}
+        for selid in e.selids[cid]:
+            if selid in e.syntotvot[cid]:
+                e.totvot[cid][selid] = e.syntotvot[cid][selid]
+            else:
+                e.totvot[cid][selid] = 0
+    # make up selections
     for cid in e.cids:
         e.rv[cid] = {}
         e.av[cid] = {}
-        # make up all votes first, so overall tally for cid is right
+        # make up all selections first, so overall tally for cid is right
         votes = []
         for selid in e.selids[cid]:
             votes.extend([selid]*e.totvot[cid][selid])
@@ -705,7 +718,7 @@ def show_election_data(e):
             myprint("{}:{} ".format(selid, e.totvot[cid][selid]), end='')
         myprint()
 
-    myprint("e.av (first five or so actual votes cast for each cid and pbcid):")
+    myprint("e.av (first five or so actual selections cast for each cid and pbcid):")
     for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             myprint("    {}.{}:".format(cid, pbcid), end='')
@@ -737,7 +750,7 @@ def compute_tally(vec):
 def compute_tally2(vec):
     """
     Input vec is an iterable of (a, r) pairs. 
-    (i.e., (actual vote, reported vote) pairs).
+    (i.e., (actual selection, reported selection) pairs).
     Return dict giving mapping from r to dict
     giving tally of a's that appear with that r.
     """
@@ -793,24 +806,24 @@ def draw_sample(e):
         e.sr[e.stage][cid] = {}
         for pbcid in e.rel[cid]:
             e.sr[e.stage][cid][pbcid] = {}
-            avotes = [e.av[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
-            rvotes = [e.rv[cid][pbcid][bid] \
-                      for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
-            zvotes = list(zip(avotes, rvotes)) # list of (actual, reported) selection pairs
-            e.st[e.stage][cid][pbcid] = compute_tally2(zvotes)
+            aselids = [e.av[cid][pbcid][bid] \
+                       for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
+            rselids = [e.rv[cid][pbcid][bid] \
+                       for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
+            zselids = list(zip(aselids, rselids)) # list of (actual, reported) selection pairs
+            e.st[e.stage][cid][pbcid] = compute_tally2(zselids)
             for r in e.selids[cid]:
-                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvotes if rr==r])
+                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rselids if rr==r])
 
                 
 def show_sample_counts(e):
 
-    myprint("    Total sample counts by Contest.PaperBallotCollection[reported vote]"
-            "and actual votes:")
+    myprint("    Total sample counts by Contest.PaperBallotCollection[reported selection]"
+            "and actual selection:")
     for cid in e.cids:
         for pbcid in sorted(e.rel[cid]):
             tally2 = e.st[e.stage][cid][pbcid]
-            for r in sorted(tally2.keys()): # r = reported vote
+            for r in sorted(tally2.keys()): # r = reported selection
                 myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
                 for v in sorted(tally2[r].keys()):
                     myprint("  {}:{}".format(v, tally2[r][v]), end='')
@@ -833,7 +846,7 @@ def compute_contest_risk(e, cid, st):
     which a frequentist method is known.
 
     The comparison and ballot-polling audits are blended here; the
-    election data just records an "noCVR" for the reported type of each vote
+    election data just records an "noCVR" for the reported selection
     in a noCVR paper ballot collection.
     """
 
@@ -842,7 +855,7 @@ def compute_contest_risk(e, cid, st):
         test_tally = {selid:0 for selid in e.selids[cid]} 
         for pbcid in e.rel[cid]:
             # draw from posterior for each paper ballot collection, sum them
-            # stratify by reported vote
+            # stratify by reported selection
             for r in e.st[e.stage][cid][pbcid]:
                 tally = e.st[e.stage][cid][pbcid][r].copy()
                 for selid in e.selids[cid]:
