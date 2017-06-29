@@ -1125,18 +1125,18 @@ def show_audit_summary(e):
 ##############################################################################
 ## Input/output at the file-handling level
 
-def latest_filename(dirpath, startswith, endswith, dir_wanted=False):
+def greatest_filename(dirpath, startswith, endswith, dir_wanted=False):
     """ 
     Return the filename of the file in the given directory that
     begins and ends with strings startswith and endswith, respectively.
-    If there is more than one such file, return the largest (lexicographically)
+    If there is more than one such file, return the greatest (lexicographically)
     such filename.  Raise an error if there are no such files.
-    The routine is called "latest_filename" since it is assumed that the
-    portion between startswith and endswith is a datetime string.
-    If switch "dir_wanted" is True, then return latest directory name, not filename.
-    Example:  latest_filename(".", "foo", ".csv")
-    will return "foo-2017-06-31.csv" from a directory containing files
-    with names  "foo-2017-06-31.csv", "foo-2017-05-14.csv", and "bar-2017-08-31.csv".
+    The portion between the prefix startswith and the suffix endswith is called
+    the version label in the documentation.
+    If switch "dir_wanted" is True, then return greatest directory name, not filename.
+    Example:  greatest_filename(".", "foo", ".csv")
+    will return "foo-11-09.csv" from a directory containing files
+    with names  "foo-11-09.csv", "foo-11-08.csv", and "bar-12-12.csv".
     """
 
     selected_filename = ""   

@@ -130,13 +130,14 @@ We have:
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
 
 * A **Ballot Identifier** is a unique identifier assigned to a particular
-  paper ballot (example: ``"DN-25-72"``).
+  paper ballot (example: ``"25-72"``).
   A ballot id is called a ``"bid"`` in the code.
   Ballots within a collection must have unique bids, but it is not
   necessary that ballots in different collections have different
   bids.  A ballot id may encode the physical storage location of
   the ballot (e.g. the box number and position within box), but
-  need not do so.  The ballot id might be generated when the ballot
+  need not do so.  The ballot id might or might not include the
+  pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
 
 ### File names
@@ -144,20 +145,63 @@ We have:
 During an audit, data may be augmented or improved somehow.  We
 use a file naming scheme that doesn't overwrite older data.
 
-This is done by making date and times part of the file name.
-For example, we might have a file name of the form
+This is done by interpreting part of the filename as a
+"version label".  When looking for a file, there may be
+several files that differ only the version label portion of
+their filename.  If so, the system uses the one with the
+version label that is (lexicographically) greatest.
+The version label is arbitrary text; it may encode a
+date, time, or some other form of version indicator.
 
-    ``DEN-2017-07-02-05-22-11.csv``
+When the system searches for a file in a given directory,
+it looks for a file with a filename having a given "prefix"
+(such as "data") and a given "suffix" (such as ".csv"). A
+file with filename
 
-to record the votes from a sample from the paper ballot collection
-with pbcid DEN.
+    ``data.csv``
+
+matches the search request, but has no version label (more precisely,
+a zero-length string as a version label).  A file
+with filename
+
+    ``data-v005.csv``
+
+also matches the search request, but has ``"-v005"`` as the version
+label (for that search).  Similarly a filename:
+
+    ``data-2017-11-07.csv``
+
+as ``"-2017-11-07-08"`` as its version label for this search.
+
+Note that version labels are compared as **strings**, not as **numbers**.
+For good results:
+* For numbers, use _fixed-width_ numeric fields, since the comparisons
+  are lexicographic.  Don't be bitten by thinking that ``"-v10"`` is
+  later than ``"-v5"`` -- it isn't!
+* For dates, used fixed-field numeric fields for each component, and
+  order the fields from most significant to least significant (e.g.
+  year, month, day, hour, minute, second), as is done in the ISO 8601
+  standard, so lexicographic comparisons give the desired result.
+
+Note that having no version label means having the empty string
+as the version label, which compares "before" all other strings,
+so your first version might have no version label, with later
+versions having increasing version labels.
+
+Within a directory, if two or more files differ only in their version labels,
+then the file with the greatest version label is operative, and the
+others are ignored (but may be kept around for archival purposes).
+
+In our application, version labels are used as follows.  When
+an audit sample is augmented, a new file is created to contain
+**all** of the sampled ballot data (previously sampled, and the
+new data as well).  The new file is given a version label that is
+greater than the previous version label.  
 
 If this sample is augmented, the above file is not changed, but
 a new file with a later date is just added to the directory.
 
-Within a directory, if two files differ only in the date or time,
-then the later file is operative, and the earlier one is ignored
-(but kept around for archival purposes).
+
 
 ###  Directory structure
 
