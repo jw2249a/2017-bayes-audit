@@ -254,28 +254,38 @@ Here are the fields of a row of a vote file:
 
     The **L** label is appropriate for a listing of reported votes.
     The others may be used for statistical samples in the audit.
-    If the sample was restricted to a particular contest or reported
-    vote, then that information was obtained from the CVR records
-    (i.e. with row types **RS** or **AS**.
 
-3. **pbcid**
+    The **P** label is appropriate for a typical audit sample.
+    
+    The **PC** and **PCR** labels are unlikely to be used (at least at
+    first).  If the sample was restricted to a particular
+    contest or reported vote, then that information was obtained
+    from the CVR records (i.e. with row type **RS**).
 
-4. **bid**: blank for rows of type **RT** or **AT**, since
+3. **Paper Ballot Collection Identifier** (pbcid)
+
+4. **Ballot identifier** (bid): blank for rows of type **RT** or **AT**, since
    these are aggregate tally rows.  Otherwise gives the bid for a single
    ballot.
 
-5. **tally**: blank (or equivalently, 1) for rows of type **RS**
-   **AS**.  Otherwise, gives the tally (a nonnegative integer).
+5. **tally**: This is 1 for rows of type **RS**
+   **AS**, since they represent just a single ballot.
+   Otherwise, gives the tally (a nonnegative integer) for a number
+   of ballots for rows of type **RT** or **AT**; the tally is the number
+   of rows summarized.  The summarized rows must agree on all fields except
+   the bid field.  The bid field is blank for row types **RT** and **AT**.
 
-6. **cid**
+6. **Contest Identifier** (cid)
 
-7. **vote**: Columns 7 and on are to record the voter's choices
+7. **selections** (vote): Columns 7 and on are to record the voter's choices
    for that contest.  A typical plurality election will only have one
-   choice, so the selection id (selid) is entered in column 7.  For
-   other contest types (e.g. approval voting) there may be more than
+   choice, so the selection id (selid) is entered in column 7 and the later
+   columns are blank.
+
+   For other contest types (e.g. approval voting) there may be more than
    one selection, so they are listed in columns 7, 8, ...
    In general, each selection id corresponds to a single bubble that
-   the voter may fill in on the ballot.  Preferential voting can
+   the voter has filled in on the paper ballot.  Preferential voting can
    also be handled with these fields.
 
    An undervote for a plurality vote will have columns 7-... blank,
@@ -287,14 +297,17 @@ Here are the fields of a row of a vote file:
    since tuples are hashable and so may be used as keys in
    python dictionaries.
 
-Example:
-
+**Example**: A two-row vote file table for an audit sample.  Here
+each row represents a single vote of a voter in a contest.  The ballots
+were sampled uniformly at random from the PBC.  The two rows represent
+different contests on the same ballot.
 
 
 | RT | SRC | PBCID | BID | Tally | Contest | Selections | ...       |
 | ---| --- | ---   | --- | ---   | ---     | ---        | ---       |
 | AS |   P | DEN12 | B23 | 1     | Clerk   | BobStone   |           |
 | AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones |
+
 
     The second row is an overvote.
 
