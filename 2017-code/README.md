@@ -123,8 +123,17 @@ We have:
 * **Contest Identifiers** (example: ``"DenverMayor"``)
   A contest identifier is called a ``"cid"`` in the code.
 
-* **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"`` or ``"Undervote"``)
+* **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"``)
   A selection identifier is called a ``"selid"`` in the code.
+  Roughly speaking, there should be one selection identifier for each
+  optical scan bubble.
+  A **vote** is then a (possibly empty) list of selection ids for
+  a contest.
+  A **write-in** selection has a selection id beginning with a plus
+  sign (example: ``"+BobWhite"``).
+  (When the list of valid selections is given, we can list
+  ``"+"`` as a valid selection to indicate that
+  write-ins are allowed.)
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.

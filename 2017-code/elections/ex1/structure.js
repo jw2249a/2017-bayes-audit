@@ -27,18 +27,16 @@
       "F23": {"PBC2": true,
               "PBC3": true}},
 
-  "__comment": "valid selections for each contest (can win)",
-  "vselids": {"I": ["0", "1"],
-              "C1": ["0", "1"],
-              "C2": ["0", "1"],
-              "C3": ["0", "1"],
-              "F23": ["0", "1"]},
-
-  "__comment": "invalid selections for each contest (can't win)",
-  "iselids": {"I": ["Invalid", "Overvote", "Undervote"],
-              "C1": ["Invalid", "Overvote", "Undervote"],
-              "C2": ["Invalid", "Overvote", "Undervote"],
-              "C3": ["Invalid", "Overvote", "Undervote"],
-              "F23": ["Invalid", "Overvote", "Undervote"]}
+  "__comment": "valid selections for each contest",
+  "selids": {"I": {"0": true,
+                   "1": true},
+             "C1": {"0": true,
+                    "1": true},
+             "C2": {"0": true,
+                    "1": true},
+             "C3": {"0": true,
+                    "1": true},
+             "F23": {"0": true,
+                     "1": true}}
 }            
             

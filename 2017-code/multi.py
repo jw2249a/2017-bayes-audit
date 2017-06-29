@@ -81,7 +81,7 @@ def mywarning(msg):
 
     global warnings_given
     warnings_given += 1
-    print("WARNING: msg")
+    print("WARNING:", msg)
 
 
 ##############################################################################
@@ -168,16 +168,10 @@ class Election(object):
         e.rel = {}           # cid->pbcid->"True"
                              # (relevance; only relevant pbcids in e.rel[cid])
                              # True means the pbcid *might* contains ballots relevant to cid
-        e.vselids = {}       # cid->[selids]   givs list of valid (CANDIDATE) selections
-                             # (which are strings)
-        e.iselids = {}       # cid->[selids]  gives list of invalid (NONCANDIDATE)
-                             # selections (which are strings),
-                             # must include "Invalid", "Overvote", "Undervote",
-                             # and possibly "noCVR" (for noCVR pbcs)
         e.selids = {}        # cid->[selids]
-                             # maps cid to union of e.vselids[cid] and e.iselids[cid]
                              # note that e.selids is used for both reported selections
                              # (e.rv) and for actual selections (e.av)
+                             # it also increases when new selids starting with "+" or "-" are seen.
         e.collection_type = {}  # pbcid-> "CVR" or "noCVR"
 
         ### election data (reported election results)
@@ -280,14 +274,7 @@ def get_election_structure(e):
 def finish_election_structure(e):
     """ Compute attributes of e that are derivative from others. """
 
-    for cid in e.cids:
-        if "noCVR" not in e.iselids[cid] and \
-           any([e.collection_type[pbcid]=="noCVR" \
-                for pbcid in e.rel[cid]]):
-            e.iselids[cid].append("noCVR")
-
-    for cid in e.cids:
-        e.selids[cid] = sorted(e.vselids[cid]+e.iselids[cid])
+    pass
 
 
 def check_id(id, check_for_whitespace=False):
@@ -331,51 +318,18 @@ def check_election_structure(e):
             if e.rel[cid][pbcid]!=True:
                 mywarning("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
 
-    if not isinstance(e.iselids, dict):
-        myerror("e.iselids is not a dict.")
-    for cid in e.iselids:
-        if cid not in e.cids:
-            myerror("e.iselids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.iselids[cid], (list, tuple)):
-            myerror("e.iselids[{}] is not a list or a tuple.".format(cid))
-        for iselid in e.iselids[cid]:
-            check_id(iselid)
-    for cid in e.cids:
-        if cid not in e.iselids:
-            mywarning("cid `{}` should a key in e.iselids".format(cid))
-
-    if not isinstance(e.vselids, dict):
-        myerror("e.vselids is not a dict.")
-    for cid in e.vselids:
-        if cid not in e.cids:
-            myerror("e.vselids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.vselids[cid], (list, tuple)):
-            myerror("e.vselids[{}] is not a list or a tuple.".format(cid))
-        for selid in e.vselids[cid]:
-            check_id(selid)
-    for cid in e.cids:
-        if cid not in e.selids:
-            mywarning("cid `{}` should be key in e.selids".format(cid))
-
     if not isinstance(e.selids, dict):
         myerror("e.selids is not a dict.")
     for cid in e.selids:
         if cid not in e.cids:
             myerror("e.selids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.selids[cid], (list, tuple)):
-            myerror("e.selids[{}] is not a list or a tuple.".format(cid))
+        if not isinstance(e.selids[cid], dict):
+            myerror("e.selids[{}] is not a dict.".format(cid))
         for selid in e.selids[cid]:
             check_id(selid)
     for cid in e.cids:
         if cid not in e.selids:
             mywarning("cid `{}` should be key in e.selids".format(cid))
-
-    for cid in e.cids:
-        for vselid in e.vselids[cid]:
-            for iselid in e.iselids[cid]:
-                if vselid == iselid:
-                    mywarning("e.vselids[{}] and e.iselids[{}] are not disjoint."
-                              .format(cid, cid))
 
     if not isinstance(e.collection_type, dict):
         myerror("e_collection_type is not a dict.")
@@ -421,19 +375,7 @@ def show_election_structure(e):
         for pbcid in sorted(e.rel[cid]):
             myprint(pbcid, end=' ')
         myprint()
-    myprint("e.vselids (valid selection ids for each cid):")
-    for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
-        for vselid in sorted(e.vselids[cid]):
-            myprint(vselid, end=' ')
-        myprint()
-    myprint("e.iselids (invalid selection ids for each cid):")
-    for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
-        for iselid in sorted(e.iselids[cid]):
-            myprint(iselid, end=' ')
-        myprint()
-    myprint("e.selids (valid or invalid selection ids for each cid):")
+    myprint("e.selids (valid selection ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for selid in sorted(e.selids[cid]):
@@ -453,6 +395,14 @@ def get_election_data(e):
     else:
         myerror("For now, data must be synthetic!")
 
+    # make sure e.selids contains all +/- selids seen in reported votes
+    for cid in e.cids:
+        for pbcid in e.rel[cid]:
+            for bid in e.bids[pbcid]:
+                r = e.rv[cid][pbcid][bid]
+                if r[0] in ["+", "-"]:
+                    e.selids[cid][r] = True
+
     # set e.nr[cid][pbcid][r] to number in pbcid with reported selection r:
     for cid in e.cids:
         e.nr[cid] = {}
@@ -461,7 +411,6 @@ def get_election_data(e):
             for r in e.selids[cid]:
                 e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
                                            if e.rv[cid][pbcid][bid] == r])
-                print("***", cid, pbcid, r, e.nr[cid][pbcid][r])
     finish_election_data(e)
     check_election_data(e)
     show_election_data(e)
@@ -474,7 +423,6 @@ def finish_election_data(e):
 
     # e.totcid[cid] is total number of votes cast for cid
     for cid in e.cids:
-        print("***", cid, e.rel[cid], e.selids[cid])
         e.totcid[cid] = sum([e.nr[cid][pbcid][r] \
                              for pbcid in e.rel[cid] \
                              for r in e.selids[cid]])
@@ -497,16 +445,14 @@ def compute_rv(e, cid, pbcid, bid, selid):
     other possibilities are equally likely to occur.
     """
     if e.collection_type[pbcid]=="noCVR":
-        assert "noCVR" in e.selids[cid], cid   # assume noCVR is legit selid
-        return "noCVR"
+        return "-noCVR"
     # Otherwise, we generate a reported selection
     m = len(e.selids[cid])          # number of selection options for this cid
     if syntheticRandomState.uniform()>e.error_rate or m==1:
         return selid                # no error is typical case
-    error_selids = e.selids[cid].copy()
+    error_selids = list(e.selids[cid])
     error_selids.remove(selid)
-    # pick an error at random
-    return error_selids[int(syntheticRandomState.uniform()*(m-1))]
+    return syntheticRandomState.choice(error_selids)
 
 
 def compute_synthetic_selections(e):
@@ -566,7 +512,7 @@ def check_election_data(e):
             if pbcid not in e.pbcids:
                 mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
             for selid in e.t[cid][pbcid]:
-                if selid not in e.selids[cid]:
+                if selid not in e.selids[cid] and selid[0].isalnum():
                     mywarning("selid `{}` is not in e.selids[{}].".format(selid, cid))
                 if not isinstance(e.t[cid][pbcid][selid], int):
                     mywarning("value `e.t[{}][{}][{}] = `{}` is not an integer."
@@ -605,7 +551,7 @@ def check_election_data(e):
         if cid not in e.cids:
             mywarning("e.totvot key cid `{}` is not in e.cids".format(cid))
         for selid in e.totvot[cid]:
-            if selid not in e.selids[cid]:
+            if selid not in e.selids[cid] and selid[0].isalnum():
                 mywarning("e.totvot[{}] key `{}` is not in e.selids[{}]"
                           .format(cid, selid, cid))
             if not isinstance(e.totvot[cid][selid], int):
@@ -641,9 +587,10 @@ def check_election_data(e):
                 if bid not in bidsset:
                     mywarning("bid `{}` from e.av[{}][{}] is not in e.bids[{}]."
                               .format(bid, cid, pbcid, pbcid))
-                if e.av[cid][pbcid][bid] not in e.selids[cid]:
-                    mywarning("selid `{}` from e.av[{}][{}][{}] is not in e.selids[{}]."
-                              .format(e.av[cid][pbcid][bid], cid, pbcid, bid, cid))
+                    if e.av[cid][pbcid][bid] not in e.selids[cid] and \
+                       e.av[cid][pbcid][bid][0].isalphnum():
+                        mywarning("selid `{}` from e.av[{}][{}][{}] is not in e.selids[{}]."
+                                  .format(e.av[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
         if cid not in e.av:
             mywarning("cid `{}` is not a key for e.av.".format(cid))
@@ -668,7 +615,8 @@ def check_election_data(e):
                 if bid not in bidsset:
                     mywarning("bid `{}` from e.rv[{}][{}] is not in e.bids[{}]."
                               .format(bid, cid, pbcid, pbcid))
-                if e.rv[cid][pbcid][bid] not in e.selids[cid]:
+                if e.rv[cid][pbcid][bid] not in e.selids[cid] and \
+                   e.rv[cid][pbcid][bid][0].isalnum():
                     mywarning("selid `{}` from e.rv[{}][{}][{}] is not in e.selids[{}]."
                               .format(e.rv[cid][pbcid][bid], cid, pbcid, bid, cid))
     for cid in e.cids:
@@ -770,14 +718,13 @@ def plurality(e, cid, tally):
     an Exception is raised if this is not possible.
     """
 
-    vselids = e.vselids[cid]     # allowed winners
     max_cnt = -1e90
     max_selid = None
     for selid in tally:
-        if tally[selid]>max_cnt and selid in vselids:
+        if tally[selid]>max_cnt and selid[0].isalnum():
             max_cnt = tally[selid]
             max_selid = selid
-    assert "No winner allowed in plurality contest.", (tally, vselids)
+    assert "No winner allowed in plurality contest.", (tally, e.selids[cid])
     return max_selid
 
 ##############################################################################
@@ -846,7 +793,7 @@ def compute_contest_risk(e, cid, st):
     which a frequentist method is known.
 
     The comparison and ballot-polling audits are blended here; the
-    election data just records an "noCVR" for the reported selection
+    election data just records an "-noCVR" selid for the reported selection
     in a noCVR paper ballot collection.
     """
 
