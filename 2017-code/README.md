@@ -238,19 +238,19 @@ Here are the fields of a row of a vote file:
 
 1. **row type** (rt): one of four values:
 
-  * **RS**: a single reported vote
-  * **RT**: a tally of one or more reported votes
-  * **AS**: a single actual vote (from audit)
-  * **AT**: a tally of one or more actual votes
+    * **RS**: a single reported vote
+    * **RT**: a tally of one or more reported votes
+    * **AS**: a single actual vote (from audit)
+    * **AT**: a tally of one or more actual votes
 
 2. **source** (src): one of four values:
-  * **L**: a complete list of relevant ballots
-  * **P**: a ballot chosen uniformly from PBC
-  * **PC**: a ballot chosen uniformly from all ballots
-     within the PBC for a particular contest
-  * **PCR**: a ballot chosen uniformly from all ballots
-     within the PBC for a particular contest having a particular
-     reported vote.
+    * **L**: a complete list of relevant ballots
+    * **P**: a ballot chosen uniformly from PBC
+    * **PC**: a ballot chosen uniformly from all ballots
+      within the PBC for a particular contest
+    * **PCR**: a ballot chosen uniformly from all ballots
+      within the PBC for a particular contest having a particular
+      reported vote.
 
   The **L** label is appropriate for a listing of reported votes.
   The others may be used for statistical samples in the audit.
@@ -286,6 +286,15 @@ Here are the fields of a row of a vote file:
    tuple ``(,)``.  The representation uses tuples, and not lists,
    since tuples are hashable and so may be used as keys in
    python dictionaries.
+
+Example:
+
+   
+    RT | SRC | PBCID | BID | Tally | Contest | Selections | 
+    ---| --- | ---   | --- | ---   | ---     | ---        | ---
+    AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones``
+
+   
 
 
 
