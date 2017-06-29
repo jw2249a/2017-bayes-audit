@@ -177,7 +177,7 @@ Note that version labels are compared as **strings**, not as **numbers**.
 For good results:
 * For numbers, use _fixed-width_ numeric fields, since the comparisons
   are lexicographic.  Don't be bitten by thinking that ``"-v10"`` is
-  later than ``"-v5"`` -- it isn't!
+  greater than ``"-v5"`` -- it isn't!
 * For dates, used fixed-field numeric fields for each component, and
   order the fields from most significant to least significant (e.g.
   year, month, day, hour, minute, second), as is done in the ISO 8601
@@ -207,36 +207,38 @@ a new file with a later date is just added to the directory.
 
 Something like this:
 
-    ``
+    $ ls -R
     010-structure
-    020-reported-selections
+    020-reported-votes
     030-ballot-manifests
-    040-audit-seeds
+    040-audit-seed
     050-sample-orders
-    060-audited-selections
+    060-audited-votes
     070-audit-stages
 
     ./010-structure:
-    structure-2017-06-26-22-35-59.js
+    structure-09-08.js
 
-    ./020-reported-selections:
-    DEN-2017-06-27-08-03-49.csv
-    LOG-2017-06-28-08-03-49.csv
+    ./020-reported-votes:
+    DEN-11-07.csv
+    LOG-11-07.csv
 
     ./030-ballot-manifests:
-    DEN-2017-06-27-08-03-50.csv
-    LOG-2017-06-28-09-10-33.csv
+    DEN-11-07.csv
+    LOG-11-07.csv
 
-    ./040-audit-seeds:
-    seed-2017-06-30-13-01-22.js
+    ./040-audit-seed:
+    audit-seed-11-20.js
 
     ./050-sample-orders:
-    DEN-2017-07-01-07-08-35.csv
-    LOG-2017-07-01-07-08-35.csv
+    DEN-11-20.csv
+    LOG-11-20.csv
 
-    ./060-audited-selections:
-    DEN-2017-07-02-05-22.11.csv
-    LOG-2017-07-02-06-23.10.csv
+    ./060-audited-votes:
+    DEN-11-21.csv
+    DEN-11-22.csv
+    LOG-11-21.csv
+    LOG-11-22.csv
 
     ./070-audit-stages:
     001
@@ -244,18 +246,20 @@ Something like this:
     003
 
     ./070-audit-stages/001:
-    audit-inputs-2017-07-02-06-33-40.csv
-    audit-outputs-2017-07-02-06-33-40.csv
-    audit-parameters-2017-07-02-06-33-40.csv
-    audit-plan-2017-07-02-06-33-40.csv
+    010-audit-parameters-11-22.csv
+    020-audit-inputs-11-22.csv
+    030-audit-output-11-22.csv
+    040-audit-plan-11-22.csv
 
     ./070-audit-stages/002:
-    audit-inputs-2017-07-03-10-44-34.csv
-    audit-outputs-2017-07-02-06-33-40.csv
-    audit-parameters-2017-07-03-10-44-34.js
-    audit-plan-2017-07-03-10-44-34.csv
-    ``
+    010-audit-parameters-11-23.csv
+    020-audit-inputs-11-23.csv
+    030-audit-outputs-11-23.csv
+    040-audit-plan-11.23.csv
 
+    ./070-audit-stages/003:
+
+ 
 ###  Random number generation
 
 ###  Sampling
