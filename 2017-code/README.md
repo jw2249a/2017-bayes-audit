@@ -282,7 +282,7 @@ Here are the fields of a row of a vote file:
    whereas an overvote will have more than one such column filled in.
 
    Implementation note: the voter's selections are combined into
-   a python ``tuple''.  An empty vote is the zero-length python
+   a python "tuple".  An empty vote is the zero-length python
    tuple ``(,)``.  The representation uses tuples, and not lists,
    since tuples are hashable and so may be used as keys in
    python dictionaries.
@@ -291,9 +291,12 @@ Example:
 
 
 
-    RT | SRC | PBCID | BID | Tally | Contest | Selections | 
-    ---| --- | ---   | --- | ---   | ---     | ---        | ---
-    AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones``
+    | RT | SRC | PBCID | BID | Tally | Contest | Selections | ... |
+    | ---| --- | ---   | --- | ---   | ---     | ---        | --- |
+    | AS |   P | DEN12 | B23 | 1     | Clerk   | BobStone   |    |
+    | AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones``|
+
+    The second row is an overvote.
 
    
 
