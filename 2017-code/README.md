@@ -127,8 +127,6 @@ We have:
   A selection identifier is called a ``"selid"`` in the code.
   Roughly speaking, there should be one selection identifier for each
   optical scan bubble.
-  A **vote** is then a (possibly empty) list of selection ids for
-  a contest.
   A **write-in** selection has a selection id beginning with a plus
   sign (example: ``"+BobWhite"``).
   (When the list of valid selections is given, we can list
@@ -148,6 +146,60 @@ We have:
   need not do so.  The ballot id might or might not include the
   pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
+
+Identifiers must not contain embedded commas (because of the
+way we encode tuples of identifiers as json keys).
+Identifiers should preferably contain only characters from
+the set:
+
+    A-Z   a-z   0-9  plus(+) hyphen(-) underscore(_) period(.)
+
+Other charcters, such as blanks, might also be usable, but may
+cause problems, as identifiers are used as parts of filenames.
+
+### Votes
+
+A **vote** is what is indicated by a voter on a paper ballot for a
+particular contest.  A vote is a (possibly empty) list of selection
+ids for a contest.
+
+A vote is more specific than a ballot, as a ballot may contain
+many contests.
+
+On the other hand, a vote is a larger notion than a selection,
+since the voter may indicate more than one selection for a
+contest.  (Either by mistake, with an overvote, or intentionally
+when it is allowed, as for approval voting.)
+
+Thus, a vote is a **sequence** of selections.  Possibly of zero
+length, possibly of length one, possibly of length greater than
+one.  With plurality voting, the sequence is of length one for
+a valid selection, but it may be of length zero (an undervote)
+or of length greater than one (an overvote).
+
+Implementation note: Within Python, we represent a vote as a
+tuple, such as
+
+    ``
+    ()               for the empty sequence
+
+    ("AliceJones")   a vote with only one selection
+
+    ("AliceJones", "+BobSmith")  a vote with two selections, one of
+                     which is a write-in
+    ``
+
+Implementation note: Within a json file, a vote is represented
+as a comma-separated string if selection ids:
+
+    ``
+    ""               for the empty sequence
+
+    "AliceJones"     a vote for AliceJones
+
+    "AliceJones,+BobSmith")  a vote for Alice and for Bob
+    ``
+
 
 ### File names
 
@@ -214,7 +266,8 @@ a new file with a later date is just added to the directory.
 
 ###  Directory structure
 
-Something like this:
+Something like the following.  Here we use "month-day" as
+version labels.
 
     $ ls -R
     010-structure
