@@ -25,10 +25,10 @@
                 "PBC3": {"1": 5250,
                          "0": 4750}}},
     
-  "__comment": "e.syntotvot[cid][vote] is total number ballots cast for vote in cid",
+  "__comment": "e.syn_rn_cr[cid][vote] is reported number ballots cast for vote in cid",
   "__comment": "(only needed if type is synthetic)",
-  "syn_rn_cr": {"I": {"0": 14850,
-                      "1": 15150 },
+  "syn_rn_cr": {"I": {"1": 14850,
+                      "0": 15150 },
                 "C1": {"1": 6500,
                        "0": 3500 },
                 "C2": {"1": 6000,
