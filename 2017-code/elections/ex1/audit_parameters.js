@@ -14,7 +14,7 @@
 
   "pseudocount": 100,
 
-  "contest_status_tc": {"0": {"I": "Auditing",
+  "contest_status_tc": {"0": {"I": "Just Watching",
                               "C1": "Auditing",
                               "C2": "Auditing",
                               "C3": "Auditing",
