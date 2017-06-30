@@ -1,13 +1,14 @@
 { "__comment": "=====ELECTION DATA=====",
 
-  "__comment": "number of ballots for each paper ballot collection",
-  "n": {"PBC1": 10000,
-        "PBC2": 10000,
-        "PBC3": 10000},
+  "__comment": "reported number of ballots for each paper ballot collection",
+  "rn_p": {"PBC1": 10000,
+           "PBC2": 10000,
+           "PBC3": 10000},
 
-  "__comment": "e.t = vote totals for each cid pbcid vote combo",
-  "__comment": "Note that votes '1' etc. need to be converted to tuples in python",
-  "t": {"I": {"PBC1": {"1": 5050,
+  "__comment": "e.rn_cpr = reported number of votes for each cid pbcid reported-vote combo",
+  "__comment": "Note that votes '1' etc. will be converted to tuples in python",
+  "rn_cpr":
+       {"I": {"PBC1": {"1": 5050,
                        "0": 4950},
               "PBC2": {"1": 5050,
                        "0": 4950},
@@ -26,7 +27,7 @@
     
   "__comment": "e.syntotvot[cid][vote] is total number ballots cast for vote in cid",
   "__comment": "(only needed if type is synthetic)",
-  "syntotvot": {"I": {"0": 14850,
+  "syn_rn_cr": {"I": {"0": 14850,
                       "1": 15150 },
                 "C1": {"1": 6500,
                        "0": 3500 },
@@ -37,11 +38,11 @@
                 "F23":{"1": 10500,
                        "0": 9500 }},
 
-  "__comment": "e.ro = reported outcomes for each cid (not all correct here)",
-  "ro": {"I": "1",
-         "C1": "1",
-         "C2": "1",
-         "C3": "1",
-         "F23": "0"}
+  "__comment": "e.ro_c = reported outcome for each cid (not nec. all correct here)",
+  "ro_c": {"I": "1",
+           "C1": "1",
+           "C2": "1",
+           "C3": "1",
+           "F23": "0"}
 }         
 

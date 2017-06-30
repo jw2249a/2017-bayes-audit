@@ -188,43 +188,64 @@ class Election(object):
 
         e = self
 
+        ### Note: we use nested dictionaries extensively.
+        ### variables may be named e.de_wxyz
+        ### where w, x, y, z give argument type:
+        ###   c = contest id (cid)
+        ###   p = paper ballot collection id (pbcid)
+        ###   r = reported vote
+        ###   a = actual vote
+        ###   b = ballot id (bid)
+        ###   t = audit stage number
+        ### and where de may be something like:
+        ###   rn = reported number (from initial scan)
+        ###   sn = sample number (from given sample stage)
+        ### but may be something else.
+        ### Example:
+        ###   e.rn_cr = reported number of votes by contest
+        ###             and reported vote r, e.g.
+        ###             e.rn_cr[cid][r]  gives such a count.
+
         ### election structure
         e.election_name = "" # Name of election (e.g. "CO-Nov-2017")
         e.elections_dir = "" # where the election data is e.g. "./elections", so
                              # election data is all in "./elections/CO-Nov-2017"
         e.election_type = "" # string, either "Synthetic" or "Real"
+
         e.cids = []          # [cids]           list of contest ids
-        e.pbcids = []        # [pcbids]         list of paper ballot collection ids
-        e.bids = {}          # pbcid->[bids]   list of ballot ids for each pcbid
-        e.rel = {}           # cid->pbcid->"True"
-                             # (relevance; only relevant pbcids in e.rel[cid])
-                             # True means the pbcid *might* contains ballots relevant to cid
-        e.selids = {}        # cid->[selids]
-                             # note that e.selids is used for both reported selections
+        e.selids_c = {}      # cid->[selids]
+                             # note that e.selids_c is used for both reported selections
                              # (from votes in e.rv) and for actual selections (from votes in e.av)
                              # it also increases when new selids starting with "+" or "-" are seen.
-        e.collection_type = {}  # pbcid-> "CVR" or "noCVR"
+        e.pbcids = []        # [pcbids]         list of paper ballot collection ids
+        e.bids_p = {}        # pbcid->[bids]   list of ballot ids for each pcbid
+        e.rel_cp = {}        # cid->pbcid->"True"
+                             # (relevance; only relevant pbcids in e.rel_cp[cid])
+                             # True means the pbcid *might* contains ballots relevant to cid
+        e.collection_type_p = {}  # pbcid-> "CVR" or "noCVR"
 
         ### election data (reported election results)
-        e.n = {}             # e.n[pbcid] number ballots cast in collection pbcid
-        e.votes = {}         # e.votes[cid] gives all votes seen for cid, reported or actual
-        e.t = {}             # cid->pbcid->vote->int    (counts)
-        e.ro = {}            # cid->selid   (reported outcome)
+        e.rn_p = {}          # e.rn_p[pbcid] number ballots cast in collection pbcid
+        e.votes_c = {}       # e.votes_c[cid] gives all votes seen for cid, reported or actual
+        e.rn_cpr = {}        # cid->pbcid->vote->int    (counts)
+        e.ro_c = {}          # cid->outcome   (reported outcome by contest)
         # computed from the above 
-        e.totcid = {}        # cid->int         (total # votes cast in contest)
-        e.totvot = {}        # cid->votes->int  (number of votes recd, for each vote in cid)
-        e.rv = {}            # cid->pbcid->bid->vote 
-                             # e.rv is like e.av (reported votes instead of actual votes)
-        e.nr = {}            # cid->pbcid->vote->count
+        e.rn_c = {}          # cid->int         (reported number of votes cast in contest)
+        e.rn_cr = {}         # cid->votes->int  (reported number of votes recd,
+                             #                   for each reported vote in cid)
+        e.rv_cpb = {}        # reported votes: cid->pbcid->bid->vote 
+                             # e.rv_cpb is like e.av (reported votes instead of actual votes)
+        e.rn_cpr = {}        # reported number: cid->pbcid->rvote->count
                              # (vote is reported vote, count is over pbcid)
         e.synthetic_seed = 2  # seed for generation of synthetic random votes
+        e.syn_rn_cr = {}      # synthetic rn: cid->vote->count
         e.error_rate = 0.0001 # error rate used in model for generating
                               # synthetic reported votes
 
         ### audit
         e.audit_seed = None   # seed for pseudo-random number generation for audit
-        e.risk_limit = {}     # cid->reals  (risk limit for that contest)
-        e.audit_rate = {}     # pbcid->int  (# ballots that can be audited per stage)
+        e.risk_limit_c = {}   # cid->reals  (risk limit for that contest)
+        e.audit_rate_p = {}   # pbcid->int  (# ballots that can be audited per stage)
         e.stage = "0"         # current stage number (in progress) or last stage completed
         e.last_stage = "-1"   # previous stage (just one less, in string form)
         e.max_stages = 20     # maximum number of stages allowed in audit
@@ -234,23 +255,23 @@ class Election(object):
                                    # then full recount called for cid
         e.n_trials = 100000   # number of trials used to estimate risk
                               # in compute_contest_risk
-        ## stage-dependent: (stage # input is stage when computed)
-        e.plan = {}           # stage->pbcid->reals (sample size wanted after next draw)
-        e.risk = {}           # stage->cid->reals  (risk (that e.ro[cid] is wrong))
-        e.contest_status = {} # stage->cid-> one of 
-                              # "Auditing", "Just Watching",
-                              # "Risk Limit Reached", "Full Recount Needed"
-                              # initially must be "Auditing" or "Just Watching"
-        e.election_status = {} # stage->list of contest statuses, at most once each
+        ## stage-dependent: (stage # input is stage when computed, denoted t here)
+        e.plan_tp = {}           # stage->pbcid->reals (sample size wanted after next draw)
+        e.risk_tc = {}           # stage->cid->reals  (risk (that e.ro_c[cid] is wrong))
+        e.contest_status_tc = {} # stage->cid-> one of 
+                                 # "Auditing", "Just Watching",
+                                 # "Risk Limit Reached", "Full Recount Needed"
+                                 # initially must be "Auditing" or "Just Watching"
+        e.election_status_t = {} # stage->list of contest statuses, at most once each
         # sample info
-        e.s = {}              # stage->pbcid->ints (number of ballots sampled so far)
-        e.av = {}             # cid->pbcid->bid->vote
+        e.sn_tp = {}              # stage->pbcid->ints (number of ballots sampled so far)
+        e.av_cpb = {}             # cid->pbcid->bid->vote
                               # (actual votes from sampled ballots)
         # computed from the above
-        e.st = {}             # stage->cid->pbcid->vote->vote->count  ("sample tally")
+        e.sn_tcpra = {}       # sample number: stage->cid->pbcid->rvote->avote->count 
                               # (first vote is reported vote, second is actual vote)
-        e.sr = {}             # stage->cid->pbcid->vote->count  ("sample tally by reported vote")
-                              # (vote is reported vote, count is in sample)
+        e.sn_tcpr = {}        # sample number stage->cid->pbcid->vote->count
+                              # sample number by stage, contest, pbcid, and reported vote"
 
 
 ##############################################################################
@@ -333,12 +354,12 @@ def get_election_structure(e):
 def finish_election_structure(e):
 
     for cid in e.cids:
-        e.votes[cid] = {}
-        for selid in e.selids[cid]:
-            e.votes[cid][(selid,)] = True
-        for pbcid in e.rel[cid]:
-            if e.collection_type[pbcid]=="noCVR":
-                e.votes[cid][("-noCVR",)] = True
+        e.votes_c[cid] = {}
+        for selid in e.selids_c[cid]:
+            e.votes_c[cid][(selid,)] = True
+        for pbcid in e.rel_cp[cid]:
+            if e.collection_type_p[pbcid]=="noCVR":
+                e.votes_c[cid][("-noCVR",)] = True
 
 
 def check_id(id, check_for_whitespace=False):
@@ -371,41 +392,41 @@ def check_election_structure(e):
     for pbcid in e.pbcids:
         check_id(pbcid)
 
-    if not isinstance(e.rel, dict):
-        myerror("e.rel is not a dict.")
-    for cid in e.rel:
+    if not isinstance(e.rel_cp, dict):
+        myerror("e.rel_cp is not a dict.")
+    for cid in e.rel_cp:
         if cid not in e.cids:
             mywarning("cid is not in e.cids: {}".format(cid))
-        for pbcid in e.rel[cid]:
+        for pbcid in e.rel_cp[cid]:
             if pbcid not in e.pbcids:
                 mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
-            if e.rel[cid][pbcid]!=True:
-                mywarning("e.rel[{}][{}] != True.".format(cid, pbcid, e.rel[cid][pbcid]))
+            if e.rel_cp[cid][pbcid]!=True:
+                mywarning("e.rel_cp[{}][{}] != True.".format(cid, pbcid, e.rel_cp[cid][pbcid]))
 
-    if not isinstance(e.selids, dict):
-        myerror("e.selids is not a dict.")
-    for cid in e.selids:
+    if not isinstance(e.selids_c, dict):
+        myerror("e.selids_c is not a dict.")
+    for cid in e.selids_c:
         if cid not in e.cids:
-            myerror("e.selids has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.selids[cid], dict):
-            myerror("e.selids[{}] is not a dict.".format(cid))
-        for selid in e.selids[cid]:
+            myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
+        if not isinstance(e.selids_c[cid], dict):
+            myerror("e.selids_c[{}] is not a dict.".format(cid))
+        for selid in e.selids_c[cid]:
             check_id(selid)
     for cid in e.cids:
-        if cid not in e.selids:
-            mywarning("cid `{}` should be key in e.selids".format(cid))
+        if cid not in e.selids_c:
+            mywarning("cid `{}` should be key in e.selids_c".format(cid))
 
-    if not isinstance(e.collection_type, dict):
+    if not isinstance(e.collection_type_p, dict):
         myerror("e_collection_type is not a dict.")
-    for pbcid in e.collection_type:
+    for pbcid in e.collection_type_p:
         if pbcid not in e.pbcids:
             mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
-        if e.collection_type[pbcid] not in ["CVR", "noCVR"]:
-            mywarning("e.collection_type[{}]==`{}` is not CVR or noCVR"
-                      .format(pbcid, e.collection_type[pbcid]))
+        if e.collection_type_p[pbcid] not in ["CVR", "noCVR"]:
+            mywarning("e.collection_type_p[{}]==`{}` is not CVR or noCVR"
+                      .format(pbcid, e.collection_type_p[pbcid]))
     for pbcid in e.pbcids:
-        if pbcid not in e.collection_type:
-            mywarning("pbcid `{}` not key in e.collection_type."
+        if pbcid not in e.collection_type_p:
+            mywarning("pbcid `{}` not key in e.collection_type_p."
                       .format(pbcid))
 
     if warnings_given>0:
@@ -430,19 +451,19 @@ def show_election_structure(e):
     for pbcid in sorted(e.pbcids):
         myprint(pbcid, end=' ')
     myprint()
-    myprint("e.collection_type (either CVR or noCVR) for each pbcid:")
+    myprint("e.collection_type_p (either CVR or noCVR) for each pbcid:")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}:{} ".format(pbcid, e.collection_type[pbcid]))
-    myprint("e.rel (possible pbcids for each cid):")
+        myprint("    {}:{} ".format(pbcid, e.collection_type_p[pbcid]))
+    myprint("e.rel_cp (possible pbcids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for pbcid in sorted(e.rel[cid]):
+        for pbcid in sorted(e.rel_cp[cid]):
             myprint(pbcid, end=' ')
         myprint()
-    myprint("e.selids (valid selection ids for each cid):")
+    myprint("e.selids_c (valid selection ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for selid in sorted(e.selids[cid]):
+        for selid in sorted(e.selids_c[cid]):
             myprint(selid, end=' ')
         myprint()
 
@@ -465,10 +486,10 @@ def get_election_data(e):
     load_part_from_json(e, "data.js")
     # fix up json vote encodings, if needed
     # need to do before synthetic data generated
-    for cid in e.t:
-        unpack_json_keys(e.syntotvot[cid])
-        for pbcid in e.t[cid]:
-            unpack_json_keys(e.t[cid][pbcid])
+    for cid in e.rn_cpr:
+        unpack_json_keys(e.syn_rn_cr[cid])
+        for pbcid in e.rn_cpr[cid]:
+            unpack_json_keys(e.rn_cpr[cid][pbcid])
 
     if e.election_type == "Synthetic":
         myprint("Synthetic selection generation seed:", e.synthetic_seed)
@@ -487,48 +508,48 @@ def finish_election_data(e):
     or that need conversion (e.g. strings-->tuples from json keys).
     """
 
-    # make sure e.selids contains all +/- selids seen in reported votes
-    # and that e.votes[cid] contains all reported votes
+    # make sure e.selids_c contains all +/- selids seen in reported votes
+    # and that e.votes_c[cid] contains all reported votes
     for cid in e.cids:
-        for pbcid in e.rel[cid]:
-            for bid in e.bids[pbcid]:
-                r = e.rv[cid][pbcid][bid]
-                e.votes[r] = True
+        for pbcid in e.rel_cp[cid]:
+            for bid in e.bids_p[pbcid]:
+                r = e.rv_cpb[cid][pbcid][bid]
+                e.votes_c[r] = True
                 for selid in r:
                     if is_writein(selid) or is_error_selid(selid):
-                        e.selids[cid][selid] = True
+                        e.selids_c[cid][selid] = True
 
-    # set e.nr[cid][pbcid][r] to number in pbcid with reported vote r:
+    # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
     for cid in e.cids:
-        e.nr[cid] = {}
-        for pbcid in e.rel[cid]:
-            e.nr[cid][pbcid] = {}
-            for r in e.votes[cid]:
-                e.nr[cid][pbcid][r] = len([bid for bid in e.bids[pbcid] \
-                                           if e.rv[cid][pbcid][bid] == r])
+        e.rn_cpr[cid] = {}
+        for pbcid in e.rel_cp[cid]:
+            e.rn_cpr[cid][pbcid] = {}
+            for r in e.votes_c[cid]:
+                e.rn_cpr[cid][pbcid][r] = len([bid for bid in e.bids_p[pbcid] \
+                                           if e.rv_cpb[cid][pbcid][bid] == r])
 
-    # e.totcid[cid] is total number of votes cast in contest cid
+    # e.rn_c[cid] is reported number of votes cast in contest cid
     for cid in e.cids:
-        e.totcid[cid] = sum([e.nr[cid][pbcid][vote] \
-                             for pbcid in e.nr[cid] \
-                             for vote in e.votes[cid]])
+        e.rn_c[cid] = sum([e.rn_cpr[cid][pbcid][vote] \
+                             for pbcid in e.rn_cpr[cid] \
+                             for vote in e.votes_c[cid]])
 
-    # e.totvot[cid][vote] is total number cast for vote in cid
+    # e.rn_cr[cid][vote] is reported number cast for vote in cid
     for cid in e.cids:
-        e.totvot[cid] = {}
-        for pbcid in e.t[cid]:
-            for vote in e.votes[cid]:
-                if vote not in e.totvot[cid]:
-                    e.totvot[cid][vote] = 0
-                if vote not in e.t[cid][pbcid]:
-                    e.t[cid][pbcid][vote] = 0
-                e.totvot[cid][vote] += e.t[cid][pbcid][vote]
+        e.rn_cr[cid] = {}
+        for pbcid in e.rn_cpr[cid]:
+            for vote in e.votes_c[cid]:
+                if vote not in e.rn_cr[cid]:
+                    e.rn_cr[cid][vote] = 0
+                if vote not in e.rn_cpr[cid][pbcid]:
+                    e.rn_cpr[cid][pbcid][vote] = 0
+                e.rn_cr[cid][vote] += e.rn_cpr[cid][pbcid][vote]
 
 
 def compute_rv(e, cid, pbcid, bid, vote):
     """
     [[[ For synthetic generation of reported votes ]]]
-    Compute reported vote for e.rv[cid][pbcid][bid]
+    Compute reported vote for e.rv_cpb[cid][pbcid][bid]
     based on whether pbcid is CVR or noCVR, and based on
     a prior for errors.  Input vote is the actual vote.
     e.error_rate (default 0.0001) is chance that 
@@ -538,13 +559,13 @@ def compute_rv(e, cid, pbcid, bid, vote):
     Only generates votes with a single selid.
     TODO: ensure that we get "-Invalids" etc. too
     """
-    if e.collection_type[pbcid]=="noCVR":
+    if e.collection_type_p[pbcid]=="noCVR":
         return ("-noCVR",)
     # Otherwise, we generate a reported vote
-    m = len(e.selids[cid])          # number of selection options for this cid
+    m = len(e.selids_c[cid])          # number of selection options for this cid
     if syntheticRandomState.uniform()>e.error_rate or m<=1:
         return vote                 # no error is typical case
-    selids = list(e.selids[cid])
+    selids = list(e.selids_c[cid])
     return (syntheticRandomState.choice(selids),)
 
 
@@ -559,166 +580,166 @@ def compute_synthetic_selections(e):
     syntheticRandomState = np.random.RandomState(e.synthetic_seed)
     # make up bids
     for pbcid in e.pbcids:
-        e.bids[pbcid] = list()
+        e.bids_p[pbcid] = list()
         i = 0
-        for j in range(i, i+e.n[pbcid]):
+        for j in range(i, i+e.rn_p[pbcid]):
             bid = pbcid + "-" + "%05d"%j
-            e.bids[pbcid].append(bid)
-        i += e.n[pbcid]
-    # get totvot from syntotvot (needs to be computed early, in order to make up votes)
+            e.bids_p[pbcid].append(bid)
+        i += e.rn_p[pbcid]
+    # get rn_cr from syn_rn_cr (needs to be computed early, in order to make up votes)
     for cid in e.cids:
-        e.totvot[cid] = {}
-        for vote in e.syntotvot[cid]:
-            e.totvot[cid][vote] = e.syntotvot[cid][vote]
+        e.rn_cr[cid] = {}
+        for vote in e.syn_rn_cr[cid]:
+            e.rn_cr[cid][vote] = e.syn_rn_cr[cid][vote]
     # make up votes
     for cid in e.cids:
-        e.rv[cid] = {}
-        e.av[cid] = {}
+        e.rv_cpb[cid] = {}
+        e.av_cpb[cid] = {}
         # make up all votes first, so overall tally for cid is right
         votes = []
-        for vote in e.totvot[cid]:
-            votes.extend([vote]*e.totvot[cid][vote])
+        for vote in e.rn_cr[cid]:
+            votes.extend([vote]*e.rn_cr[cid][vote])
         syntheticRandomState.shuffle(votes)          # in-place shuffle
         # break list of votes up into pieces by pbcid
         i = 0
-        for pbcid in e.rel[cid]:
-            e.av[cid][pbcid] = {}
-            e.rv[cid][pbcid] = {}
-            for j in range(e.n[pbcid]):
-                bid = e.bids[pbcid][j]
+        for pbcid in e.rel_cp[cid]:
+            e.av_cpb[cid][pbcid] = {}
+            e.rv_cpb[cid][pbcid] = {}
+            for j in range(e.rn_p[pbcid]):
+                bid = e.bids_p[pbcid][j]
                 vote = votes[j]
                 av = vote
-                e.av[cid][pbcid][bid] = av
+                e.av_cpb[cid][pbcid][bid] = av
                 rv = compute_rv(e, cid, pbcid, bid, vote)
-                e.rv[cid][pbcid][bid] = rv
-            i += e.n[pbcid]
+                e.rv_cpb[cid][pbcid][bid] = rv
+            i += e.rn_p[pbcid]
 
 
 def check_election_data(e):
 
-    assert isinstance(e.t, dict)
-    for cid in e.t:
+    assert isinstance(e.rn_cpr, dict)
+    for cid in e.rn_cpr:
         if cid not in e.cids:
             mywarning("cid `{}` not in e.cids.".format(cid))
-        for pbcid in e.t[cid]:
+        for pbcid in e.rn_cpr[cid]:
             if pbcid not in e.pbcids:
                 mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
-            for vote in e.t[cid][pbcid]:
+            for vote in e.rn_cpr[cid][pbcid]:
                 for selid in vote:
-                    if selid not in e.selids[cid] and selid[0].isalnum():
-                        mywarning("selid `{}` is not in e.selids[{}].".format(selid, cid))
-                if not isinstance(e.t[cid][pbcid][vote], int):
-                    mywarning("value `e.t[{}][{}][{}] = `{}` is not an integer."
-                              .format(cid, pbcid, vote, e.t[cid][pbcid][vote]))
-                if not (0 <= e.t[cid][pbcid][vote] <= e.n[pbcid]):
-                    mywarning("value `e.t[{}][{}][{}] = `{}` is out of range 0:{}."
-                              .format(cid, pbcid, vote, e.t[cid][pbcid][vote], e.n[pbcid]))
-                if e.totvot[cid][vote] != \
-                    sum([e.t[cid][pbcid][vote] for pbcid in e.rel[cid]]):
-                    mywarning("sum of e.t[{}][*][{}] is not e.totvot[{}][{}]."
+                    if selid not in e.selids_c[cid] and selid[0].isalnum():
+                        mywarning("selid `{}` is not in e.selids_c[{}].".format(selid, cid))
+                if not isinstance(e.rn_cpr[cid][pbcid][vote], int):
+                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
+                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote]))
+                if not (0 <= e.rn_cpr[cid][pbcid][vote] <= e.rn_p[pbcid]):
+                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
+                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote], e.rn_p[pbcid]))
+                if e.rn_cr[cid][vote] != \
+                    sum([e.rn_cpr[cid][pbcid][vote] for pbcid in e.rel_cp[cid]]):
+                    mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
                               .format(cid, vote, cid, vote))
     for cid in e.cids:
-        if cid not in e.t:
-            mywarning("cid `{}` is not a key for e.t".format(cid))
-        for pbcid in e.rel[cid]:
-            if pbcid not in e.t[cid]:
-                mywarning("pbcid {} is not a key for e.t[{}].".format(pbcid, cid))
-            # for selid in e.selids[cid]:
-            #     assert selid in e.t[cid][pbcid], (cid, pbcid, selid)
+        if cid not in e.rn_cpr:
+            mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
+        for pbcid in e.rel_cp[cid]:
+            if pbcid not in e.rn_cpr[cid]:
+                mywarning("pbcid {} is not a key for e.rn_cpr[{}].".format(pbcid, cid))
+            # for selid in e.selids_c[cid]:
+            #     assert selid in e.rn_cpr[cid][pbcid], (cid, pbcid, selid)
             # ## not necessary, since missing selids have assumed t of 0
 
-    if not isinstance(e.totcid, dict):
-        myerror("e.totcid is not a dict.")
-    for cid in e.totcid:
+    if not isinstance(e.rn_c, dict):
+        myerror("e.rn_c is not a dict.")
+    for cid in e.rn_c:
         if cid not in e.cids:
-            mywarning("e.totcid key `{}` is not in e.cids.".format(cid))
-        if not isinstance(e.totcid[cid], int):
-            mywarning("e.totcid[{}] = {}  is not an integer.".format(cid, e.totcid[cid]))
+            mywarning("e.rn_c key `{}` is not in e.cids.".format(cid))
+        if not isinstance(e.rn_c[cid], int):
+            mywarning("e.rn_c[{}] = {}  is not an integer.".format(cid, e.rn_c[cid]))
     for cid in e.cids:
-        if cid not in e.totcid:
-            mywarning("cid `{}` is not a key for e.totcid".format(cid))
+        if cid not in e.rn_c:
+            mywarning("cid `{}` is not a key for e.rn_c".format(cid))
 
-    if not isinstance(e.totvot, dict):
-        myerror("e.totvot is not a dict.")
-    for cid in e.totvot:
+    if not isinstance(e.rn_cr, dict):
+        myerror("e.rn_cr is not a dict.")
+    for cid in e.rn_cr:
         if cid not in e.cids:
-            mywarning("e.totvot key cid `{}` is not in e.cids".format(cid))
-        for vote in e.totvot[cid]:
+            mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
+        for vote in e.rn_cr[cid]:
             for selid in vote:
                 if (not is_writein(selid) and not is_error_selid(selid)) \
-                   and not selid in e.selids[cid]:
-                    mywarning("e.totvot[{}] key `{}` is not in e.selids[{}]"
+                   and not selid in e.selids_c[cid]:
+                    mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
                               .format(cid, selid, cid))
-            if not isinstance(e.totvot[cid][vote], int):
-                mywarning("e.totvot[{}][{}] = {} is not an integer."
-                          .format(cid, vote, e.totvot[cid][vote]))
+            if not isinstance(e.rn_cr[cid][vote], int):
+                mywarning("e.rn_cr[{}][{}] = {} is not an integer."
+                          .format(cid, vote, e.rn_cr[cid][vote]))
     for cid in e.cids:
-        if cid not in e.totvot:
-            mywarning("cid `{}` is not a key for e.totvot".format(cid))
+        if cid not in e.rn_cr:
+            mywarning("cid `{}` is not a key for e.rn_cr".format(cid))
 
-    if not isinstance(e.bids, dict):
-        myerror("e.bids is not a dict.")
+    if not isinstance(e.bids_p, dict):
+        myerror("e.bids_p is not a dict.")
     for pbcid in e.pbcids:
-        if not isinstance(e.bids[pbcid], list):
-            myerror("e.bids[{}] is not a list.".format(pbcid))
+        if not isinstance(e.bids_p[pbcid], list):
+            myerror("e.bids_p[{}] is not a list.".format(pbcid))
 
-    if not isinstance(e.av, dict):
-        myerror("e.av is not a dict.")
-    for cid in e.av:
+    if not isinstance(e.av_cpb, dict):
+        myerror("e.av_cpb is not a dict.")
+    for cid in e.av_cpb:
         if cid not in e.cids:
-            mywarning("e.av key {} is not in e.cids.".format(cid))
-        for pbcid in e.av[cid]:
+            mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
+        for pbcid in e.av_cpb[cid]:
             if pbcid not in e.pbcids:
-                mywarning("e.av[{}] key `{}` is not in e.pbcids"
+                mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
                           .format(cid, pbcid))
-            if not isinstance(e.av[cid][pbcid], dict):
-                myerror("e.av[{}][{}] is not a dict.".format(cid, pbcid))
-            bidsset = set(e.bids[pbcid])
-            for bid in e.av[cid][pbcid]:
+            if not isinstance(e.av_cpb[cid][pbcid], dict):
+                myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
+            bidsset = set(e.bids_p[pbcid])
+            for bid in e.av_cpb[cid][pbcid]:
                 if bid not in bidsset:
-                    mywarning("bid `{}` from e.av[{}][{}] is not in e.bids[{}]."
+                    mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
                               .format(bid, cid, pbcid, pbcid))
 
     for cid in e.cids:
-        if cid not in e.av:
-            mywarning("cid `{}` is not a key for e.av.".format(cid))
-        for pbcid in e.rel[cid]:
-            if pbcid not in e.av[cid]:
-                mywarning("pbcid `{}` is not in e.av[{}]."
+        if cid not in e.av_cpb:
+            mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
+        for pbcid in e.rel_cp[cid]:
+            if pbcid not in e.av_cpb[cid]:
+                mywarning("pbcid `{}` is not in e.av_cpb[{}]."
                           .format(pbcid, cid))
 
-    if not isinstance(e.rv, dict):
-        myerror("e.rv is not a dict.")
-    for cid in e.rv:
+    if not isinstance(e.rv_cpb, dict):
+        myerror("e.rv_cpb is not a dict.")
+    for cid in e.rv_cpb:
         if cid not in e.cids:
-            mywarning("e.rv key `{}` is not in e.cids.".format(cid))
-        for pbcid in e.rv[cid]:
+            mywarning("e.rv_cpb key `{}` is not in e.cids.".format(cid))
+        for pbcid in e.rv_cpb[cid]:
             if pbcid not in e.pbcids:
-                mywarning("e.rv[{}] key `{}` is not in e.pbcids."
+                mywarning("e.rv_cpb[{}] key `{}` is not in e.pbcids."
                           .format(cid, pbcid))
-            if not isinstance(e.rv[cid][pbcid], dict):
-                myerror("e.rv[{}][{}] is not a dict.".format(cid, pbcid))
-            bidsset = set(e.bids[pbcid])
-            for bid in e.rv[cid][pbcid]:
+            if not isinstance(e.rv_cpb[cid][pbcid], dict):
+                myerror("e.rv_cpb[{}][{}] is not a dict.".format(cid, pbcid))
+            bidsset = set(e.bids_p[pbcid])
+            for bid in e.rv_cpb[cid][pbcid]:
                 if bid not in bidsset:
-                    mywarning("bid `{}` from e.rv[{}][{}] is not in e.bids[{}]."
+                    mywarning("bid `{}` from e.rv_cpb[{}][{}] is not in e.bids_p[{}]."
                               .format(bid, cid, pbcid, pbcid))
     for cid in e.cids:
-        if cid not in e.rv:
-            mywarning("cid `{}` is not a key in e.rv.".format(cid))
-        for pbcid in e.rel[cid]:
-            if pbcid not in e.rv[cid]:
-                mywarning("pbcid `{}` from e.rel[{}] is not a key for e.rv[{}]."
+        if cid not in e.rv_cpb:
+            mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
+        for pbcid in e.rel_cp[cid]:
+            if pbcid not in e.rv_cpb[cid]:
+                mywarning("pbcid `{}` from e.rel_cp[{}] is not a key for e.rv_cpb[{}]."
                           .format(pbcid, cid, cid))
                 
-    if not isinstance(e.ro, dict):
-        myerror("e.ro is not a dict.")
-    for cid in e.ro:
+    if not isinstance(e.ro_c, dict):
+        myerror("e.ro_c is not a dict.")
+    for cid in e.ro_c:
         if cid not in e.cids:
-            mywarning("cid `{}` from e.rv is not in e.cids".format(cid))
+            mywarning("cid `{}` from e.rv_cpb is not in e.cids".format(cid))
     for cid in e.cids:
-        if cid not in e.ro:
-            mywarning("cid `{}` is not a key for e.ro.".format(cid))
+        if cid not in e.ro_c:
+            mywarning("cid `{}` is not a key for e.ro_c.".format(cid))
 
     if warnings_given>0:
         myerror("Too many errors; terminating.")
@@ -728,37 +749,37 @@ def show_election_data(e):
 
     myprint("====== Reported election data ======")
 
-    myprint("e.t (total reported votes for each vote by cid and pbcid):")
+    myprint("e.rn_cpr (total reported votes for each vote by cid and pbcid):")
     for cid in e.cids:
-        for pbcid in sorted(e.rel[cid]):
+        for pbcid in sorted(e.rel_cp[cid]):
             myprint("    {}.{}: ".format(cid, pbcid), end='')
-            for vote in sorted(e.t[cid][pbcid]):
-                myprint("{}:{} ".format(vote, e.t[cid][pbcid][vote]), end='')
+            for vote in sorted(e.rn_cpr[cid][pbcid]):
+                myprint("{}:{} ".format(vote, e.rn_cpr[cid][pbcid][vote]), end='')
             myprint()
 
-    myprint("e.totcid (total votes cast for each cid):")
+    myprint("e.rn_c (total votes cast for each cid):")
     for cid in e.cids:
-        myprint("    {}: {}".format(cid, e.totcid[cid]))
+        myprint("    {}: {}".format(cid, e.rn_c[cid]))
 
-    myprint("e.totvot (total cast for each vote for each cid):")
+    myprint("e.rn_cr (total cast for each vote for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
-        for vote in sorted(e.totvot[cid]):
-            myprint("{}:{} ".format(vote, e.totvot[cid][vote]), end='')
+        for vote in sorted(e.rn_cr[cid]):
+            myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
         myprint()
 
-    myprint("e.av (first five or so actual votes cast for each cid and pbcid):")
+    myprint("e.av_cpb (first five or so actual votes cast for each cid and pbcid):")
     for cid in e.cids:
-        for pbcid in sorted(e.rel[cid]):
+        for pbcid in sorted(e.rel_cp[cid]):
             myprint("    {}.{}:".format(cid, pbcid), end='')
-            for j in range(min(5, len(e.bids[pbcid]))):
-                bid = e.bids[pbcid][j]
-                myprint(e.av[cid][pbcid][bid], end=' ')
+            for j in range(min(5, len(e.bids_p[pbcid]))):
+                bid = e.bids_p[pbcid][j]
+                myprint(e.av_cpb[cid][pbcid][bid], end=' ')
             myprint()
 
-    myprint("e.ro (reported outcome for each cid):")
+    myprint("e.ro_c (reported outcome for each cid):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.ro[cid]))
+        myprint("    {}:{}".format(cid, e.ro_c[cid]))
 
 ##############################################################################
 ## Tally and outcome computations
@@ -818,33 +839,33 @@ def plurality(e, cid, tally):
 
 def draw_sample(e):
     """ 
-    "Draw sample", tally it, save sample tally in e.st[stage][cid][pbcid]. 
-    Update e.sr
+    "Draw sample", tally it, save sample tally in e.sn_tcpra[stage][cid][pbcid]. 
+    Update e.sn_tcpr
 
     Draw sample is in quotes since it just looks at the first
-    e.s[stage][pbcid] elements of e.av[cid][pbcid].
-    Code sets e.sr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
+    e.sn_tp[stage][pbcid] elements of e.av_cpb[cid][pbcid].
+    Code sets e.sn_tcpr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
 
-    Code sets e.s to number of ballots sampled in each pbc (equal to plan).
+    Code sets e.sn_tp to number of ballots sampled in each pbc (equal to plan).
     Note that in real life actual sampling number might be different than planned;
     here it will be the same.  But code elsewhere allows for such differences.
     """
 
-    e.s[e.stage] = e.plan[e.last_stage]
-    e.sr[e.stage] = {}
+    e.sn_tp[e.stage] = e.plan_tp[e.last_stage]
+    e.sn_tcpr[e.stage] = {}
     for cid in e.cids:
-        e.st[e.stage][cid] = {}
-        e.sr[e.stage][cid] = {}
-        for pbcid in e.rel[cid]:
-            e.sr[e.stage][cid][pbcid] = {}
-            avs = [e.av[cid][pbcid][bid] \
-                   for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # actual
-            rvs = [e.rv[cid][pbcid][bid] \
-                   for bid in e.bids[pbcid][:e.s[e.stage][pbcid]]] # reported
+        e.sn_tcpra[e.stage][cid] = {}
+        e.sn_tcpr[e.stage][cid] = {}
+        for pbcid in e.rel_cp[cid]:
+            e.sn_tcpr[e.stage][cid][pbcid] = {}
+            avs = [e.av_cpb[cid][pbcid][bid] \
+                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]] # actual
+            rvs = [e.rv_cpb[cid][pbcid][bid] \
+                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]] # reported
             arvs = list(zip(avs, rvs)) # list of (actual, reported) vote pairs
-            e.st[e.stage][cid][pbcid] = compute_tally2(arvs)
-            for r in e.nr[cid][pbcid]:
-                e.sr[e.stage][cid][pbcid][r] = len([rr for rr in rvs if rr==r])
+            e.sn_tcpra[e.stage][cid][pbcid] = compute_tally2(arvs)
+            for r in e.rn_cpr[cid][pbcid]:
+                e.sn_tcpr[e.stage][cid][pbcid][r] = len([rr for rr in rvs if rr==r])
 
                 
 def show_sample_counts(e):
@@ -852,13 +873,13 @@ def show_sample_counts(e):
     myprint("    Total sample counts by Contest.PaperBallotCollection[reported selection]"
             "and actual selection:")
     for cid in e.cids:
-        for pbcid in sorted(e.rel[cid]):
-            tally2 = e.st[e.stage][cid][pbcid]
+        for pbcid in sorted(e.rel_cp[cid]):
+            tally2 = e.sn_tcpra[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()): # r = reported vote
                 myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
                 for a in sorted(tally2[r].keys()):
                     myprint("  {}:{}".format(a, tally2[r][a]), end='')
-                myprint("  total:{}".format(e.sr[e.stage][cid][pbcid][r]))
+                myprint("  total:{}".format(e.sn_tcpr[e.stage][cid][pbcid][r]))
 
 
 ##############################################################################
@@ -867,7 +888,7 @@ def show_sample_counts(e):
 def compute_contest_risk(e, cid, st):
     """ 
     Compute Bayesian risk (chance that reported outcome is wrong for cid).
-    We take st here as argument rather than e.st so
+    We take st here as argument rather than e.sn_tcpra so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later, when optimizing
     workload.)
@@ -884,26 +905,26 @@ def compute_contest_risk(e, cid, st):
 
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
-        test_tally = {vote:0 for vote in e.totvot[cid]} 
-        for pbcid in e.rel[cid]:
+        test_tally = {vote:0 for vote in e.rn_cr[cid]} 
+        for pbcid in e.rel_cp[cid]:
             # draw from posterior for each paper ballot collection, sum them
             # stratify by reported selection
-            for r in e.st[e.stage][cid][pbcid]:
-                tally = e.st[e.stage][cid][pbcid][r].copy()
+            for r in e.sn_tcpra[e.stage][cid][pbcid]:
+                tally = e.sn_tcpra[e.stage][cid][pbcid][r].copy()
                 # for a in tally:
                 #    tally[a] = tally.get(a, 0)
                 for a in tally:
                     tally[a] += e.pseudocount
                 dirichlet_dict = dirichlet(tally)
-                nonsample_size = e.nr[cid][pbcid][r] - e.sr[e.stage][cid][pbcid][r]
+                nonsample_size = e.rn_cpr[cid][pbcid][r] - e.sn_tcpr[e.stage][cid][pbcid][r]
                 for a in tally:
                     # increment actual tally for (actual vote a with reported vote r)
                     test_tally[a] += tally[a]  
-                    if e.sr[e.stage][cid][pbcid][r] > 0:
+                    if e.sn_tcpr[e.stage][cid][pbcid][r] > 0:
                         test_tally[a] += dirichlet_dict[a] * nonsample_size
-        if e.ro[cid] != plurality(e, cid, test_tally):
+        if e.ro_c[cid] != plurality(e, cid, test_tally):
             wrong_outcome_count += 1
-    e.risk[e.stage][cid] = wrong_outcome_count/e.n_trials
+    e.risk_tc[e.stage][cid] = wrong_outcome_count/e.n_trials
 
 
 def compute_contest_risks(e, st):
@@ -934,19 +955,19 @@ def compute_contest_and_election_statuses(e):
         # Note that a contest which has reached its risk limit could be set back to
         # Auditing because of any one of its pbc's, even if some of them aren't being
         # audited for a stage.
-        e.contest_status[e.stage][cid] = e.contest_status[e.last_stage][cid]
-        if e.contest_status[e.stage][cid] != "Just Watching":
-            if all([e.n[pbcid]==e.s[e.stage][pbcid] for pbcid in e.rel[cid]]):
-                e.contest_status[e.stage][cid] = "All Relevant Ballots Sampled"
-            elif e.risk[e.stage][cid] < e.risk_limit[cid]:
-                e.contest_status[e.stage][cid] = "Risk Limit Reached"
-            elif e.risk[e.stage][cid] > e.recount_threshold:
-                e.contest_status[e.stage][cid] = "Full Recount Needed"
+        e.contest_status_tc[e.stage][cid] = e.contest_status_tc[e.last_stage][cid]
+        if e.contest_status_tc[e.stage][cid] != "Just Watching":
+            if all([e.rn_p[pbcid]==e.sn_tp[e.stage][pbcid] for pbcid in e.rel_cp[cid]]):
+                e.contest_status_tc[e.stage][cid] = "All Relevant Ballots Sampled"
+            elif e.risk_tc[e.stage][cid] < e.risk_limit_c[cid]:
+                e.contest_status_tc[e.stage][cid] = "Risk Limit Reached"
+            elif e.risk_tc[e.stage][cid] > e.recount_threshold:
+                e.contest_status_tc[e.stage][cid] = "Full Recount Needed"
             else:
-                e.contest_status[e.stage][cid] = "Auditing"
+                e.contest_status_tc[e.stage][cid] = "Auditing"
         
-    e.election_status[e.stage] = \
-        sorted(list(set([e.contest_status[e.stage][cid] for cid in e.cids])))
+    e.election_status_t[e.stage] = \
+        sorted(list(set([e.contest_status_tc[e.stage][cid] for cid in e.cids])))
 
 
 def show_risks_and_statuses(e):
@@ -956,10 +977,10 @@ def show_risks_and_statuses(e):
 
     myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
     for cid in e.cids:
-        myprint("     ", cid, e.risk[e.stage][cid], \
-              "(limit {})".format(e.risk_limit[cid]), \
-              e.contest_status[e.stage][cid])
-    myprint("    Election status:", e.election_status[e.stage])
+        myprint("     ", cid, e.risk_tc[e.stage][cid], \
+              "(limit {})".format(e.risk_limit_c[cid]), \
+              e.contest_status_tc[e.stage][cid])
+    myprint("    Election status:", e.election_status_t[e.stage])
                 
 
 ##############################################################################
@@ -967,21 +988,21 @@ def show_risks_and_statuses(e):
 
 def compute_plan(e):
     """ Compute a sampling plan for the next stage.
-        Put in e.plan[e.stage] a dict of target sample sizes keyed by pbcid. 
+        Put in e.plan_tp[e.stage] a dict of target sample sizes keyed by pbcid. 
         Only input is contest statuses, pbcid audit rates, pbcid current
         sample size, and pcbid size.
     """
 
     # for now, use simple strategy of looking at more ballots
     # only in those paper ballot collections that are still being audited
-    e.plan[e.stage] = e.s[e.stage].copy()
+    e.plan_tp[e.stage] = e.sn_tp[e.stage].copy()
     for cid in e.cids:
-        for pbcid in e.rel[cid]:
-            if e.contest_status[e.stage][cid] == "Auditing":
+        for pbcid in e.rel_cp[cid]:
+            if e.contest_status_tc[e.stage][cid] == "Auditing":
                 # if contest still being audited do as much as you can without
                 # exceeding size of paper ballot collection
-                e.plan[e.stage][pbcid] = \
-                    min(e.s[e.stage][pbcid] + e.audit_rate[pbcid], e.n[pbcid])
+                e.plan_tp[e.stage][pbcid] = \
+                    min(e.sn_tp[e.stage][pbcid] + e.audit_rate_p[pbcid], e.rn_p[pbcid])
     return
 
 
@@ -1003,34 +1024,34 @@ def get_audit_parameters(e, args):
 
 def check_audit_parameters(e):
 
-    if not isinstance(e.risk_limit, dict):
-        myerror("e.risk_limit is not a dict.")
-    for cid in e.risk_limit:
+    if not isinstance(e.risk_limit_c, dict):
+        myerror("e.risk_limit_c is not a dict.")
+    for cid in e.risk_limit_c:
         if cid not in e.cids:
-            mywarning("e.risk_limit cid key `{}` is not in e.cids."
+            mywarning("e.risk_limit_c cid key `{}` is not in e.cids."
                       .format(cid))
-        if not (0.0 <= e.risk_limit[cid] <= 1.0):
-            mywarning("e.risk_limit[{}] not in interval [0,1]".format(cid))
+        if not (0.0 <= e.risk_limit_c[cid] <= 1.0):
+            mywarning("e.risk_limit_c[{}] not in interval [0,1]".format(cid))
 
-    if not isinstance(e.audit_rate, dict):
-        myerror("e.audit_rate is not a dict.")
-    for pbcid in e.audit_rate:
+    if not isinstance(e.audit_rate_p, dict):
+        myerror("e.audit_rate_p is not a dict.")
+    for pbcid in e.audit_rate_p:
         if pbcid not in e.pbcids:
-            mywarning("pbcid `{}` is a key for e.audit_rate but not in e.pbcids."
+            mywarning("pbcid `{}` is a key for e.audit_rate_p but not in e.pbcids."
                       .format(pbcid))
-        if not 0 <= e.audit_rate[pbcid]:
-            mywarning("e.audit_rate[{}] must be nonnegative.".format(pbcid))
+        if not 0 <= e.audit_rate_p[pbcid]:
+            mywarning("e.audit_rate_p[{}] must be nonnegative.".format(pbcid))
         
-    if not isinstance(e.contest_status, dict):
-        myerror("e.contest_status is not a dict.")
-    if "0" not in e.contest_status:
-        myerror("e.contest_status must have `0` as a key.")
-    for cid in e.contest_status["0"]:
+    if not isinstance(e.contest_status_tc, dict):
+        myerror("e.contest_status_tc is not a dict.")
+    if "0" not in e.contest_status_tc:
+        myerror("e.contest_status_tc must have `0` as a key.")
+    for cid in e.contest_status_tc["0"]:
         if cid not in e.cids:
-            mywarning("cid `{}` is key in e.contest_status but not in e.cids"
+            mywarning("cid `{}` is key in e.contest_status_tc but not in e.cids"
                       .format(cid))
-        if e.contest_status["0"][cid] not in ["Auditing", "Just Watching"]:
-            mywarning("e.contest_status['0'][{}] must be `Auditing` or `Just Watching`."
+        if e.contest_status_tc["0"][cid] not in ["Auditing", "Just Watching"]:
+            mywarning("e.contest_status_tc['0'][{}] must be `Auditing` or `Just Watching`."
                       .format(cid))
     
     if warnings_given>0:
@@ -1041,17 +1062,17 @@ def show_audit_parameters(e):
 
     myprint("====== Audit parameters ======")
 
-    myprint("e.contest_status (initial audit status for each contest):")
+    myprint("e.contest_status_tc (initial audit status for each contest):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.contest_status["0"][cid]))
+        myprint("    {}:{}".format(cid, e.contest_status_tc["0"][cid]))
 
-    myprint("e.risk_limit (risk limit per contest):")
+    myprint("e.risk_limit_c (risk limit per contest):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.risk_limit[cid]))
+        myprint("    {}:{}".format(cid, e.risk_limit_c[cid]))
 
-    myprint("e.audit_rate (max number of ballots audited/day per pbcid):")
+    myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}:{}".format(pbcid, e.audit_rate[pbcid]))
+        myprint("    {}:{}".format(pbcid, e.audit_rate_p[pbcid]))
 
     myprint("e.max_stages (max number of audit stages allowed):")
     myprint("    {}".format(e.max_stages))
@@ -1071,11 +1092,11 @@ def show_audit_parameters(e):
 
 def initialize_audit(e):
 
-    e.s["0"] = {}
+    e.sn_tp["0"] = {}
     for pbcid in e.pbcids:                           
-        e.s["0"][pbcid] = 0
+        e.sn_tp["0"][pbcid] = 0
     # Initial plan size is just audit rate, for each pbcid.
-    e.plan["0"] = {pbcid:min(e.n[pbcid], e.audit_rate[pbcid]) for pbcid in e.pbcids}
+    e.plan_tp["0"] = {pbcid:min(e.rn_p[pbcid], e.audit_rate_p[pbcid]) for pbcid in e.pbcids}
     
 
 def show_audit_stage_header(e):
@@ -1083,24 +1104,24 @@ def show_audit_stage_header(e):
     myprint("audit stage", e.stage)
     myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
-        last_s = e.s[e.last_stage]
+        last_s = e.sn_tp[e.last_stage]
         myprint("      {}: {} (+{})"
                 .format(pbcid,
-                        e.plan[e.last_stage][pbcid],
-                        e.plan[e.last_stage][pbcid]-last_s[pbcid]))
+                        e.plan_tp[e.last_stage][pbcid],
+                        e.plan_tp[e.last_stage][pbcid]-last_s[pbcid]))
             
 
 def audit_stage(e, stage):
 
     e.last_stage = "{}".format(stage-1)   # json keys must be strings
     e.stage = "{}".format(stage)      
-    e.risk[e.stage] = {}
-    e.contest_status[e.stage] = {}
-    e.s[e.stage] = {}                      
-    e.st[e.stage] = {}
+    e.risk_tc[e.stage] = {}
+    e.contest_status_tc[e.stage] = {}
+    e.sn_tp[e.stage] = {}                      
+    e.sn_tcpra[e.stage] = {}
 
     draw_sample(e)
-    compute_contest_risks(e, e.st)
+    compute_contest_risks(e, e.sn_tcpra)
     compute_contest_and_election_statuses(e)
 
     show_audit_stage_header(e)
@@ -1110,7 +1131,7 @@ def audit_stage(e, stage):
 
 def stop_audit(e):
 
-    return "Auditing" not in e.election_status[e.stage]
+    return "Auditing" not in e.election_status_t[e.stage]
 
 
 def audit(e, args):
@@ -1137,10 +1158,10 @@ def show_audit_summary(e):
     myprint("Audit completed!")
 
     myprint("All contests have a status in the following list:",
-            e.election_status[e.stage])
-    if "Auditing" not in e.election_status[e.stage]:
+            e.election_status_t[e.stage])
+    if "Auditing" not in e.election_status_t[e.stage]:
         myprint("No contest still has `Auditing' status.")
-    if "Full Recount Needed" in e.election_status[e.stage]:
+    if "Full Recount Needed" in e.election_status_t[e.stage]:
         myprint("At least one contest needs a full recount.")
     if int(e.stage)==e.max_stages:
         myprint("Maximum number of audit stages ({}) reached."
@@ -1148,10 +1169,10 @@ def show_audit_summary(e):
 
     myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
-        myprint("  {}:{}".format(pbcid, e.s[e.stage][pbcid]))
+        myprint("  {}:{}".format(pbcid, e.sn_tp[e.stage][pbcid]))
     myprint_switches = ["std"]
     myprint("Total number of ballots sampled: ", end='')
-    myprint(sum([e.s[e.stage][pbcid] for pbcid in e.pbcids]))
+    myprint(sum([e.sn_tp[e.stage][pbcid] for pbcid in e.pbcids]))
     
         
 ##############################################################################
