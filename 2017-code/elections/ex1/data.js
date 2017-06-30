@@ -5,8 +5,9 @@
         "PBC2": 10000,
         "PBC3": 10000},
 
-  "__comment": "e.t = vote totals for each cid pbcid selid combo",
- "t": { "I": {"PBC1": {"1": 5050,
+  "__comment": "e.t = vote totals for each cid pbcid vote combo",
+  "__comment": "Note that votes '1' etc. need to be converted to tuples in python",
+  "t": {"I": {"PBC1": {"1": 5050,
                        "0": 4950},
               "PBC2": {"1": 5050,
                        "0": 4950},
@@ -23,7 +24,7 @@
                 "PBC3": {"1": 5250,
                          "0": 4750}}},
     
-  "__comment": "e.syntotvot[cid][selid] is total number of votes cast for selid in cid",
+  "__comment": "e.syntotvot[cid][vote] is total number ballots cast for vote in cid",
   "__comment": "(only needed if type is synthetic)",
   "syntotvot": {"I": {"0": 15150,
                       "1": 14850 },

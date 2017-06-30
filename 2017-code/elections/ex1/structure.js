@@ -12,8 +12,8 @@
              "PBC2",
              "PBC3"],
 
-  "collection_type":  {"PBC1": "noCVR",
-                       "PBC2": "CVR",
+  "collection_type":  {"PBC1": "CVR",
+                       "PBC2": "noCVR",
                        "PBC3": "CVR"},
 
   "__comment": "e.rel[cid][pbcid] true if pbc can contain ballot with that contest",
