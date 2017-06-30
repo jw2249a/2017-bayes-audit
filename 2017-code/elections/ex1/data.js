@@ -26,8 +26,8 @@
     
   "__comment": "e.syntotvot[cid][vote] is total number ballots cast for vote in cid",
   "__comment": "(only needed if type is synthetic)",
-  "syntotvot": {"I": {"0": 15150,
-                      "1": 14850 },
+  "syntotvot": {"I": {"0": 14850,
+                      "1": 15150 },
                 "C1": {"1": 6500,
                        "0": 3500 },
                 "C2": {"1": 6000,

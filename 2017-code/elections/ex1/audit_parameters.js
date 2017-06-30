@@ -7,12 +7,12 @@
                  "F23": 0.10},
 
   "audit_rate": {"PBC1": 20,
-                 "PBC2": 25,
-                 "PBC3": 30},
+                 "PBC2": 40,
+                 "PBC3": 60},
 
   "max_stages": 16, 
 
-  "pseudocount": 0.001,
+  "pseudocount": 100,
 
   "contest_status": {"0": {"I": "Auditing",
                            "C1": "Auditing",

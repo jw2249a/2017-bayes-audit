@@ -587,8 +587,6 @@ def compute_synthetic_selections(e):
             for j in range(e.n[pbcid]):
                 bid = e.bids[pbcid][j]
                 vote = votes[j]
-                if not isinstance(vote, tuple):
-                    myerror("***vote not a tuple: {} {} {}".format(cid, pbcid, vote))
                 av = vote
                 e.av[cid][pbcid][bid] = av
                 rv = compute_rv(e, cid, pbcid, bid, vote)
