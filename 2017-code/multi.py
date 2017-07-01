@@ -10,7 +10,8 @@ Possibly relevant to Colorado state-wide post-election audits in Nov 2017.
 """
 
 """ 
-This code corresponds to the what Audit Central needs to do.
+This code corresponds to the what Audit Central needs to do, although
+it could also be run locally in a county.
 """
 
 # MIT License
