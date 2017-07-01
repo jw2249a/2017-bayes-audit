@@ -318,9 +318,18 @@ version labels.
     ./070-audit-stages/003:
 
  
-###  Random number generation
+## Election file
 
-###  Sampling
+An **election file** gives some high-level attributes of the election.
+
+| Attribute     | Value                                   |
+| ---           | ---                                     |
+| Election name | Colorado general election               |
+| Election date | 2017-11-07                              |
+| Election info | https://sos.co.gov/election/2017-11-07/ |
+
+This is a CSV file, with the name ``election.csv`` (possibly with a version
+label, as in ``election-08-11.csv``).
 
 ## Contests file
 
@@ -362,18 +371,64 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
-
-
-### Vote file formats
+## Vote file
 
 A **vote file** is a CSV format file containing a number of
 rows, where each row represents a voter's choices for a
 particular contest.
 
-The format is common for vote files representing cast vote
-records and for vote files representing sampled ballots.
 The format is capable of representing votes in more
 complex voting schemes, like approval or instant runoff (IRV).
+
+Here are the fields of a row of a vote file:
+
+1. **Paper Ballot Collection Identifier** (pbcid)
+
+2. **Ballot identifier** (bid)
+
+3. **Contest Identifier** (cid)
+
+7. **Selections** (vote): Columns 4 and on are to record the voter's choices
+   for that contest.  A typical plurality election will only have one
+   choice, so the selection id (selid) is entered in column 4 and the later
+   columns are blank.
+
+   For other contest types (e.g. approval voting) there may be more than
+   one selection, so they are listed in columns 4, 5, ...
+   In general, each selection id corresponds to a single bubble that
+   the voter has filled in on the paper ballot.  Preferential voting can
+   also be handled with these fields.
+
+   An undervote for a plurality vote will have columns 4-... blank,
+   whereas an overvote will have more than one such column filled in.
+
+   Implementation note: the voter's selections are combined into
+   a python "tuple".  An empty vote is the zero-length python
+   tuple ``(,)``.  The python representation uses tuples, not lists,
+   since tuples are hashable and so may be used as keys in
+   python dictionaries.
+
+**Example**: A vote file table from a scanner.  Here
+each row represents a single vote of a voter in a contest.  
+There are two voters (ballot ids B-231 and B-777) and three
+contests.
+
+
+|Collection id   | Ballot id   | Contest     | Selections | ...       |
+|---             | ---         | ---         | ---        | ---       |
+|DEN-A01         | B-231       | DEN-prop-1  | Yes        |           |
+|DEN-A01         | B-231       | DEN-prop-2  |            |           |
+|DEN-A01         | B-231       | US-Senate-1 | Rhee Pub   | Sarah Day |
+|DEN-A01         | B-777       | DEN-prop-1  | No         |           |
+|DEN-A01         | B-777       | DEN-prop-2  | Yes        |           |
+|DEN-A01         | B-777       | US-Senate-1 | Val Green  |           |
+
+
+The second row is an undervote, and the third row is an overvote.
+
+<!---
+The format is common for vote files representing cast vote
+records and for vote files representing sampled ballots.
 
 The format is also the same for representing a tally of votes,
 where aggregation has been performed.  In this case the ballot
@@ -381,8 +436,6 @@ identifiers are omitted by the tally field is used.
 
 When the vote file is used to represent a sample of ballots, the
 nature of the sampling is also indicated.
-
-Here are the fields of a row of a vote file:
 
 1. **row type** (rt): one of four values:
 
@@ -410,56 +463,20 @@ Here are the fields of a row of a vote file:
     contest or reported vote, then that information was obtained
     from the CVR records (i.e. with row type **RS**).
 
-3. **Paper Ballot Collection Identifier** (pbcid)
-
-4. **Ballot identifier** (bid): blank for rows of type **RT** or **AT**, since
-   these are aggregate tally rows.  Otherwise gives the bid for a single
-   ballot.
-
-5. **tally**: This is 1 for rows of type **RS** or
+5. **tally**: This column is omitted for vote files having only
+   rows of type **RS** or
    **AS**, since they represent just a single ballot.
    Otherwise, gives the tally (a nonnegative integer) for a number
    of ballots for rows of type **RT** or **AT**; the tally is the number
    of rows summarized.  The summarized rows must agree on all fields except
    the bid field.  The bid field is blank for row types **RT** and **AT**.
 
-6. **Contest Identifier** (cid)
+--->
 
-7. **selections** (vote): Columns 7 and on are to record the voter's choices
-   for that contest.  A typical plurality election will only have one
-   choice, so the selection id (selid) is entered in column 7 and the later
-   columns are blank.
+###  Random number generation
 
-   For other contest types (e.g. approval voting) there may be more than
-   one selection, so they are listed in columns 7, 8, ...
-   In general, each selection id corresponds to a single bubble that
-   the voter has filled in on the paper ballot.  Preferential voting can
-   also be handled with these fields.
+###  Sampling
 
-   An undervote for a plurality vote will have columns 7-... blank,
-   whereas an overvote will have more than one such column filled in.
-
-   Implementation note: the voter's selections are combined into
-   a python "tuple".  An empty vote is the zero-length python
-   tuple ``(,)``.  The representation uses tuples, and not lists,
-   since tuples are hashable and so may be used as keys in
-   python dictionaries.
-
-**Example**: A two-row vote file table for an audit sample.  Here
-each row represents a single vote of a voter in a contest.  The ballots
-were sampled uniformly at random from the PBC.  The two rows represent
-different contests on the same ballot.
-
-
-| RT | SRC | PBCID | BID | Tally | Contest | Selections | ...       |
-| ---| --- | ---   | --- | ---   | ---     | ---        | ---       |
-| AS |   P | DEN12 | B23 | 1     | Clerk   | BobStone   |           |
-| AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones |
-
-
-The second row is an overvote.
-
-   
 
 
 
