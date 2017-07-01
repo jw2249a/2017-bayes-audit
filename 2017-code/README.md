@@ -20,19 +20,20 @@ We assume the following:
   manager for several collections),
 * all ballots in a collection have the same **ballot style** (that is,
   they show the same contests on each ballot in the collection),
-* for a given contest, there may be one or more collections having ballots
+  (** THIS IS BEING FIXED **)
+* for a given contest, there may be one or several collections having ballots
   showing that contest,
 
 ## Scanning of cast paper ballots
 
 We assume that all the paper ballots in each collection have been **scanned** by
-an **optical scanner*.  There may be a different scanner for each collection.
+an **optical scanner**.  There may be a different scanner for each collection.
 We distinguish two types of collections, according to the type of information
 produced by the scanner:
-* in a ``**CVR collection**'', the scanner produces an electronic **cast vote
+* in a "**CVR collection**", the scanner produces an electronic **cast vote
   record** (CVR) for each paper ballot scanned, giving the choices made for each
   contest on that paper ballot.
-* in a ``**noCVR** collection'', the scanner does not produce a separate
+* in a "**noCVR** collection", the scanner does not produce a separate
   electronic record for each paper ballot scanned; it only produces a summary
   tally showing for each contest and each possible choice (vote) on that
   contest, how may ballots in the collection showed the given choice.
@@ -55,12 +56,12 @@ random sample of the cast paper ballots.  Audits are often several
 orders of magnitude more efficient than doing a full manual recount of
 all cast paper ballots.
 
-Multi.py supports "Bayesian" audits, a form of post-election auditing
+``Multi.py`` supports "Bayesian" audits, a form of post-election auditing
 proposed by 
 [Rivest and Shen (2012)](http://people.csail.mit.edu/rivest/pubs.html#RS12z).
 
 A Bayesian audit provides an answer to the question 
-``What is the probability that the reported election outcome is wrong?``
+"``What is the probability that the reported election outcome is wrong?``"
 We call this probability the **Bayesian risk** perceived for the reported
 outcome, given the audit data.
 
@@ -96,9 +97,7 @@ We assume that the election has the following components:
 
 The election definition phase answers the questions:
 * What contests are there?
-* For each contest, what constitutes a valid vote?
-* For each contest, what possible invalid vote types
-  are there?
+* For each contest, what selections (choices) nay the voter mark?
 * For each contest, what **outcome rule** will be used to determine the
   outcome?
 * How many collections of cast paper ballots will there be?
@@ -185,16 +184,17 @@ tuple, such as
     ("AliceJones")   a vote with only one selection
 
     ("AliceJones", "+BobSmith")  a vote with two selections, one of
-                     which is a write-in
+                     which is a write-in for Bob Smith.
 
 Implementation note: Within a json file, a vote is represented
 as a comma-separated string if selection ids:
 
     ""               for the empty sequence
 
-    "AliceJones"     a vote for AliceJones
+    "AliceJones"     a vote with one selections, for AliceJones
 
-    "AliceJones,+BobSmith"  a vote for Alice and for Bob
+    "AliceJones,+BobSmith"  a vote with two selections,
+                     one for Alice Jones and one for Bob Smith
 
 
 ### File names
@@ -322,6 +322,48 @@ version labels.
 
 ###  Sampling
 
+## Contests file
+
+A **contests file** is needed to specify the contests
+of the election, their type (e.g. plurality), whether
+write-ins are allowed, and the officially allowed selections.
+
+| Contest id    | Contest type | Write-ins | Selections | ...       |...         |...        |
+| ---           | ---          | ---       | ---        | ---       | ---        |---        |
+| DEN-prop-1    | Plurality    | No        | Yes        | No        |            |           |
+| DEN-prop-2    | Plurality    | No        | Yes        | No        |            |           |
+| DEN-mayor     | Plurality    | Yes       | John Smith | Bob Cat   | Mary Mee   |           |
+| LOG-mayor     | Plurality    | Yes       | Susan Hat  | Barry Su  | Benton Liu |           |
+| US-Senate-1   | Plurality    | Yes       | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day |
+| Boulder-clerk | IRV          | Yes       | Rock Ohn   | Peh Bull  | Roll Stone |           |
+
+This is a CSV file, with the name ``contests.csv`` (possibly with a version
+label, as in ``contests-09-06.csv``).
+
+## Collections file
+
+A **collections file** is needed to specify the various
+collections of paper ballots, contact info for the collection
+manager, collection type (CVR or noCVR),
+and a list of contests that may appear on ballots in that collection.
+
+| Collection id | Contact (Mgr)    |  CVR type | Contests   | ...        | ...         |...         |...    |
+| ---           | ---              | ---       | ---        | ---         | ---        |---    |
+| DEN-A01       | abe@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
+| DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
+| LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
+
+This is a CSV file, with the name ``collections.csv`` (possibly with a version
+label, as in ``collections-09-06.csv``).
+
+Note that this representation doesn't represent the common notion of
+a "ballot style," where a style can viewed as a set of contests that
+co-occur on a ballot.  If a collection may hold ballots of several different
+styles, then the collections file shows every contest that may appear on
+any allowed ballot in the collection.
+
+
+
 ### Vote file formats
 
 A **vote file** is a CSV format file containing a number of
@@ -350,7 +392,7 @@ Here are the fields of a row of a vote file:
     * **AT**: a tally of one or more actual votes
 
 2. **source** (src): one of four values:
-    * **L**: a complete list of relevant ballots
+    * **L**: a complete list of in PBC
     * **P**: a ballot chosen uniformly from PBC
     * **PC**: a ballot chosen uniformly from all ballots
       within the PBC for a particular contest
@@ -374,7 +416,7 @@ Here are the fields of a row of a vote file:
    these are aggregate tally rows.  Otherwise gives the bid for a single
    ballot.
 
-5. **tally**: This is 1 for rows of type **RS**
+5. **tally**: This is 1 for rows of type **RS** or
    **AS**, since they represent just a single ballot.
    Otherwise, gives the tally (a nonnegative integer) for a number
    of ballots for rows of type **RT** or **AT**; the tally is the number
@@ -415,7 +457,7 @@ different contests on the same ballot.
 | AS |   P | DEN12 | B23 | 1     | Mayor   | JohnSmith  | MaryJones |
 
 
-    The second row is an overvote.
+The second row is an overvote.
 
    
 
