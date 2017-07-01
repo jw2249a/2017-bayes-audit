@@ -102,7 +102,7 @@ The election definition phase answers the questions:
   outcome?
 * How many collections of cast paper ballots will there be?
 * For each such collection, who will be the collection manager?
-* For each collection, which contests will be on the ballots in
+* For each collection, which contests may be on the ballots in
   that collection?
 * How will the paper ballots in each collection be scanned?
 * For each collection, will it be a CVR collection or a noCVR
@@ -288,7 +288,7 @@ version labels.
     MAN-LOG-B13-11-07.csv
 
     ./040-audit-seed:
-    audit-seed-11-20.js
+    audit-seed-11-20.csv
 
     ./050-sampling-orders:
     ORD-DEN-A01-11-20.csv
@@ -442,7 +442,7 @@ with a version label.  An example filename: ``REP-DEN-A01-11-09.csv``.
 
 A **sample vote file** represents a set of votes that have
 been sampled during an audit.  It is similar to a reported
-file file, but the Source field is now used differently, to
+file, but the Source field is now used differently, to
 indicate the sort of sampling used to produce this entry.
 
 1. **source** (src): one of three values:
@@ -478,9 +478,28 @@ The sample vote file will have a name of the form ``SAM-<bcid>.csv``, possibly
 with a version label.  An example filename: ``SAM-DEN-A01-11-09.csv``.
 
 As noted elsewhere, if the sample is expanded, then the new sample vote file will
-contain records for not only the newly examined ballots, but also for the previous.
+contain records for not only the newly examined ballots, but also for the previously
+examined ballots.
 The file ``SAM-DEN-A01-11-10.csv`` will be an augmented version of the file
 ``SAM-DEN-A01-11-09.csv``.
+
+## Audit seed file
+
+The **audit seed file** contains the audit seed used to control the random
+sampling of the audit.
+
+| Audit seed           |
+|---                   | 
+| 13456201235197891138 |
+
+The audit seed should be made by rolling a decimal die twenty or more
+times.  This should be done **after** the reported votes have been
+collected and published by Audit Central.
+
+The audit seed file has a filename of the form
+``audit-seed-11-20.csv`` or the like (shown here
+with a version label).
+
 
 ## Ballot manifest file
 
@@ -503,7 +522,8 @@ A ballot manifest file has a filename of the form
 ## Sampling order file
 
 A **sampling order file** lists all the ballots from a collection
-in a cryptographically scrambled order.  The sample order field
+in a cryptographically scrambled order depending on the audit seed.
+The sample order field
 indicates the order in which they are to be examined during
 the audit.  Ballots must not be skipped during the audit.
 
@@ -522,6 +542,42 @@ The sampling order ORD file and the reported vote REP file may be used
 with an appropriate UI interface to generate the sampled vote
 SAM file.  (With care to handling the case that the sampled ballot does not
 seem to be of the correct ballot style.)
+
+## Audit parameters file
+
+An **audit parameters** file gives parameters used in the audit.  These
+parameters may be global, or specific to particular contests or
+collections.
+
+Here is a sample audit parameters file:
+
+| Parameter            | For           | Value           |
+| ---                  | ---           | ---             |
+| max stages           |               | 20              |
+| audit status         | DEN-prop-1    | Auditing        |
+| risk limit           | DEN-prop-1    | 0.05            |
+| audit status         | DEN-prop-2    | Just Watching   |
+| risk limit           | DEN-prop-2    | 1.00            |
+| audit status         | DEN-mayor     | Auditing        |
+| risk limit           | DEN-mayor     | 0.05            |
+| audit status         | LOG-mayor     | Auditing        |
+| risk limit           | LOG-mayor     | 0.05            |
+| audit status         | US-Senate-1   | Auditing        |
+| risk limit           | US-Senate-1   | 0.025           |
+| audit status         | Boulder-clerk | Just Watching   |
+| risk limit           | Boulder-clerk | 1.00            |
+| bayes pseudocount    |               | 10              |
+| max audit rate       | DEN-A01       | 60              |
+| max audit rate       | LOG-B13       | 60              |
+
+Each contest should initially have a status of ``Just Watching``, or
+``Auditing``.
+
+The ``risk limit`` should be 1.00 for a ``Just Watching`` contest,
+and a target value (nominally 0.05) for other contests.
+
+The ``max audit rate`` for a collection is the maximum number of
+ballots that can be examined in one stage.
 
 ###  Random number generation
 
