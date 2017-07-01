@@ -275,28 +275,30 @@ version labels.
     070-audit-stages
 
     ./010-structure:
-    structure-09-08.js
+    election-09-08.csv
+    contests-09-08.csv
+    collections-09-08.csv
 
     ./020-reported-votes:
-    DEN-11-07.csv
-    LOG-11-07.csv
+    REP-DEN-A01-11-07.csv
+    REP-LOG-B13-11-07.csv
 
     ./030-ballot-manifests:
-    DEN-11-07.csv
-    LOG-11-07.csv
+    BM-DEN-A01-11-07.csv
+    BM-LOG-B13-11-07.csv
 
     ./040-audit-seed:
     audit-seed-11-20.js
 
     ./050-sample-orders:
-    DEN-11-20.csv
-    LOG-11-20.csv
+    DEN-A01-11-20.csv
+    LOG-B13-11-20.csv
 
     ./060-audited-votes:
-    DEN-11-21.csv
-    DEN-11-22.csv
-    LOG-11-21.csv
-    LOG-11-22.csv
+    DEN-A01-11-21.csv
+    DEN-A01-11-22.csv
+    LOG-B13-11-21.csv
+    LOG-B13-11-22.csv
 
     ./070-audit-stages:
     001
@@ -371,18 +373,22 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
-## Vote file
+## Reported Vote file
 
-A **vote file** is a CSV format file containing a number of
+A **reported vote file** is a CSV format file containing a number of
 rows, where each row represents a voter's choices for a
-particular contest.
+particular contest. 
 
 The format is capable of representing votes in more
 complex voting schemes, like approval or instant runoff (IRV).
 
-Here are the fields of a row of a vote file:
+Here are the fields of a row of a reported vote file:
 
 1. **Paper Ballot Collection Identifier** (pbcid)
+   Typically, all rows in a vote file will have the same pbcid.
+
+2. **Source**: An indication of the source of this ballot.  Might
+   be a scanner id or other indicator.  Could just be "L" for "listing".
 
 2. **Ballot identifier** (bid)
 
@@ -408,44 +414,38 @@ Here are the fields of a row of a vote file:
    since tuples are hashable and so may be used as keys in
    python dictionaries.
 
-**Example**: A vote file table from a scanner.  Here
+**Example**: A reported vote file table from a scanner.  Here
 each row represents a single vote of a voter in a contest.  
-There are two voters (ballot ids B-231 and B-777) and three
+There are three voters (ballot ids ``B-231``, ``B-777``, and ``B888``) and three
 contests.
 
 
-|Collection id   | Ballot id   | Contest     | Selections | ...       |
-|---             | ---         | ---         | ---        | ---       |
-|DEN-A01         | B-231       | DEN-prop-1  | Yes        |           |
-|DEN-A01         | B-231       | DEN-prop-2  |            |           |
-|DEN-A01         | B-231       | US-Senate-1 | Rhee Pub   | Sarah Day |
-|DEN-A01         | B-777       | DEN-prop-1  | No         |           |
-|DEN-A01         | B-777       | DEN-prop-2  | Yes        |           |
-|DEN-A01         | B-777       | US-Senate-1 | Val Green  |           |
+|Collection id   | Source | Ballot id   | Contest     | Selections     | ...       |
+|---             |---     | ---         | ---         | ---            | ---       |
+|DEN-A01         | L      | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         | L      | B-231       | DEN-prop-2  |                |           |
+|DEN-A01         | L      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|DEN-A01         | L      | B-777       | DEN-prop-1  | No             |           |
+|DEN-A01         | L      | B-777       | DEN-prop-2  | Yes            |           |
+|DEN-A01         | L      | B-777       | US-Senate-1 | +Harry Potter  |           |
+|DEN-A01         | L      | B-888       | US-Senate-1 | -Invalid       |           |
 
 
-The second row is an undervote, and the third row is an overvote.
+The second row is an undervote, and the third row is an overvote.  The sixth
+row has a write-in for Harry Potter.  The last row represents a vote that
+is invalid for some unspecified reason.
 
-<!---
-The format is common for vote files representing cast vote
-records and for vote files representing sampled ballots.
+The reported vote file will have a name of the ``REP-<bcid>.csv``, possibly
+with a version label.  An example filename: ``REP-DEN-A01-11-09.csv``.
 
-The format is also the same for representing a tally of votes,
-where aggregation has been performed.  In this case the ballot
-identifiers are omitted by the tally field is used.
+## Sample vote file (actual vote file)
 
-When the vote file is used to represent a sample of ballots, the
-nature of the sampling is also indicated.
+A **sample vote file** represents a set of votes that have
+been sampled during an audit.  It is similar to a reported
+file file, but the Source field is now used differently, to
+indicate the sort of sampling used to produce this entry.
 
-1. **row type** (rt): one of four values:
-
-    * **RS**: a single reported vote
-    * **RT**: a tally of one or more reported votes
-    * **AS**: a single actual vote (from audit)
-    * **AT**: a tally of one or more actual votes
-
-2. **source** (src): one of four values:
-    * **L**: a complete list of in PBC
+1. **source** (src): one of three values:
     * **P**: a ballot chosen uniformly from PBC
     * **PC**: a ballot chosen uniformly from all ballots
       within the PBC for a particular contest
@@ -453,25 +453,49 @@ nature of the sampling is also indicated.
       within the PBC for a particular contest having a particular
       reported vote.
 
-    The **L** label is appropriate for a listing of reported votes.
-    The others may be used for statistical samples in the audit.
-
-    The **P** label is appropriate for a typical audit sample.
+    The **P** label is the usual indicator for a sample.
     
     The **PC** and **PCR** labels are unlikely to be used (at least at
     first).  If the sample was restricted to a particular
     contest or reported vote, then that information was obtained
-    from the CVR records (i.e. with row type **RS**).
+    from the reported vote file.
 
-5. **tally**: This column is omitted for vote files having only
-   rows of type **RS** or
-   **AS**, since they represent just a single ballot.
-   Otherwise, gives the tally (a nonnegative integer) for a number
-   of ballots for rows of type **RT** or **AT**; the tally is the number
-   of rows summarized.  The summarized rows must agree on all fields except
-   the bid field.  The bid field is blank for row types **RT** and **AT**.
+Here is an example of a sample vote file for the ``DEN-A01`` collection,
+containing a single ballot that was chosen uniformly from all ballots in
+that collection (thus the ``P`` for Source).
 
---->
+|Collection id   |Source | Ballot id   | Contest     | Selections     | ...       |
+|---             |---    | ---         | ---         | ---            | ---       |
+|DEN-A01         |P      | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         |P      | B-231       | DEN-prop-2  | No             |           |
+|DEN-A01         |P      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+
+Compared to the reported vote file above, we note a discrepancy in the
+interpretation of contest ``DEN-prop-2`` for ballot ``B-231``: the scanner showed
+an undervote, while the hand examination showed a ``No`` vote.
+
+The sample vote file will have a name of the form ``SAM-<bcid>.csv``, possibly
+with a version label.  An example filename: ``SAM-DEN-A01-11-09.csv``.
+
+As noted elsewhere, if the sample is expanded, then the new sample vote file will
+contain records for not only the newly examined ballots, but also for the previous.
+The file ``SAM-DEN-A01-11-10.csv`` will be an augmented version of the file
+``SAM-DEN-A01-11-09.csv``.
+
+## Ballot manifest file
+
+A **ballot manifest file** lists all of the ballot ids for a given collection.
+It may also indicate their physical location (if it is not already encoded in
+the ballot id).
+
+| Collection id | Ballot id | Location          |
+|---            |---        | ---               |
+| LOG-B13       | B-0001    | Box 001 no 0001   |
+| LOG-B13       | B-0002    | Box 001 no 0002   |
+
+The ballot manifest file has a filename of the form
+``BM-<pbcid>.csv``, e.g. ``BM-DEN-A01-11-07.csv``
+(possibly with a version label, as exemplified).
 
 ###  Random number generation
 
