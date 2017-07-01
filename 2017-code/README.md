@@ -36,7 +36,7 @@ produced by the scanner:
 * in a "**noCVR** collection", the scanner does not produce a separate
   electronic record for each paper ballot scanned; it only produces a summary
   tally showing for each contest and each possible choice (vote) on that
-  contest, how may ballots in the collection showed the given choice.
+  contest, how many ballots in the collection showed the given choice.
 
 Note that some contests may be associated with collections of both types,
 some CVR collections as well as some noCVR collections.
@@ -90,15 +90,16 @@ Coordinator might be from the Secretary of State's office).
 
 We assume that the election has the following components:
 1. ("_Pre-election_") Election definition and setup.
-2. ("_Election_") Vote-casting and interpretation.
+2. ("_Election_") Vote-casting, interpretation and preliminary reporting.
 3. ("_Post-election_") Audit.
+4. ("_Certification_") Certification.
 
 ### (Pre-election) Election definition.
 
 The election definition phase answers the questions:
 * What contests are there?
-* For each contest, what selections (choices) nay the voter mark?
-* For each contest, what **outcome rule** will be used to determine the
+* For each contest, what selections (choices) may the voter mark?
+* For each contest, what **voting method** will be used to determine the
   outcome?
 * How many collections of cast paper ballots will there be?
 * For each such collection, who will be the collection manager?
@@ -110,7 +111,7 @@ The election definition phase answers the questions:
 
 ### Identifiers
 
-The data structure for ``multi.py`` use identifiers extensively.
+The data structures for ``multi.py`` use identifiers extensively.
 Identifiers are more-or-less arbitrary strings of characters.
 Identifiers may be used as part of a filename so it should preferably
 not contain blanks, special characters, or depend on capitalization.
@@ -204,7 +205,7 @@ use a file naming scheme that doesn't overwrite older data.
 
 This is done by interpreting part of the filename as a
 "version label".  When looking for a file, there may be
-several files that differ only the version label portion of
+several files that differ only in the version label portion of
 their filename.  If so, the system uses the one with the
 version label that is (lexicographically) greatest.
 The version label is arbitrary text; it may encode a
