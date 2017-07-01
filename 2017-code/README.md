@@ -348,7 +348,7 @@ manager, collection type (CVR or noCVR),
 and a list of contests that may appear on ballots in that collection.
 
 | Collection id | Contact (Mgr)    |  CVR type | Contests   | ...        | ...         |...         |...    |
-| ---           | ---              | ---       | ---        | ---         | ---        |---    |
+| ---           | ---              | ---       | ---        | ---        | ---         |---         |---    |
 | DEN-A01       | abe@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
