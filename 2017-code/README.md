@@ -270,7 +270,7 @@ version labels.
     020-reported-votes
     030-ballot-manifests
     040-audit-seed
-    050-sample-orders
+    050-sampling-orders
     060-audited-votes
     070-audit-stages
 
@@ -284,21 +284,21 @@ version labels.
     REP-LOG-B13-11-07.csv
 
     ./030-ballot-manifests:
-    BM-DEN-A01-11-07.csv
-    BM-LOG-B13-11-07.csv
+    MAN-DEN-A01-11-07.csv
+    MAN-LOG-B13-11-07.csv
 
     ./040-audit-seed:
     audit-seed-11-20.js
 
-    ./050-sample-orders:
-    DEN-A01-11-20.csv
-    LOG-B13-11-20.csv
+    ./050-sampling-orders:
+    ORD-DEN-A01-11-20.csv
+    ORD-LOG-B13-11-20.csv
 
     ./060-audited-votes:
-    DEN-A01-11-21.csv
-    DEN-A01-11-22.csv
-    LOG-B13-11-21.csv
-    LOG-B13-11-22.csv
+    SAM-DEN-A01-11-21.csv
+    SAM-DEN-A01-11-22.csv
+    SAM-LOG-B13-11-21.csv
+    SAM-LOG-B13-11-22.csv
 
     ./070-audit-stages:
     001
@@ -488,14 +488,40 @@ A **ballot manifest file** lists all of the ballot ids for a given collection.
 It may also indicate their physical location (if it is not already encoded in
 the ballot id).
 
-| Collection id | Ballot id | Location          |
-|---            |---        | ---               |
-| LOG-B13       | B-0001    | Box 001 no 0001   |
-| LOG-B13       | B-0002    | Box 001 no 0002   |
+| Collection id | Original index | Ballot id | Location          |
+|---            | ---            |---        | ---               |
+| LOG-B13       | 1              | B-0001    | Box 001 no 0001   |
+| LOG-B13       | 2              | B-0002    | Box 001 no 0002   |
+| LOG-B13       | 3              | B-0003    | Box 001 no 0003   |
+| LOG-B13       | 4              | B-0004    | Box 001 no 0004   |
+| LOG-B13       | 5              | C-0001    | Box 002 no 0001   |
 
-The ballot manifest file has a filename of the form
-``BM-<pbcid>.csv``, e.g. ``BM-DEN-A01-11-07.csv``
+A ballot manifest file has a filename of the form
+``MAN-<pbcid>.csv``, e.g. ``MAN-DEN-A01-11-07.csv``
 (possibly with a version label, as exemplified).
+
+## Sampling order file
+
+A **sampling order file** lists all the ballots from a collection
+in a cryptographically scrambled order.  The sample order field
+indicates the order in which they are to be examined during
+the audit.  Ballots must not be skipped during the audit.
+
+| Collection id | Sample order  | Original index | Ballot id | Location          |
+|---            |---            | ---            | ---       | ---               |
+| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |
+| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |
+| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |
+| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |
+| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |
+
+A sampling order file has a filename of the form
+``ORD-<pbcid>.csv``.  Example: ``ORD-DEN-A01-11-20.csv`` (including a version label).
+
+The sampling order ORD file and the reported vote REP file may be used
+with an appropriate UI interface to generate the sampled vote
+SAM file.  (With care to handling the case that the sampled ballot does not
+seem to be of the correct ballot style.)
 
 ###  Random number generation
 

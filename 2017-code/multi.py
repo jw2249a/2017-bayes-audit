@@ -2,6 +2,9 @@
 # Ronald L. Rivest
 # June 30, 2017
 # python3
+# clean up with autopep8
+#   autopep8 -i multi.py
+#   (updates in place; see https://github.com/hhatto/autopep8)
 
 """
 Prototype code for auditing an election having both multiple contests and
@@ -63,7 +66,6 @@ def close_myprint_files():
             del myprint_files[output_file_name]
 
 
-##############################################################################
 # error and warning messages
 
 
@@ -118,7 +120,6 @@ def gamma(k, rs=None):
 
 
 # Dirichlet distribution
-
 
 def dirichlet(tally):
     """ 
@@ -201,92 +202,169 @@ class Election(object):
         # rn = reported number (from initial scan)
         # sn = sample number (from given sample stage)
         # but may be something else.
+        #
         # Example:
         # e.rn_cr = reported number of votes by contest
         # and reported vote r, e.g.
         # e.rn_cr[cid][r]  gives such a count.
 
         # election structure
-        e.election_name = ""  # Name of election (e.g. "CO-Nov-2017")
-        e.elections_dir = ""  # where the election data is e.g. "./elections", so
-        # election data is all in "./elections/CO-Nov-2017"
-        e.election_type = ""  # string, either "Synthetic" or "Real"
 
-        e.cids = []          # [cids]           list of contest ids
-        e.selids_c = {}      # cid->[selids]
+        e.election_name = ""
+        # Name of election (e.g. "CO-Nov-2017")
+        # This is also used as a directory name.
+
+        e.elections_dir = ""
+        # where the election data is e.g. "./elections",
+        # so e.g. election data is all in "./elections/CO-Nov-2017"
+
+        e.election_type = ""
+        # string, either "Synthetic" or "Real"
+
+        e.cids = []
+        # list of contest ids (cids)
+
+        e.selids_c = {}
+        # cid->[selids]
+        # list of selection ids (selids) for each cid
         # note that e.selids_c is used for both reported selections
         # (from votes in e.rv) and for actual selections (from votes in e.av)
         # it also increases when new selids starting with "+" or "-" are seen.
-        e.pbcids = []        # [pcbids]         list of paper ballot collection ids
-        # pbcid->[bids]   list of ballot ids for each pcbid
+
+        e.pbcids = []
+        # list of paper ballot collection ids (pbcids)
+
         e.bids_p = {}
-        e.rel_cp = {}        # cid->pbcid->"True"
-        # (relevance; only relevant pbcids in e.rel_cp[cid])
+        # list of ballot ids (bids) for each pcbid
+
+        e.rel_cp = {}
+        # cid->pbcid->"True"
+        # relevance; only relevant pbcids in e.rel_cp[cid]
         # True means the pbcid *might* contains ballots relevant to cid
-        e.collection_type_p = {}  # pbcid-> "CVR" or "noCVR"
+
+        e.collection_type_p = {}
+        # pbcid-> "CVR" or "noCVR"
 
         # election data (reported election results)
-        # e.rn_p[pbcid] number ballots cast in collection pbcid
+
         e.rn_p = {}
-        # e.votes_c[cid] gives all votes seen for cid, reported or actual
+        # e.rn_p[pbcid] number ballots cast in collection pbcid
+
         e.votes_c = {}
-        e.rn_cpr = {}        # cid->pbcid->vote->int    (counts)
-        e.ro_c = {}          # cid->outcome   (reported outcome by contest)
+        # e.votes_c[cid] gives all votes seen for cid, reported or actual
+
+        e.rn_cpr = {}
+        # cid->pbcid->rvote->count
+        # reported number of votes by contest, paper ballot collection,
+        # nd reported vote.
+
+        e.ro_c = {}
+        # cid->outcome
+        # reported outcome by contest
+
         # computed from the above
-        # cid->int         (reported number of votes cast in contest)
+
         e.rn_c = {}
-        e.rn_cr = {}         # cid->votes->int  (reported number of votes recd,
-        #                   for each reported vote in cid)
-        e.rv_cpb = {}        # reported votes: cid->pbcid->bid->vote
-        # e.rv_cpb is like e.av (reported votes instead of actual votes)
-        e.rn_cpr = {}        # reported number: cid->pbcid->rvote->count
-        # (vote is reported vote, count is over pbcid)
-        e.synthetic_seed = 2  # seed for generation of synthetic random votes
-        e.syn_rn_cr = {}      # synthetic rn: cid->vote->count
-        e.error_rate = 0.0001  # error rate used in model for generating
-        # synthetic reported votes
+        # cid->int
+        # reported number of votes cast in contest
+
+        e.rn_cr = {}
+        # cid->votes->int
+        # reported number of votes for each reported vote in cid
+
+        e.rv_cpb = {}
+        # cid->pbcid->bid->vote
+        # vote in given contest, paper ballot collection, and ballot id
+        # e.rv_cpb is like e.av, but reported votes instead of actual votes
+
+        e.synthetic_seed = 2
+        # seed for generation of synthetic random votes
+
+        e.syn_rn_cr = {}
+        # synthetic reported number cid->vote->count
+
+        e.error_rate = 0.0001
+        # error rate used in model for generating synthetic reported votes
 
         # audit
-        e.audit_seed = None   # seed for pseudo-random number generation for audit
-        e.risk_limit_c = {}   # cid->reals  (risk limit for that contest)
-        # pbcid->int  (# ballots that can be audited per stage)
+
+        e.audit_seed = None
+        # seed for pseudo-random number generation for audit
+
+        e.risk_limit_c = {}
+        # cid->reals
+        # risk limit for each contest
+
         e.audit_rate_p = {}
-        # current stage number (in progress) or last stage completed
+        # pbcid->int
+        # number of ballots that can be audited per stage in a pcb
+
         e.stage = "0"
-        e.last_stage = "-1"   # previous stage (just one less, in string form)
-        e.max_stages = 20     # maximum number of stages allowed in audit
-        e.pseudocount = 0.5   # hyperparameter for prior distribution
+        # current audit stage number (in progress) or last stage completed
+
+        e.last_stage = "-1"
+        # previous stage (just one less, in string form)
+
+        e.max_stages = 20
+        # maximum number of stages allowed in audit
+
+        e.pseudocount = 0.5
+        # hyperparameter for prior distribution
         # (e.g. 0.5 for Jeffrey's distribution)
-        e.recount_threshold = 0.95  # if e.risk[e.stage][cid] exceeds 0.95,
-        # then full recount called for cid
-        e.n_trials = 100000   # number of trials used to estimate risk
-        # in compute_contest_risk
-        # stage-dependent: (stage # input is stage when computed, denoted t
-        # here)
-        # stage->pbcid->reals (sample size wanted after next draw)
+
+        e.recount_threshold = 0.95
+        # if e.risk[e.stage][cid] exceeds 0.95, then full recount called for
+        # cid
+
+        e.n_trials = 100000
+        # number of trials used to estimate risk in compute_contest_risk
+
+        # stage-dependent items
+        # stage number input is stage when computed
+        # stage is denoted t here
+
         e.plan_tp = {}
-        # stage->cid->reals  (risk (that e.ro_c[cid] is wrong))
+        # stage->pbcid->reals
+        # sample size wanted after next draw
+
         e.risk_tc = {}
-        e.contest_status_tc = {}  # stage->cid-> one of
-        # "Auditing", "Just Watching",
-        # "Risk Limit Reached", "Full Recount Needed"
+        # stage->cid->reals
+        # risk = probability that e.ro_c[cid] is wrong
+
+        e.contest_status_tc = {}
+        # stage->cid-> one of the following:
+        #     "Auditing",
+        #     "Just Watching",
+        #     "Risk Limit Reached",
+        #     "Full Recount Needed"
         # initially must be "Auditing" or "Just Watching"
-        e.election_status_t = {}  # stage->list of contest statuses, at most once each
+
+        e.election_status_t = {}
+        # stage->list of contest statuses, at most once each
+
         # sample info
-        # stage->pbcid->ints (number of ballots sampled so far)
+
         e.sn_tp = {}
-        e.av_cpb = {}             # cid->pbcid->bid->vote
+        # stage->pbcid->ints
+        # number of ballots sampled so far
+
+        e.av_cpb = {}
+        # cid->pbcid->bid->vote
         # (actual votes from sampled ballots)
-        # computed from the above
-        e.sn_tcpra = {}       # sample number: stage->cid->pbcid->rvote->avote->count
-        # (first vote is reported vote, second is actual vote)
-        e.sn_tcpr = {}        # sample number stage->cid->pbcid->vote->count
-        # sample number by stage, contest, pbcid, and reported vote"
+
+        # computed from the above sample data
+
+        e.sn_tcpra = {}
+        # sampled number: stage->cid->pbcid->rvote->avote->count
+        # first vote r is reported vote, second vote a is actual vote
+
+        e.sn_tcpr = {}
+        # sampled number stage->cid->pbcid->vote->count
+        # sampled number by stage, contest, pbcid, and reported vote
 
 
 ##############################################################################
 # Low level i/o for reading election data structure
-
 
 def load_part_from_json(e, part_name):
 
@@ -336,9 +414,13 @@ def unpack_json_key(key):
 
 
 def unpack_json_keys(d):
-    """ Replace in place all string keys in dict d by equivalent unpacked tuples. """
+    """ 
+    Replace in place all string keys in dict d by equivalent unpacked tuples. 
+    """
 
-    key_list = d.keys()             # use copy of key_list since d is mutated
+    # use copy of key_list since d is mutated
+    key_list = d.keys()
+
     for key in key_list:
         if isinstance(key, str):
             key_tuple = unpack_json_key(key)
@@ -363,13 +445,15 @@ def get_election_structure(e):
 
 def finish_election_structure(e):
 
+    noCVRvote = ("-noCVR",)
+
     for cid in e.cids:
         e.votes_c[cid] = {}
         for selid in e.selids_c[cid]:
             e.votes_c[cid][(selid,)] = True
         for pbcid in e.rel_cp[cid]:
             if e.collection_type_p[pbcid] == "noCVR":
-                e.votes_c[cid][("-noCVR",)] = True
+                e.votes_c[cid][noCVRvote] = True
 
 
 def check_id(id, check_for_whitespace=False):
@@ -478,6 +562,88 @@ def show_election_structure(e):
             myprint(selid, end=' ')
         myprint()
 
+
+##############################################################################
+# Generate synthetic data
+##############################################################################
+
+def compute_rv(e, cid, pbcid, bid, vote):
+    """
+    Compute synthetic reported vote for e.rv_cpb[cid][pbcid][bid]
+    based on whether pbcid is CVR or noCVR, and based on
+    a prior for errors.  Input vote is the actual vote.
+    e.error_rate (default 0.0001) is chance that 
+    reported vote differs from actual vote.  If they differ, 
+    then all possibilities (including original vote)
+    are equally likely to occur.
+    Only generates votes with a single selid.
+    TODO: ensure that we get "-Invalids" etc. too
+    """
+
+    if e.collection_type_p[pbcid] == "noCVR":
+        return ("-noCVR",)
+    # Otherwise, we generate a reported vote
+    # m = number of selection options for this cid
+    m = len(e.selids_c[cid])
+    if syntheticRandomState.uniform() > e.error_rate or m <= 1:
+        # no error is typical case
+        return vote
+    else:
+        # generate "error" (may be the same as original vote)
+        selids = list(e.selids_c[cid])
+        return (syntheticRandomState.choice(selids),)
+
+
+def compute_synthetic_selections(e):
+    """
+    Make up reported and actual votes and randomly permute their order.
+    Only useful for test elections, not for real elections.
+    Form of bid is e.g. PBC1-00576
+    """
+
+    global syntheticRandomState
+    syntheticRandomState = np.random.RandomState(e.synthetic_seed)
+
+    # make up bids
+    for pbcid in e.pbcids:
+        e.bids_p[pbcid] = list()
+        i = 0
+        for j in range(i, i + e.rn_p[pbcid]):
+            bid = pbcid + "-" + "%05d" % j
+            e.bids_p[pbcid].append(bid)
+        i += e.rn_p[pbcid]
+
+    # get rn_cr from syn_rn_cr
+    # (needs to be computed early, in order to make up votes)
+    for cid in e.cids:
+        e.rn_cr[cid] = {}
+        for vote in e.syn_rn_cr[cid]:
+            e.rn_cr[cid][vote] = e.syn_rn_cr[cid][vote]
+
+    # make up votes
+    for cid in e.cids:
+        e.rv_cpb[cid] = {}
+        e.av_cpb[cid] = {}
+        # make up all votes first, so overall tally for cid is right
+        votes = []
+        for vote in e.rn_cr[cid]:
+            votes.extend([vote] * e.rn_cr[cid][vote])
+        syntheticRandomState.shuffle(votes)          # in-place shuffle
+        # break list of votes up into pieces by pbcid
+        i = 0
+        for pbcid in e.rel_cp[cid]:
+            e.av_cpb[cid][pbcid] = {}
+            e.rv_cpb[cid][pbcid] = {}
+            for j in range(e.rn_p[pbcid]):
+                bid = e.bids_p[pbcid][j]
+                vote = votes[j]
+                av = vote
+                e.av_cpb[cid][pbcid][bid] = av
+                rv = compute_rv(e, cid, pbcid, bid, vote)
+                e.rv_cpb[cid][pbcid][bid] = rv
+            i += e.rn_p[pbcid]
+
+
 ##############################################################################
 # Election data I/O and validation (stuff that depends on cast votes)
 ##############################################################################
@@ -496,8 +662,10 @@ def is_error_selid(selid):
 def get_election_data(e):
 
     load_part_from_json(e, "data.js")
-    # fix up json vote encodings, if needed
-    # need to do before synthetic data generated
+    # fix up json vote encodings for votes in
+    #   e.rn_cpr[cid][pbcid]
+    #   e.syn_rn_cr[cid]
+    # need to do latter before synthetic data generated
     for cid in e.rn_cpr:
         unpack_json_keys(e.syn_rn_cr[cid])
         for pbcid in e.rn_cpr[cid]:
@@ -558,80 +726,10 @@ def finish_election_data(e):
                 e.rn_cr[cid][vote] += e.rn_cpr[cid][pbcid][vote]
 
 
-def compute_rv(e, cid, pbcid, bid, vote):
-    """
-    [[[ For synthetic generation of reported votes ]]]
-    Compute reported vote for e.rv_cpb[cid][pbcid][bid]
-    based on whether pbcid is CVR or noCVR, and based on
-    a prior for errors.  Input vote is the actual vote.
-    e.error_rate (default 0.0001) is chance that 
-    reported vote differs from actual vote.  If they differ, 
-    then all possibilities (including original vote)
-    are equally likely to occur.
-    Only generates votes with a single selid.
-    TODO: ensure that we get "-Invalids" etc. too
-    """
-    if e.collection_type_p[pbcid] == "noCVR":
-        return ("-noCVR",)
-    # Otherwise, we generate a reported vote
-    # number of selection options for this cid
-    m = len(e.selids_c[cid])
-    if syntheticRandomState.uniform() > e.error_rate or m <= 1:
-        return vote                 # no error is typical case
-    selids = list(e.selids_c[cid])
-    return (syntheticRandomState.choice(selids),)
-
-
-def compute_synthetic_selections(e):
-    """
-    Make up reported and actual votes and randomly permute their order.
-    Only useful for test elections, not for real elections.
-    Form of bid is e.g. PBC1-00576
-    """
-
-    global syntheticRandomState
-    syntheticRandomState = np.random.RandomState(e.synthetic_seed)
-    # make up bids
-    for pbcid in e.pbcids:
-        e.bids_p[pbcid] = list()
-        i = 0
-        for j in range(i, i + e.rn_p[pbcid]):
-            bid = pbcid + "-" + "%05d" % j
-            e.bids_p[pbcid].append(bid)
-        i += e.rn_p[pbcid]
-    # get rn_cr from syn_rn_cr (needs to be computed early, in order to make
-    # up votes)
-    for cid in e.cids:
-        e.rn_cr[cid] = {}
-        for vote in e.syn_rn_cr[cid]:
-            e.rn_cr[cid][vote] = e.syn_rn_cr[cid][vote]
-    # make up votes
-    for cid in e.cids:
-        e.rv_cpb[cid] = {}
-        e.av_cpb[cid] = {}
-        # make up all votes first, so overall tally for cid is right
-        votes = []
-        for vote in e.rn_cr[cid]:
-            votes.extend([vote] * e.rn_cr[cid][vote])
-        syntheticRandomState.shuffle(votes)          # in-place shuffle
-        # break list of votes up into pieces by pbcid
-        i = 0
-        for pbcid in e.rel_cp[cid]:
-            e.av_cpb[cid][pbcid] = {}
-            e.rv_cpb[cid][pbcid] = {}
-            for j in range(e.rn_p[pbcid]):
-                bid = e.bids_p[pbcid][j]
-                vote = votes[j]
-                av = vote
-                e.av_cpb[cid][pbcid][bid] = av
-                rv = compute_rv(e, cid, pbcid, bid, vote)
-                e.rv_cpb[cid][pbcid][bid] = rv
-            i += e.rn_p[pbcid]
-
-
 def check_election_data(e):
 
-    assert isinstance(e.rn_cpr, dict)
+    if not isinstance(e.rn_cpr, dict):
+        myerror("e.rn_cpr is not a dict.")
     for cid in e.rn_cpr:
         if cid not in e.cids:
             mywarning("cid `{}` not in e.cids.".format(cid))
@@ -642,15 +740,18 @@ def check_election_data(e):
                 for selid in vote:
                     if selid not in e.selids_c[cid] and selid[0].isalnum():
                         mywarning(
-                            "selid `{}` is not in e.selids_c[{}].".format(selid, cid))
+                            "selid `{}` is not in e.selids_c[{}]."
+                            .format(selid, cid))
                 if not isinstance(e.rn_cpr[cid][pbcid][vote], int):
                     mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
                               .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote]))
                 if not (0 <= e.rn_cpr[cid][pbcid][vote] <= e.rn_p[pbcid]):
                     mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
-                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote], e.rn_p[pbcid]))
+                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote],
+                                      e.rn_p[pbcid]))
                 if e.rn_cr[cid][vote] != \
-                        sum([e.rn_cpr[cid][pbcid][vote] for pbcid in e.rel_cp[cid]]):
+                        sum([e.rn_cpr[cid][pbcid][vote]
+                             for pbcid in e.rel_cp[cid]]):
                     mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
                               .format(cid, vote, cid, vote))
     for cid in e.cids:
@@ -662,7 +763,7 @@ def check_election_data(e):
                     "pbcid {} is not a key for e.rn_cpr[{}].".format(pbcid, cid))
             # for selid in e.selids_c[cid]:
             #     assert selid in e.rn_cpr[cid][pbcid], (cid, pbcid, selid)
-            # ## not necessary, since missing selids have assumed t of 0
+            # ## not necessary, since missing selids have assumed count of 0
 
     if not isinstance(e.rn_c, dict):
         myerror("e.rn_c is not a dict.")
@@ -851,6 +952,7 @@ def plurality(e, cid, tally):
     assert "No winner allowed in plurality contest.", tally
     return max_selid
 
+
 ##############################################################################
 # Audit I/O and validation
 ##############################################################################
@@ -954,6 +1056,7 @@ def compute_contest_risks(e, st):
     for cid in e.cids:
         compute_contest_risk(e, cid, st)
 
+
 ##############################################################################
 # Compute status of each contest and of election
 
@@ -1008,36 +1111,15 @@ def show_risks_and_statuses(e):
 
 
 ##############################################################################
-# Compute audit plan for next stage
-
-def compute_plan(e):
-    """ Compute a sampling plan for the next stage.
-        Put in e.plan_tp[e.stage] a dict of target sample sizes keyed by pbcid. 
-        Only input is contest statuses, pbcid audit rates, pbcid current
-        sample size, and pcbid size.
-    """
-
-    # for now, use simple strategy of looking at more ballots
-    # only in those paper ballot collections that are still being audited
-    e.plan_tp[e.stage] = e.sn_tp[e.stage].copy()
-    for cid in e.cids:
-        for pbcid in e.rel_cp[cid]:
-            if e.contest_status_tc[e.stage][cid] == "Auditing":
-                # if contest still being audited do as much as you can without
-                # exceeding size of paper ballot collection
-                e.plan_tp[e.stage][pbcid] = \
-                    min(e.sn_tp[e.stage][pbcid] +
-                        e.audit_rate_p[pbcid], e.rn_p[pbcid])
-    return
-
-
-##############################################################################
 # Audit parameters
 
 def get_audit_seed(e, args):
 
     global auditRandomState
-    e.audit_seed = args.audit_seed          # (might be None)
+
+    e.audit_seed = args.audit_seed
+    # audit_seed might be None if no command-line argument given
+
     auditRandomState = np.random.RandomState(e.audit_seed)
 
 
@@ -1202,12 +1284,36 @@ def show_audit_summary(e):
 
 
 ##############################################################################
+# Compute audit plan for next stage
+
+def compute_plan(e):
+    """ Compute a sampling plan for the next stage.
+        Put in e.plan_tp[e.stage] a dict of target sample sizes keyed by pbcid. 
+        Only input is contest statuses, pbcid audit rates, pbcid current
+        sample size, and pcbid size.
+    """
+
+    # for now, use simple strategy of looking at more ballots
+    # only in those paper ballot collections that are still being audited
+    e.plan_tp[e.stage] = e.sn_tp[e.stage].copy()
+    for cid in e.cids:
+        for pbcid in e.rel_cp[cid]:
+            if e.contest_status_tc[e.stage][cid] == "Auditing":
+                # if contest still being audited do as much as you can without
+                # exceeding size of paper ballot collection
+                e.plan_tp[e.stage][pbcid] = \
+                    min(e.sn_tp[e.stage][pbcid] +
+                        e.audit_rate_p[pbcid], e.rn_p[pbcid])
+    return
+
+
+##############################################################################
 # Input/output at the file-handling level
 
 def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
     """ 
-    Return the filename (or, optionally, directory name) in the given directory that
-    begins and ends with strings startswith and endswith, respectively.
+    Return the filename (or, optionally, directory name) in the given directory 
+    that begins and ends with strings startswith and endswith, respectively.
     If there is more than one such file, return the greatest (lexicographically)
     such filename.  Raise an error if there are no such files.
     The portion between the prefix startswith and the suffix endswith is called
