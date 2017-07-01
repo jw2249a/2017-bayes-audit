@@ -579,11 +579,30 @@ and a target value (nominally 0.05) for other contests.
 The ``max audit rate`` for a collection is the maximum number of
 ballots that can be examined in one stage.
 
-###  Random number generation
+An audit parameters file has a filename of the form
+``010-audit-parameters-11-23.csv`` (including version label).
 
-###  Sampling
+##  Random number generation
 
+The audit seed is fed into a cryptographic random number function,
+such as SHA256 used in counter mode.
 
+##  Sampling
+
+Sampling is done without replacement.
+
+## Output file formats (per stage)
+
+The outputs include a file ``020-audit-inputs.csv`` that gives the SHA256
+hashes of the files used as inputs to the computations of that stage.
+
+The output file ``030-audit-outputs.csv`` gives the detailed audit outputs
+for the stage.
+
+The file ``040-audit-plan.csv`` gives the workload estimates and auditing
+plan (broken down by collection) for the next stage.
+
+(More details to be determined.)
 
 
 
