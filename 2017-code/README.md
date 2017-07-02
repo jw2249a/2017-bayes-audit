@@ -33,7 +33,7 @@ produced by the scanner:
 * in a "**CVR collection**", the scanner produces an electronic **cast vote
   record** (CVR) for each paper ballot scanned, giving the choices made for each
   contest on that paper ballot.
-* in a "**noCVR** collection", the scanner does not produce a separate
+* in a "**noCVR collection**", the scanner does not produce a separate
   electronic record for each paper ballot scanned; it only produces a summary
   tally showing for each contest and each possible choice (vote) on that
   contest, how many ballots in the collection showed the given choice.
@@ -73,7 +73,7 @@ examined before the risk limit is reached and the audit stops.
 Contests that are very close, however, may require extensive sampling
 before the risk limits are reached.
 
-See Rivest (``Bayesian audits: Explained and Extended'', draft available
+See Rivest (''Bayesian audits: Explained and Extended'', draft available
 from author) for an expanded discussion of Bayesian audits.
 
 Bayesian risk-limiting audits are subtly different than the ``frequentist'' risk-limiting
@@ -188,7 +188,7 @@ tuple, such as
                      which is a write-in for Bob Smith.
 
 Implementation note: Within a json file, a vote is represented
-as a comma-separated string if selection ids:
+as a comma-separated string of selection ids:
 
     ""               for the empty sequence
 
@@ -340,14 +340,17 @@ A **contests file** is needed to specify the contests
 of the election, their type (e.g. plurality), whether
 write-ins are allowed, and the officially allowed selections.
 
-| Contest id    | Contest type | Write-ins | Selections | ...       |...         |...        |
-| ---           | ---          | ---       | ---        | ---       | ---        |---        |
-| DEN-prop-1    | Plurality    | No        | Yes        | No        |            |           |
-| DEN-prop-2    | Plurality    | No        | Yes        | No        |            |           |
-| DEN-mayor     | Plurality    | Yes       | John Smith | Bob Cat   | Mary Mee   |           |
-| LOG-mayor     | Plurality    | Yes       | Susan Hat  | Barry Su  | Benton Liu |           |
-| US-Senate-1   | Plurality    | Yes       | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day |
-| Boulder-clerk | IRV          | Yes       | Rock Ohn   | Peh Bull  | Roll Stone |           |
+| Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...        |...         |
+| ---             | ---          | ---       |---        | ---        | ---        |---        |---         |
+| DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
+| DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
+| DEN-mayor       | Plurality    | 1         | Yes       | John Smith | Bob Cat   | Mary Mee   |           |            |
+| LOG-mayor       | Plurality    | 1         | Yes       | Susan Hat  | Barry Su  | Benton Liu |           |            |
+| US-Senate-1     | Plurality    | 1         | Yes       | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day |            |
+| Boulder-clerk   | IRV          | 1         | Yes       | Rock Ohn   | Peh Bull  | Roll Stone |           |            |
+| Boulder-council | Plurality    | 4         | Yes       | Dave Diddle| Ben Borg  | Sue Mee    | Fan Tacy  | Jill Snead |
+
+Additional contest types may be supported as needed.
 
 This is a CSV file, with the name ``contests.csv`` (possibly with a version
 label, as in ``contests-09-06.csv``).
@@ -403,8 +406,12 @@ Here are the fields of a row of a reported vote file:
    For other contest types (e.g. approval voting) there may be more than
    one selection, so they are listed in columns 4, 5, ...
    In general, each selection id corresponds to a single bubble that
-   the voter has filled in on the paper ballot.  Preferential voting can
-   also be handled with these fields.
+   the voter has filled in on the paper ballot.
+
+   Preferential voting can also be handled with these fields, in which
+   case the order of the selections matters: the first selection is
+   the most favored, and so on.  With approval voting or vote-for-k
+   voting, the order of the selections doesn't matter.
 
    An undervote for a plurality vote will have columns 4-... blank,
    whereas an overvote will have more than one such column filled in.
