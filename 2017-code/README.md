@@ -716,15 +716,19 @@ the resulting information into directory
 
 This is **asynchronous**: collection managers can update
 their audited votes file whenever they are ready to do so.
-This updated does **not** need to be synchronized on a
-per-stage basis.
+These updates do **not** need to be synchronized on a
+per-stage basis.  (Note again that each updated audited-votes
+file contains *all* of the audited votes from the collection;
+they are cumulative.)  
 
-Audit Central determines when a stage is ready to start.
-A new stage-nnn subdirectory is created, and the audit
+### Audit stages
+
+Audit Central determines when a new audit stage is ready to start.
+A new ``stage-nnn`` subdirectory is created, and the audit
 computations begin, based on all available sampling data
-at the time the stage begins.
+(from ``060-audited-votes``) at the time the stage begins.
 
-The **audit parameters files** may be copied from the
+The **audit parameters files** for a stage may be copied from the
 previous stage, and possibly adjusted by hand by Audit
 Central to reflect pending deadlines, additional resources,
 etc.
