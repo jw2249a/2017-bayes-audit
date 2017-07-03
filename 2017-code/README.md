@@ -113,10 +113,6 @@ The election definition phase answers the questions:
 
 The data structures for ``multi.py`` use identifiers extensively.
 Identifiers are more-or-less arbitrary strings of characters.
-Identifiers may be used as part of a filename so it should preferably
-not contain blanks, special characters, or depend on capitalization.
-(Blanks could be used, but may require escaping in some contexts, e.g.,
-writing as "John\ Smith".)
 
 We have:
 
@@ -129,9 +125,6 @@ We have:
   optical scan bubble.
   A **write-in** selection has a selection id beginning with a plus
   sign (example: ``"+BobWhite"``).
-  (When the list of valid selections is given, we can list
-  ``"+"`` as a valid selection to indicate that
-  write-ins are allowed.)
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
@@ -147,15 +140,17 @@ We have:
   pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
 
-Identifiers must not contain embedded commas (because of the
-way we encode tuples of identifiers as json keys).
-Identifiers should preferably contain only characters from
-the set:
+Identifiers (usually collection identifiers) may be used as part of a filename.
+When this is done, the identifier is used in
+*reduced* form: all characters other than
+``A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_) period(.)``
+(especially blanks and whitespace) are removed, and then all
+lowercase characters are converted to uppercase for use in
+the filename.
 
-    A-Z   a-z   0-9  plus(+) hyphen(-) underscore(_) period(.)
+More generally, identifiers are used in reduced form internally in
+python.  So they are case and white-space insensitive.
 
-Other charcters, such as blanks, might also be usable, but may
-cause problems, as identifiers are used as parts of filenames.
 
 ### Votes
 
@@ -276,17 +271,19 @@ version labels.
     070-audit-stages
 
     ./010-structure:
-    election-2017-09-08.csv
-    contests-2017-09-08.csv
-    collections-2017-09-08.csv
+    010-election-2017-09-08.csv
+    020-contests-2017-09-08.csv
+    030-collections-2017-09-08.csv
 
     ./020-reported-votes:
-    REP-DEN-A01-2017-11-07.csv
-    REP-LOG-B13-2017-11-07.csv
+    reported-cvrs-DEN-A01-2017-11-07.csv
+    reported-cvrs-DEN-A02-2017-11-07.csv
+    reported-cvrs-LOG-B13-2017-11-07.csv
 
     ./030-ballot-manifests:
-    MAN-DEN-A01-2017-11-07.csv
-    MAN-LOG-B13-2017-11-07.csv
+    manifest-DEN-A01-2017-11-07.csv
+    manifest-DEN-A01-2017-11-07.csv
+    manifest-LOG-B13-2017-11-07.csv
 
     ./040-audit-seed:
     audit-seed-2017-11-20.csv
@@ -296,17 +293,19 @@ version labels.
     ORD-LOG-B13-2017-11-20.csv
 
     ./060-audited-votes:
-    SAM-DEN-A01-2017-11-21.csv
-    SAM-DEN-A01-2017-11-22.csv
-    SAM-LOG-B13-2017-11-21.csv
-    SAM-LOG-B13-2017-11-22.csv
+    audited-votes-DEN-A01-2017-11-21.csv
+    audited-votes-DEN-A01-2017-11-22.csv
+    audited-votes-DEN-A02-2017-11-21.csv
+    audited-votes-DEN-A02-2017-11-22.csv
+    audited-votes-LOG-B13-2017-11-21.csv
+    audited-votes-LOG-B13-2017-11-22.csv
 
     ./070-audit-stages:
-    001
-    002
-    003
+    audit-stage-001
+    audit-stage-002
+    audit-stage-003
 
-    ./070-audit-stages/001:
+    ./070-audit-stages/audit-stage-001:
     010-audit-parameters-global-2017-11-22.csv
     011-audit-parameters-contest-2017-11-22.csv
     012-audit-parameters-collection-2017-11-22.csv
@@ -314,7 +313,7 @@ version labels.
     030-audit-output-2017-11-22.csv
     040-audit-plan-2017-11-22.csv
 
-    ./070-audit-stages/002:
+    ./070-audit-stages/audit-stage-002:
     010-audit-parameters-global-2017-11-23.csv
     011-audit-parameters-contest-2017-11-23.csv
     012-audit-parameters-collection-2017-11-23.csv
@@ -322,7 +321,7 @@ version labels.
     030-audit-outputs-2017-11-23.csv
     040-audit-plan-2017-11.23.csv
 
-    ./070-audit-stages/003:
+    ./070-audit-stages/audit-stage-003:
 
  
 ## Election file
@@ -549,18 +548,21 @@ the audit.  Ballots must not be skipped during the audit.
 | LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |
 
 A sampling order file has a filename of the form
-``ORD-<pbcid>.csv``.  Example: ``ORD-DEN-A01-11-20.csv`` (including a version label).
+``sampling-order-<pbcid>.csv``.  Example:
+``sampling-order-DEN-A01-11-20.csv`` (including a version label).
 
-The sampling order ORD file and the reported vote REP file may be used
-with an appropriate UI interface to generate the sampled vote
-SAM file.  (With care to handling the case that the sampled ballot does not
+The sampling order file and the reported cvrs file may be used
+with an appropriate UI interface to generate the sampled cvrs
+file.  (With care to handling the case that the sampled ballot does not
 seem to be of the correct ballot style.)
 
 ## Audit parameters files
 
 An **audit parameters** file gives parameters used in the audit.  
-There are three such files: one for global parameters, one for
+There are *three* such files: one for global parameters, one for
 parameters by contest, and one for parameters by collection.
+
+### Global audit parameters
 
 The **global audit parameters file** is simple.
 
@@ -571,6 +573,8 @@ The **global audit parameters file** is simple.
 The filename is of the form
 ``010-audit-parameters-global-2017-11-23.csv``
 (showing a year-month-day version label).
+
+### Contest audit parameters
 
 The **contest audit parameters file** shows the audit measurements
 and risk limits that will be applied to each contest.  
@@ -625,6 +629,8 @@ The filename for a contest audit parameters file is of the form
 ``011-audit-parameters-contest-2017-11-23.csv``
 (showing a year-month-day version label).
 
+### Collection audit parameters
+
 A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
 
@@ -662,6 +668,8 @@ The file ``040-audit-plan.csv`` gives the workload estimates and auditing
 plan (broken down by collection) for the next stage.
 
 (More details to be determined.)
+
+
 
 
 

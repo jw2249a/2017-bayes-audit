@@ -399,8 +399,14 @@ def copy_dict_tree(dest, source):
                 dest[source_key] = source[source_key]
 
 
+# The following value is used as a separator when combining
+# several selids into a single string, so they can be used
+# as a json key, then unpacked into a tuple to be used as a
+# python dict key.  This value is long and random intentionally.
+JSON_PACKING_SEPARATOR = "-$|*;%2@-"
+
 def unpack_json_key(key):
-    """ Given a json dict key such as "A,B,C" 
+    """ Given a json dict key such as "A-$|*;%2@-B-$|*;%2@-C" 
         return equivalent tuple ("A","B","C")
         Return empty tuple (instead of ("",)) for empty string.
     """
@@ -408,7 +414,7 @@ def unpack_json_key(key):
     if key == "":
         return tuple()
     if isinstance(key, str):
-        return tuple(key.split(","))
+        return tuple(key.split(JSON_PACKING_SEPARATOR))
     else:
         return key
 
