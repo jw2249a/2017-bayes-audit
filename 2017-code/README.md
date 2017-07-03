@@ -615,7 +615,7 @@ convenient testing and comparison of different risk-measurement methods.
 that this is a bit of an apples-and-oranges comparison.)
 
 The filename for a contest audit parameters file is of the form
-``011-audit-parameters-contest-2017-11-22.csv``
+``11-audit-parameters-contest-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ### Collection audit parameters
@@ -633,7 +633,7 @@ the *max audit rate*, which is the maximum number of
 ballots that can be examined in one stage for that collection.
 
 The filename for a collection audit parameters file is of the form
-``012-audit-parameters-collection-2017-11-22.csv``
+``12-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ##  Random number generation
@@ -647,13 +647,13 @@ Sampling is done without replacement.
 
 ## Output file formats (per stage)
 
-The outputs include a file ``020-audit-inputs.csv`` that gives the SHA256
+The outputs include a file ``20-audit-inputs.csv`` that gives the SHA256
 hashes of the files used as inputs to the computations of that stage.
 
-The output file ``030-audit-outputs.csv`` gives the detailed audit outputs
+The output file ``30-audit-outputs.csv`` gives the detailed audit outputs
 for the stage.
 
-The file ``040-audit-plan.csv`` gives the workload estimates and auditing
+The file ``40-audit-plan.csv`` gives the workload estimates and auditing
 plan (broken down by collection) for the next stage.
 
 (More details to be determined.)
@@ -689,12 +689,12 @@ Produce random audit seed, put it into directory/file
        311-audit-seed.csv
 
 Produce random sampling orders from audit seed, put
-these per-collection files into
+these per-collection files into directory
 
     312-sampling-orders
 
 Produce first *plan* for the audit, put this information
-into 
+into directory/file:
 
     33-audit-stages
        audit-stage-000
