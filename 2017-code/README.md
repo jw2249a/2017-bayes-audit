@@ -140,17 +140,17 @@ We have:
   pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
 
-Identifiers (usually collection identifiers) may be used as part of a filename.
-When this is done, the identifier is used in
-*reduced* form: all characters other than
-``A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_) period(.)``
-(especially blanks and whitespace) are removed, and then all
-lowercase characters are converted to uppercase for use in
-the filename.
+Identifiers are converted to "reduced" form when first encountered, by
+removing any initial or final whitespace characters, and converting
+any internal subsequence of two or more whitespace characters to a
+single blank.
 
-More generally, identifiers are used in reduced form internally in
-python.  So they are case and white-space insensitive.
+When an identifier (usually a collection identifier) is used as part
+of a filename, all characters in the identifier other than
 
+    A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_) period(.)
+
+are removed.
 
 ### Votes
 
@@ -669,7 +669,80 @@ plan (broken down by collection) for the next stage.
 
 (More details to be determined.)
 
+## Audit workflow
 
+This section describes the audit workflow, from the point of
+view of the audit participants (AC coordinator, collection manager,
+observer).
+
+### Pre-election
+
+Defines election structure, global parameters, contests, and collections.
+Goes into directory:
+
+    010-structure
+
+### Election
+
+Gathers cast vote records, organizes paper ballots into collections,
+and produces ballot manifests.
+Goes into directories:
+
+    020-reported-votes
+    030-ballot-manifests
+
+### Setup audit
+
+Produce random audit seed, put it into directory
+
+    040-audit-seed
+
+Produce random sampling orders from audit seed, put
+these per-collection files into
+
+    050-sampling-orders
+
+Produce first *plan* for the audit, put this information
+into 
+
+    050-audit-stages/stage-000/040-plan.csv
+
+### Start audit
+
+Collection managers start sampling ballots, and putting
+the resulting information into directory
+
+    060-audited-votes
+
+This is **asynchronous**: collection managers can update
+their audited votes file whenever they are ready to do so.
+This updated does **not** need to be synchronized on a
+per-stage basis.
+
+Audit Central determines when a stage is ready to start.
+A new stage-nnn subdirectory is created, and the audit
+computations begin, based on all available sampling data
+at the time the stage begins.
+
+The **audit parameters files** may be copied from the
+previous stage, and possibly adjusted by hand by Audit
+Central to reflect pending deadlines, additional resources,
+etc.
+
+The **audit inputs** lists the audited vote files used
+in the audit computations.
+
+The **audit outputs** file(s) give the measured risks.
+
+The computation of Audit Central determines which measurements
+have now reached their risk limits, so that certain collection
+managers may be told that their work is completed.
+
+The **audit plan** gives estimated workloads (amount of work
+remaining) for each collection manager, and provides guidelines
+on how to allocate the work between collections (if there is
+an exploitable tradeoff, to reduce overall workload). (Some
+optimization may be applied here.)
 
 
 
