@@ -546,6 +546,11 @@ An **audit parameters** file gives parameters used in the audit.
 There are *three* such files: one for global parameters, one for
 parameters by contest, and one for parameters by collection.
 
+These audit parameters files are **per stage**, since they may
+be updated from stage to stage.  Typically, however, they will not
+change, and the audit parameters for one stage will just be a
+copy of the audit parameters from the previous stage.
+
 ### Global audit parameters
 
 The **global audit parameters file** is simple.
@@ -555,7 +560,7 @@ The **global audit parameters file** is simple.
 | max audit stages       | 20    |
 
 The filename is of the form
-``010-audit-parameters-global-2017-11-22.csv``
+``10-audit-parameters-global-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ### Contest audit parameters
