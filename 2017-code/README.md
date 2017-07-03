@@ -263,7 +263,7 @@ a new file with a later date is just added to the directory.
 
 ###  Directory structure
 
-Something like the following.  Here we use "month-day" as
+Something like the following.  Here we use "year-month-day" 
 version labels.
 
     $ ls -R
@@ -276,30 +276,30 @@ version labels.
     070-audit-stages
 
     ./010-structure:
-    election-09-08.csv
-    contests-09-08.csv
-    collections-09-08.csv
+    election-2017-09-08.csv
+    contests-2017-09-08.csv
+    collections-2017-09-08.csv
 
     ./020-reported-votes:
-    REP-DEN-A01-11-07.csv
-    REP-LOG-B13-11-07.csv
+    REP-DEN-A01-2017-11-07.csv
+    REP-LOG-B13-2017-11-07.csv
 
     ./030-ballot-manifests:
-    MAN-DEN-A01-11-07.csv
-    MAN-LOG-B13-11-07.csv
+    MAN-DEN-A01-2017-11-07.csv
+    MAN-LOG-B13-2017-11-07.csv
 
     ./040-audit-seed:
-    audit-seed-11-20.csv
+    audit-seed-2017-11-20.csv
 
     ./050-sampling-orders:
-    ORD-DEN-A01-11-20.csv
-    ORD-LOG-B13-11-20.csv
+    ORD-DEN-A01-2017-11-20.csv
+    ORD-LOG-B13-2017-11-20.csv
 
     ./060-audited-votes:
-    SAM-DEN-A01-11-21.csv
-    SAM-DEN-A01-11-22.csv
-    SAM-LOG-B13-11-21.csv
-    SAM-LOG-B13-11-22.csv
+    SAM-DEN-A01-2017-11-21.csv
+    SAM-DEN-A01-2017-11-22.csv
+    SAM-LOG-B13-2017-11-21.csv
+    SAM-LOG-B13-2017-11-22.csv
 
     ./070-audit-stages:
     001
@@ -307,16 +307,20 @@ version labels.
     003
 
     ./070-audit-stages/001:
-    010-audit-parameters-11-22.csv
-    020-audit-inputs-11-22.csv
-    030-audit-output-11-22.csv
-    040-audit-plan-11-22.csv
+    010-audit-parameters-global-2017-11-22.csv
+    011-audit-parameters-contest-2017-11-22.csv
+    012-audit-parameters-collection-2017-11-22.csv
+    020-audit-inputs-2017-11-22.csv
+    030-audit-output-2017-11-22.csv
+    040-audit-plan-2017-11-22.csv
 
     ./070-audit-stages/002:
-    010-audit-parameters-11-23.csv
-    020-audit-inputs-11-23.csv
-    030-audit-outputs-11-23.csv
-    040-audit-plan-11.23.csv
+    010-audit-parameters-global-2017-11-23.csv
+    011-audit-parameters-contest-2017-11-23.csv
+    012-audit-parameters-collection-2017-11-23.csv
+    020-audit-inputs-2017-11-23.csv
+    030-audit-outputs-2017-11-23.csv
+    040-audit-plan-2017-11.23.csv
 
     ./070-audit-stages/003:
 
@@ -551,44 +555,90 @@ with an appropriate UI interface to generate the sampled vote
 SAM file.  (With care to handling the case that the sampled ballot does not
 seem to be of the correct ballot style.)
 
-## Audit parameters file
+## Audit parameters files
 
-An **audit parameters** file gives parameters used in the audit.  These
-parameters may be global, or specific to particular contests or
-collections.
+An **audit parameters** file gives parameters used in the audit.  
+There are three such files: one for global parameters, one for
+parameters by contest, and one for parameters by collection.
 
-Here is a sample audit parameters file:
+The **global audit parameters file** is simple.
 
-| Parameter            | For           | Value           |
-| ---                  | ---           | ---             |
-| max stages           |               | 20              |
-| audit status         | DEN-prop-1    | Auditing        |
-| risk limit           | DEN-prop-1    | 0.05            |
-| audit status         | DEN-prop-2    | Just Watching   |
-| risk limit           | DEN-prop-2    | 1.00            |
-| audit status         | DEN-mayor     | Auditing        |
-| risk limit           | DEN-mayor     | 0.05            |
-| audit status         | LOG-mayor     | Auditing        |
-| risk limit           | LOG-mayor     | 0.05            |
-| audit status         | US-Senate-1   | Auditing        |
-| risk limit           | US-Senate-1   | 0.025           |
-| audit status         | Boulder-clerk | Just Watching   |
-| risk limit           | Boulder-clerk | 1.00            |
-| bayes pseudocount    |               | 10              |
-| max audit rate       | DEN-A01       | 60              |
-| max audit rate       | LOG-B13       | 60              |
+| Global Audit Parameter | Value |
+| ---                    | ---   |
+| max audit stages       | 20    |
 
-Each contest should initially have a status of ``Just Watching``, or
-``Auditing``.
+The filename is of the form
+``010-audit-parameters-global-2017-11-23.csv``
+(showing a year-mont-day version label).
 
-The ``risk limit`` should be 1.00 for a ``Just Watching`` contest,
-and a target value (nominally 0.05) for other contests.
+The **contest audit parameters file** shows the audit measurements
+and risk limits that will be applied to each contest.  
 
-The ``max audit rate`` for a collection is the maximum number of
-ballots that can be examined in one stage.
+Here is a sample contest audit parameters file:
 
-An audit parameters file has a filename of the form
-``010-audit-parameters-11-23.csv`` (including version label).
+| Contest              | Risk Measurement Method | Risk Limit | Risk Threshold for Recount | Parameter 1 | Parameter 2 |
+| ---                  | ---                     | ---        | ---                        | ---         | ---         |
+| DEN-prop-1           | Bayes                   | 0.05       | 0.95                       |             |             |
+| DEN-prop-2           | Bayes                   | 1.00       | 1.00                       |             |             |
+| DEN-mayor            | Bayes                   | 0.05       | 0.95                       |             |             |
+| LOG-mayor            | Bayes                   | 0.05       | 0.95                       |             |             |
+| US-Senate-1          | Bayes                   | 0.05       | 0.95                       |             |             |
+| Boulder-clerk        | Bayes                   | 1.00       | 1.00                       |             |             |
+| Boulder-council      | Bayes                   | 1.00       | 1.00                       |             |             |
+| Boulder-council      | Frequentist             | 0.05       | 0.95                       |             |             |
+
+
+Each line describes a risk measurement that will be done on the specified contest
+(given in the first column) at the end of each stage.  The measured risk will
+be a value between 0.00 and 1.00; larger values correspond to more risk.
+
+The third column specifies the **risk limit** for that measurement.  If the
+measured risk is less than the risk limit, then that measurement **passes**.
+When all risk measurements pass, the audit stops.
+
+If the risk limit is 1.00, then the measurement will still always be made, but
+the measurement always passes.  Specifying a risk limit of 1.00 means that the
+contest is subject to *opportunistic auditing*---risk measurements will be made but
+only opportunistically (ballots sampled for other contests may cause interpretation
+of these contests, giving information about the risk).  
+
+The fourth column specifies the **risk threshold for recount**.  If the measured
+risk exceeds the risk threshold for recount, then the auditing program will cease
+to sample more ballots in order to measure the risk of this contest, since it is
+apparent that the reported outcome is incorrect and a full recount must be
+performed.
+
+Columns 5 and later specify additional parameters that might be needed for the
+risk measurement.  (None shown here, but something like the "Bayes pseudocount"
+might be one for the Bayes method.)
+
+It is perhaps important to note that **a contest can participate in more
+than one measurement**.  In the example shown above, the last contest
+(Boulder-council) has *two* measurements specified: one by a Bayes method
+and one by a frequentist (RLA) method.  This flexibility may allow more
+convenient testing and comparison of different risk-measurement methods.
+(Although it should be noted that the notions of ``risk'' may differ, so
+that this is a bit of an apples-and-oranges comparison.)
+
+The filename for a contest audit parameters file is of the form
+``011-audit-parameters-contest-2017-11-23.csv``
+(showing a year-mont-day version label).
+
+A **collection audit parameters file** gives audit parameters that
+are specific to each collection.
+
+| Collection     | max audit rate  |
+|---             |---              |
+|  DEN-A01       | 50              |
+|  LOG-B13       | 60              |
+
+At this point, we only have one collection-specific audit parameter:
+the *max audit rate*, which is the maximum number of
+ballots that can be examined in one stage for that collection.
+
+The filename for a collection audit parameters file is of the form
+``012-audit-parameters-contest-2017-11-23.csv``
+(showing a year-mont-day version label).
 
 ##  Random number generation
 
