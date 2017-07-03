@@ -1,4 +1,4 @@
-# Documentation for multi.py (Bayeian audit support program)
+# Documentation for multi.py (Bayesian audit support program)
 
 ``multi.py`` is Python3 software (or suite of programs) to support
 the post-election auditing of elections with multiple contests and
