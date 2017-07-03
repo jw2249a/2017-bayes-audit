@@ -261,68 +261,52 @@ a new file with a later date is just added to the directory.
 Something like the following.  Here we use "year-month-day" 
 version labels.
 
-    $ ls -R
-    010-structure
-    020-reported-votes
-    030-ballot-manifests
-    040-audit-seed
-    050-sampling-orders
-    060-audited-votes
-    070-audit-stages
+    1-structure
+       11-election-2017-09-08.csv
+       12-contests-2017-09-08.csv
+       13-collections-2017-09-08.csv
 
-    ./010-structure:
-    010-election-2017-09-08.csv
-    020-contests-2017-09-08.csv
-    030-collections-2017-09-08.csv
+    2-election
+       21-reported-votes
+          reported-cvrs-DEN-A01-2017-11-07.csv
+          reported-cvrs-DEN-A02-2017-11-07.csv
+          reported-cvrs-LOG-B13-2017-11-07.csv
+       22-ballot-manifests
+          manifest-DEN-A01-2017-11-07.csv
+          manifest-DEN-A01-2017-11-07.csv
+          manifest-LOG-B13-2017-11-07.csv
 
-    ./020-reported-votes:
-    reported-cvrs-DEN-A01-2017-11-07.csv
-    reported-cvrs-DEN-A02-2017-11-07.csv
-    reported-cvrs-LOG-B13-2017-11-07.csv
-
-    ./030-ballot-manifests:
-    manifest-DEN-A01-2017-11-07.csv
-    manifest-DEN-A01-2017-11-07.csv
-    manifest-LOG-B13-2017-11-07.csv
-
-    ./040-audit-seed:
-    audit-seed-2017-11-20.csv
-
-    ./050-sampling-orders:
-    ORD-DEN-A01-2017-11-20.csv
-    ORD-LOG-B13-2017-11-20.csv
-
-    ./060-audited-votes:
-    audited-votes-DEN-A01-2017-11-21.csv
-    audited-votes-DEN-A01-2017-11-22.csv
-    audited-votes-DEN-A02-2017-11-21.csv
-    audited-votes-DEN-A02-2017-11-22.csv
-    audited-votes-LOG-B13-2017-11-21.csv
-    audited-votes-LOG-B13-2017-11-22.csv
-
-    ./070-audit-stages:
-    audit-stage-001
-    audit-stage-002
-    audit-stage-003
-
-    ./070-audit-stages/audit-stage-001:
-    010-audit-parameters-global-2017-11-22.csv
-    011-audit-parameters-contest-2017-11-22.csv
-    012-audit-parameters-collection-2017-11-22.csv
-    020-audit-inputs-2017-11-22.csv
-    030-audit-output-2017-11-22.csv
-    040-audit-plan-2017-11-22.csv
-
-    ./070-audit-stages/audit-stage-002:
-    010-audit-parameters-global-2017-11-23.csv
-    011-audit-parameters-contest-2017-11-23.csv
-    012-audit-parameters-collection-2017-11-23.csv
-    020-audit-inputs-2017-11-23.csv
-    030-audit-outputs-2017-11-23.csv
-    040-audit-plan-2017-11.23.csv
-
-    ./070-audit-stages/audit-stage-003:
-
+    3-audit
+       31-setup
+          311-audit-seed-2017-11-20.csv
+          312-sampling-orders
+             sampling-order-DEN-A01-2017-11-20.csv
+             sampling-order-DEN-A02-2017-11-20.csv
+             sampling-order-LOG-B13-2017-11-20.csv
+       32-audited-votes
+          audited-votes-DEN-A01-2017-11-21.csv
+          audited-votes-DEN-A01-2017-11-22.csv
+          audited-votes-DEN-A02-2017-11-21.csv
+          audited-votes-DEN-A02-2017-11-22.csv
+          audited-votes-LOG-B13-2017-11-21.csv
+          audited-votes-LOG-B13-2017-11-22.csv
+       33-audit-stages
+          audit-stage-001
+             10-audit-parameters-global-2017-11-22.csv
+             11-audit-parameters-contest-2017-11-22.csv
+             12-audit-parameters-collection-2017-11-22.csv
+             20-audit-inputs-2017-11-22.csv
+             30-audit-output-2017-11-22.csv
+             40-audit-plan-2017-11-22.csv
+          audit-stage-002
+             10-audit-parameters-global-2017-11-23.csv
+             11-audit-parameters-contest-2017-11-23.csv
+             12-audit-parameters-collection-2017-11-23.csv
+             20-audit-inputs-2017-11-23.csv
+             30-audit-outputs-2017-11-23.csv
+             40-audit-plan-2017-11.23.csv
+          audit-stage-003
+             ...
  
 ## Election file
 
@@ -334,8 +318,8 @@ An **election file** gives some high-level attributes of the election.
 | Election date | 2017-11-07                              |
 | Election info | https://sos.co.gov/election/2017-11-07/ |
 
-This is a CSV file, with the name ``010-election.csv`` (possibly with a version
-label, as in ``010-election-2017-08-11.csv``).
+This is a CSV file, with the name ``11-election.csv`` (possibly with a version
+label, as in ``11-election-2017-09-08.csv``).
 
 ## Contests file
 
@@ -355,8 +339,8 @@ write-ins are allowed, and the officially allowed selections.
 
 Additional contest types may be supported as needed.
 
-This is a CSV file, with the name ``020-contests.csv`` (possibly with a version
-label, as in ``020-contests-2017-09-06.csv``).
+This is a CSV file, with the name ``12-contests.csv`` (possibly with a version
+label, as in ``12-contests-2017-09-08.csv``).
 
 ## Collections file
 
@@ -371,8 +355,8 @@ and a list of contests that may appear on ballots in that collection.
 | DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
 
-This is a CSV file, with the name ``030-collections.csv`` (possibly with a version
-label, as in ``030-collections-09-06.csv``).
+This is a CSV file, with the name ``13-collections.csv`` (possibly with a version
+label, as in ``13-collections-09-08.csv``).
 
 Note that this representation doesn't represent the common notion of
 a "ballot style," where a style can viewed as a set of contests that
@@ -447,7 +431,7 @@ row has a write-in for Harry Potter.  The last row represents a vote that
 is invalid for some unspecified reason.
 
 The reported vote file will have a name of the form
-``cvrs-<bcid>.csv``, possibly
+``reported-cvrs-<bcid>.csv``, possibly
 with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
 
 ## Sample vote file (actual vote file)
@@ -486,14 +470,14 @@ Compared to the reported vote file above, we note a discrepancy in the
 interpretation of contest ``DEN-prop-2`` for ballot ``B-231``: the scanner showed
 an undervote, while the hand examination showed a ``No`` vote.
 
-The sample vote file will have a name of the form ``SAM-<bcid>.csv``, possibly
-with a version label.  An example filename: ``SAM-DEN-A01-11-09.csv``.
+The sample vote file will have a name of the form ``audited-votes-<bcid>.csv``, possibly
+with a version label.  An example filename: ``audited-votes-DEN-A01-2017-11-21.csv``.
 
 As noted elsewhere, if the sample is expanded, then the new sample vote file will
 contain records for not only the newly examined ballots, but also for the previously
 examined ballots.
-The file ``SAM-DEN-A01-11-10.csv`` will be an augmented version of the file
-``SAM-DEN-A01-11-09.csv``.
+The file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
+``audited-votes-DEN-A01-2017-11-21.csv``.
 
 ## Audit seed file
 
@@ -509,7 +493,7 @@ times.  This should be done **after** the reported votes have been
 collected and published by Audit Central.
 
 The audit seed file has a filename of the form
-``audit-seed-11-20.csv`` or the like (shown here
+``311-audit-seed-2017-11-20.csv`` or the like (shown here
 with a version label).
 
 
@@ -528,7 +512,7 @@ the ballot id).
 | LOG-B13       | 5              | C-0001    | Box 002 no 0001   |
 
 A ballot manifest file has a filename of the form
-``MAN-<pbcid>.csv``, e.g. ``MAN-DEN-A01-11-07.csv``
+``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
 (possibly with a version label, as exemplified).
 
 ## Sampling order file
@@ -549,7 +533,7 @@ the audit.  Ballots must not be skipped during the audit.
 
 A sampling order file has a filename of the form
 ``sampling-order-<pbcid>.csv``.  Example:
-``sampling-order-DEN-A01-11-20.csv`` (including a version label).
+``sampling-order-DEN-A01-2017-11-20.csv`` (including a version label).
 
 The sampling order file and the reported cvrs file may be used
 with an appropriate UI interface to generate the sampled cvrs
@@ -571,7 +555,7 @@ The **global audit parameters file** is simple.
 | max audit stages       | 20    |
 
 The filename is of the form
-``010-audit-parameters-global-2017-11-23.csv``
+``010-audit-parameters-global-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ### Contest audit parameters
@@ -626,7 +610,7 @@ convenient testing and comparison of different risk-measurement methods.
 that this is a bit of an apples-and-oranges comparison.)
 
 The filename for a contest audit parameters file is of the form
-``011-audit-parameters-contest-2017-11-23.csv``
+``011-audit-parameters-contest-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ### Collection audit parameters
@@ -644,7 +628,7 @@ the *max audit rate*, which is the maximum number of
 ballots that can be examined in one stage for that collection.
 
 The filename for a collection audit parameters file is of the form
-``012-audit-parameters-contest-2017-11-23.csv``
+``012-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
 
 ##  Random number generation
@@ -680,7 +664,7 @@ observer).
 Defines election structure, global parameters, contests, and collections.
 Goes into directory:
 
-    010-structure
+    1-structure
 
 ### Election
 
@@ -688,31 +672,35 @@ Gathers cast vote records, organizes paper ballots into collections,
 and produces ballot manifests.
 Goes into directories:
 
-    020-reported-votes
-    030-ballot-manifests
+    2-election
+      21-reported-votes
+      22-ballot-manifests
 
 ### Setup audit
 
-Produce random audit seed, put it into directory
+Produce random audit seed, put it into directory/file
 
-    040-audit-seed
+    31-setup
+       311-audit-seed.csv
 
 Produce random sampling orders from audit seed, put
 these per-collection files into
 
-    050-sampling-orders
+    312-sampling-orders
 
 Produce first *plan* for the audit, put this information
 into 
 
-    050-audit-stages/stage-000/040-plan.csv
+    33-audit-stages
+       audit-stage-000
+          40-audit-plan.csv
 
 ### Start audit
 
 Collection managers start sampling ballots, and putting
 the resulting information into directory
 
-    060-audited-votes
+    32-audited-votes
 
 This is **asynchronous**: collection managers can update
 their audited votes file whenever they are ready to do so.
@@ -726,7 +714,7 @@ they are cumulative.)
 Audit Central determines when a new audit stage is ready to start.
 A new ``stage-nnn`` subdirectory is created, and the audit
 computations begin, based on all available sampling data
-(from ``060-audited-votes``) at the time the stage begins.
+(from ``32-audited-votes``) at the time the stage begins.
 
 The **audit parameters files** for a stage may be copied from the
 previous stage, and possibly adjusted by hand by Audit
