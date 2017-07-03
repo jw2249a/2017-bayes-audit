@@ -335,8 +335,8 @@ An **election file** gives some high-level attributes of the election.
 | Election date | 2017-11-07                              |
 | Election info | https://sos.co.gov/election/2017-11-07/ |
 
-This is a CSV file, with the name ``election.csv`` (possibly with a version
-label, as in ``election-08-11.csv``).
+This is a CSV file, with the name ``010-election.csv`` (possibly with a version
+label, as in ``010-election-2017-08-11.csv``).
 
 ## Contests file
 
@@ -356,8 +356,8 @@ write-ins are allowed, and the officially allowed selections.
 
 Additional contest types may be supported as needed.
 
-This is a CSV file, with the name ``contests.csv`` (possibly with a version
-label, as in ``contests-09-06.csv``).
+This is a CSV file, with the name ``020-contests.csv`` (possibly with a version
+label, as in ``020-contests-2017-09-06.csv``).
 
 ## Collections file
 
@@ -372,8 +372,8 @@ and a list of contests that may appear on ballots in that collection.
 | DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
 
-This is a CSV file, with the name ``collections.csv`` (possibly with a version
-label, as in ``collections-09-06.csv``).
+This is a CSV file, with the name ``030-collections.csv`` (possibly with a version
+label, as in ``030-collections-09-06.csv``).
 
 Note that this representation doesn't represent the common notion of
 a "ballot style," where a style can viewed as a set of contests that
@@ -381,11 +381,11 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
-## Reported Vote file
+## Reported Vote file (CVRs)
 
 A **reported vote file** is a CSV format file containing a number of
 rows, where each row represents a voter's choices for a
-particular contest. 
+particular contest. These are the **cast vote records** of the election.
 
 The format is capable of representing votes in more
 complex voting schemes, like approval or instant runoff (IRV).
@@ -447,8 +447,9 @@ The second row is an undervote, and the third row is an overvote.  The sixth
 row has a write-in for Harry Potter.  The last row represents a vote that
 is invalid for some unspecified reason.
 
-The reported vote file will have a name of the ``REP-<bcid>.csv``, possibly
-with a version label.  An example filename: ``REP-DEN-A01-11-09.csv``.
+The reported vote file will have a name of the form
+``cvrs-<bcid>.csv``, possibly
+with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
 
 ## Sample vote file (actual vote file)
 
@@ -569,7 +570,7 @@ The **global audit parameters file** is simple.
 
 The filename is of the form
 ``010-audit-parameters-global-2017-11-23.csv``
-(showing a year-mont-day version label).
+(showing a year-month-day version label).
 
 The **contest audit parameters file** shows the audit measurements
 and risk limits that will be applied to each contest.  
@@ -590,7 +591,7 @@ Here is a sample contest audit parameters file:
 
 Each line describes a risk measurement that will be done on the specified contest
 (given in the first column) at the end of each stage.  The measured risk will
-be a value between 0.00 and 1.00; larger values correspond to more risk.
+be a value between 0.00 and 1.00, inclusive; larger values correspond to more risk.
 
 The third column specifies the **risk limit** for that measurement.  If the
 measured risk is less than the risk limit, then that measurement **passes**.
@@ -612,7 +613,7 @@ Columns 5 and later specify additional parameters that might be needed for the
 risk measurement.  (None shown here, but something like the "Bayes pseudocount"
 might be one for the Bayes method.)
 
-It is perhaps important to note that **a contest can participate in more
+Note that **a contest can participate in more
 than one measurement**.  In the example shown above, the last contest
 (Boulder-council) has *two* measurements specified: one by a Bayes method
 and one by a frequentist (RLA) method.  This flexibility may allow more
@@ -622,7 +623,7 @@ that this is a bit of an apples-and-oranges comparison.)
 
 The filename for a contest audit parameters file is of the form
 ``011-audit-parameters-contest-2017-11-23.csv``
-(showing a year-mont-day version label).
+(showing a year-month-day version label).
 
 A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
@@ -638,7 +639,7 @@ ballots that can be examined in one stage for that collection.
 
 The filename for a collection audit parameters file is of the form
 ``012-audit-parameters-contest-2017-11-23.csv``
-(showing a year-mont-day version label).
+(showing a year-month-day version label).
 
 ##  Random number generation
 
