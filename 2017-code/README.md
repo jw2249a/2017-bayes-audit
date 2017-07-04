@@ -34,6 +34,7 @@ We assume that the election has the following components:
 
 We assume that all the paper ballots in each collection have been **scanned** by
 an **optical scanner**.  There may be a different scanner for each collection.
+
 We distinguish two types of collections, according to the type of information
 produced by the scanner:
 * in a "**CVR collection**", the scanner produces an electronic **cast vote
@@ -43,8 +44,7 @@ produced by the scanner:
   electronic record for each paper ballot scanned; it only produces a summary
   tally showing for each contest and each possible choice (vote) on that
   contest, how many ballots in the collection showed the given choice.
-
-Note that some contests may be associated with collections of both types,
+Note that some contests may be associated with collections of both types:
 some CVR collections as well as some noCVR collections.
 
 We assume that the vote-casting, scanning, and subsequent storage
@@ -449,7 +449,7 @@ Here are the fields of a row of a reported vote file:
    since tuples are hashable and so may be used as keys in
    python dictionaries.
 
-**Example**: A reported vote file table from a scanner.  Here
+**Example**: A reported vote file table from a scanner in a CVR collection.  Here
 each row represents a single vote of a voter in a contest.  
 There are three voters (ballot ids ``B-231``, ``B-777``, and ``B888``) and three
 contests.
@@ -473,6 +473,26 @@ is invalid for some unspecified reason.
 The reported vote file will have a name of the form
 ``reported-cvrs-<bcid>.csv``, possibly
 with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
+
+**Example: If the reported vote file is for a noCVR collection, the "Ballot id"
+column is replaced by a "Tally" column:
+
+|Collection id   | Source | Tally       | Contest     | Selections     | ...       |
+|---             |---     | ---         | ---         | ---            | ---       |
+|LOG-B13         | L      | 2034        | LOG-mayor   | Susan Hat      |           |
+|LOG-B13         | L      | 1156        | LOG-mayor   | Barry Su       |           |
+|LOG-B13         | L      | 987         | LOG-mayor   | Benton Liu     |           |
+|LOG-B13         | L      | 3           | LOG-mayor   | -Invalid       |           |
+|LOG-B13         | L      | 1           | LOG-mayor   | +Lizard People |           |
+|LOG-B13         | L      | 3314        | US-Senate-1 | Rhee Pub       |           |
+|LOG-B13         | L      | 542         | US-Senate-1 | Deb O'Crat     |           |
+|LOG-B13         | L      | 216         | US-Senate-1 | Val Green      |           |
+|LOG-B13         | L      | 99          | US-Senate-1 | Sarah Day      |           |
+|LOG-B13         | L      | 9           | US-Senate-1 | +Long Shot     |           |
+|LOG-B13         | L      | 1           | US-Senate-1 | -Invalid       |           |
+
+This file format for noCVRs is also used for output tally files for CVR
+collections.
 
 ### Ballot manifest file
 
