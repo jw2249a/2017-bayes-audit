@@ -407,8 +407,8 @@ collection.
 ### Reported Vote file (CVRs)
 
 A **reported vote file** is a CSV format file containing a number of
-rows, where each row represents a voter's choices for a
-particular contest. These are the **cast vote records** of the election.
+rows, where (for a CVR collection) each row represents a voter's choices for a
+particular contest. These are the **cast vote records** (CVRs) of the election.
 
 The format is capable of representing votes in more
 complex voting schemes, like approval or instant runoff (IRV).
@@ -449,7 +449,10 @@ Here are the fields of a row of a reported vote file:
    since tuples are hashable and so may be used as keys in
    python dictionaries.
 
-**Example**: A reported vote file table from a scanner in a CVR collection.  Here
+For a noCVR collection, the format is the same except that the "Ballot ID" field
+is replaced by a "Tally" field.
+
+**Example:** A reported vote file table from a scanner in a CVR collection.  Here
 each row represents a single vote of a voter in a contest.  
 There are three voters (ballot ids ``B-231``, ``B-777``, and ``B888``) and three
 contests.
@@ -474,7 +477,7 @@ The reported vote file will have a name of the form
 ``reported-cvrs-<bcid>.csv``, possibly
 with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
 
-**Example: If the reported vote file is for a noCVR collection, the "Ballot id"
+**Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
 
 |Collection id   | Source | Tally       | Contest     | Selections     | ...       |
