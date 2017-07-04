@@ -92,7 +92,13 @@ We assume the existence of an **Audit Coordinator** who coordinates
 the audit in collaboration with the collection managers (the
 Coordinator might be from the Secretary of State's office).
 
-## Overall audit structure
+## Implementation notes: identifiers, votes, file names, and directory structure
+
+This section describes some low-level but essential details regarding
+the use of identifiers in ``multi.py``, the way in which votes are
+represented as a sequence of identifiers, how transparency and reproducibility
+are supported by the use of file names that include version labels, and
+how ``multi.py`` structures information in a directory.
 
 ### Identifiers
 
@@ -250,8 +256,15 @@ a new file with a later date is just added to the directory.
 
 ###  Directory structure
 
-Something like the following.  Here we use "year-month-day" 
-version labels.
+The information for an election is kept in a single directory
+structure, as documented here.  Information for a different election
+would be kept in a separate similar (but disjoint) directory
+structure.
+
+The top-level directory might be named something like
+``./elections/CO-2017-general-election``.  The contents
+of that directory might look as follows.
+(Here we illustrate the use of "year-month-day" version labels.)
 
     1-structure
        11-election-2017-09-08.csv
