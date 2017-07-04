@@ -292,6 +292,7 @@ of that directory might look as follows.
           manifest-DEN-A01-2017-11-07.csv
           manifest-DEN-A01-2017-11-07.csv
           manifest-LOG-B13-2017-11-07.csv
+       23-reported-outcomes-2017-11-07.csv``
 
     3-audit
        31-setup
@@ -414,7 +415,8 @@ electronic results are organized in "**reported vote files**".
 The paper ballots are organized into collections and stored.
 A "**ballot manifest**" is produced for each paper ballot collection,
 describing the collection and enabling random sampling from that
-collection.
+collection. A "**reported outcomes**" file lists the reported
+outcome for each contest.
 
 ### Reported Vote file (CVRs)
 
@@ -511,14 +513,14 @@ collections.
 
 #### Compression (note for future work)
 
-The reported votes files are certain to be the largest files used by ``multi.py``;
+As the reported votes files are certain to be the largest files used by ``multi.py``,
 some form of compression may be useful.
 
 Here is a suggestion (for possible later implementation), suitable for compressing
 CSV files.  Call this format ``redundant line compression`` (RLC), and give the
 compressed file a name ``foo.csv.rlc``.
 
-An RLC file compresses each row, using the previous 999 rows if
+An RLC file compresses each row, using the previous rows if
 possible.  An RLC entry of the form **&c^b** means "copy c cell
 contents, starting with the current column, from the line b lines
 previous to this one.  Either &c or ^b may be omitted, and these can
@@ -543,6 +545,32 @@ the ballot id).
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
+(possibly with a version label, as exemplified).
+
+*** Reported outcomes file
+
+A "**reported outcomes file**" gives the reported outcome for every
+contests.  It may indicate final vote tallies for the winner, and
+do the same for the losers.
+
+| Contest id      | Winner(s)  | ...        | ...       | ...         |
+| ---             |  -         | ---        |---        |---          |
+| DEN-prop-1      | Yes        |            |           |             |
+| DEN-mayor       | John Smith |            |           |             |
+| Boulder-council | Dave Diddle| Ben Borg   | Sue Mee   | Jill Snead  |
+
+When a contest outcome includes multiple winners, they are listed in
+additional columns, as shown.  (Their order is not important.)
+
+This file shows only the reported winners, it does not show tally
+information, or additional information about how the winner(s) was/were
+computed (such as intermediate IRV round information, or tie-breaking
+decisions).  Additional output files may include this information.  But
+since this information is not relevant for the audit, we do not describe
+it here.
+
+A reported outcomes file has a filename of the form
+``23-reported-outcomes.csv``, e.g. ``23-reported-outcomes-2017-11-07.csv``
 (possibly with a version label, as exemplified).
 
 ## Audit
