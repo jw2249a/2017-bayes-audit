@@ -96,7 +96,9 @@ Coordinator might be from the Secretary of State's office).
 
 This section describes some low-level but essential details regarding
 the use of identifiers in ``multi.py``, the way in which votes are
-represented as a sequence of identifiers, how transparency and reproducibility
+represented as a sequence of identifiers, 
+use of CSV file formats,
+how transparency and reproducibility
 are supported by the use of file names that include version labels, and
 how ``multi.py`` structures information in a directory.
 
@@ -186,6 +188,13 @@ as a comma-separated string of selection ids:
     "AliceJones,+BobSmith"  a vote with two selections,
                      one for Alice Jones and one for Bob Smith
 
+
+### File formats
+
+``Multi.py`` uses CSV (comma-separated values) format for files;
+a single header line specifies the column labels, and each line of
+the file specifies one spreadsheet row.  A compressed format is
+suggested below.
 
 ### File names
 
@@ -499,6 +508,24 @@ column is replaced by a "Tally" column:
 
 This file format for noCVRs is also used for output tally files for CVR
 collections.
+
+#### Compression (note for future work)
+
+The reported votes files are certain to be the largest files used by ``multi.py``;
+some form of compression may be useful.
+
+Here is a suggestion (for possible later implementation), suitable for compressing
+CSV files.  Call this format ``redundant line compression`` (RLC), and give the
+compressed file a name ``foo.csv.rlc``.
+
+An RLC file compresses each row, using the previous 999 rows if
+possible.  An RLC entry of the form **&c^b** means "copy c cell
+contents, starting with the current column, from the line b lines
+previous to this one.  Either &c or ^b may be omitted, and these can
+be given in either order.  They both default to 1 if either ^ or & is
+present, so **^** means copy the corresponding cell from the previous row, **&4**
+means copy the next four corresponding cells from the previous row, and **&3^9**
+means copy the next three cells from the row nine rows earlier.
 
 ### Ballot manifest file
 
@@ -826,13 +853,17 @@ A new ``stage-nnn`` subdirectory is created, and the audit
 computations begin, based on all available sampling data
 (from ``32-audited-votes``) at the time the stage begins.
 
+We assume that a stage is represented by a three-digit integer,
+starting at "000" for the initialization information stage (no ballots
+sampled here), followed by "001", "002", ...
+
 The **audit parameters files** for a stage may be copied from the
 previous stage, and possibly adjusted by hand by Audit
-Central to reflect pending deadlines, additional resources,
+Central to reflect pending deadlines, additional resources now available,
 etc.
 
-The **audit inputs** lists the audited vote files used
-in the audit computations.
+The **audit inputs** lists the audited vote files use
+in the audit computations (perhaps with their SHA256 hash values).
 
 The **audit outputs** file(s) give the measured risks.
 
