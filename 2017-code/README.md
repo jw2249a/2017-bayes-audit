@@ -850,23 +850,26 @@ Produce random sampling orders from audit seed.
 These outputs go into the audit seed file and
 the sampling orders directory.
 
-    31-setup
-       311-audit-seed.csv
-       312-sampling-orders
+    3-audit
+       31-setup
+          311-audit-seed.csv
+          312-sampling-orders
 
 Produce first *plan* for the audit, put this information
 into directory/file:
 
-    33-audit-stages
-       audit-stage-000
-          40-audit-plan.csv
+    3-audit
+      33-audit-stages
+         audit-stage-000
+             40-audit-plan.csv
 
 ### Start audit
 
 Collection managers start sampling ballots, and putting
 the resulting information into directory
 
-    32-audited-votes
+    3-audit
+       32-audited-votes
 
 This is **asynchronous**: collection managers can update
 their audited votes file whenever they are ready to do so.
@@ -891,6 +894,8 @@ The **audit parameters files** for a stage may be copied from the
 previous stage, and possibly adjusted by hand by Audit
 Central to reflect pending deadlines, additional resources now available,
 etc.
+
+(TBD: give formats for the following.)
 
 The **audit inputs** lists the audited vote files use
 in the audit computations (perhaps with their SHA256 hash values).
