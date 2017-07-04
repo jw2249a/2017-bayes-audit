@@ -328,6 +328,12 @@ The election definition phase answers the questions:
 * For each collection, will it be a CVR collection or a noCVR
   collection?
 
+Election officials answer these questions with three CSV files:
+an "**election file**", a "**contests file**", and a
+"**collections file**".  It is likely that these three
+election-definition files are produced from similar files used
+for the election itself.
+
 ### Election file
 
 An **election file** gives some high-level attributes of the election.
@@ -345,17 +351,22 @@ label, as in ``11-election-2017-09-08.csv``).
 
 A **contests file** is needed to specify the contests
 of the election, their type (e.g. plurality), whether
-write-ins are allowed, and the officially allowed selections.
+write-ins are allowed (and if so, whether they may be arbitrary, or whether they
+must be pre-qualified), and the officially allowed selections.
 
-| Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...        |...         |
-| ---             | ---          | ---       |---        | ---        | ---        |---        |---        |---         |
-| DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
-| DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
-| DEN-mayor       | Plurality    | 1         | Yes       | John Smith | Bob Cat   | Mary Mee   |           |            |
-| LOG-mayor       | Plurality    | 1         | Yes       | Susan Hat  | Barry Su  | Benton Liu |           |            |
-| US-Senate-1     | Plurality    | 1         | Yes       | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day |            |
-| Boulder-clerk   | IRV          | 1         | Yes       | Rock Ohn   | Peh Bull  | Roll Stone |           |            |
-| Boulder-council | Plurality    | 4         | Yes       | Dave Diddle| Ben Borg  | Sue Mee    | Fan Tacy  | Jill Snead |
+| Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...          |...         |
+| ---             | ---          | ---       |---        | ---        | ---        |---        |---          |---         |
+| DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
+| DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
+| DEN-mayor       | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost  |            |
+| LOG-mayor       | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu |             |            |
+| US-Senate-1     | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Long Shot |
+| Boulder-clerk   | IRV          | 1         | Arbitrary | Rock Ohn   | Peh Bull  | Roll Stone |             |            |
+| Boulder-council | Plurality    | 4         | No        | Dave Diddle| Ben Borg  | Sue Mee    | Fan Tacy    | Jill Snead |
+
+If the contest only allows pre-qualified write-ins, then those pre-qualified
+write-in names (with preceding "+" signs) are given on the contest row, but
+not printed on the ballot.
 
 Additional contest types may be supported as needed.
 
@@ -385,6 +396,13 @@ styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
 ## Election data (CVRs and ballot manifests)
+
+When the election is run, paper ballots are cast and scanned.  The
+electronic results are organized in "**reported vote files**".
+The paper ballots are organized into collections and stored.
+A "**ballot manifest**" is produced for each paper ballot collection,
+describing the collection and enabling random sampling from that
+collection.
 
 ### Reported Vote file (CVRs)
 
