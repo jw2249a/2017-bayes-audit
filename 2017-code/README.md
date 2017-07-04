@@ -909,13 +909,13 @@ in the audit computations (perhaps with their SHA256 hash values).
 | Filename                   | SHA256 hash of file |
 |---                         |---                  |
 | ``11-election-2017-09-08.csv``           | ``ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb`` |
-| 12-contests-2017-09-08.csv           | 3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d |
-| 13-collections-2017-09-08.csv        | 2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6 |
+| ``12-contests-2017-09-08.csv``           | ``3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d`` |
+| ``13-collections-2017-09-08.csv``        | ``2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6`` |
 | ...                                  | ...                                                              |
-| audited-votes-LOG-B13-2017-11-22.csv | 18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4
-| 23-reported-outcomes-2017-11-07.csv | 252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111 |
+| ``audited-votes-LOG-B13-2017-11-22.csv`` | ``18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4`` |
+| ``23-reported-outcomes-2017-11-07.csv`` | ``252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111`` |
 | ...
-| 12-audit-parameters-collection-2017-11-22.csv | 3f79bb7b435b05321651daefd374cdc681dc06faa65e374e38337b88ca046dea |
+| ``12-audit-parameters-collection-2017-11-22.csv`` | ``3f79bb7b435b05321651daefd374cdc681dc06faa65e374e38337b88ca046dea`` |
 
 
 ##### Audit output file(s)
@@ -938,7 +938,9 @@ optimization may be applied here.)
 
 Format: TBD
 
+## Command-line interface to ``multi.py``
 
+This section sketches the command-line interfact to ``multi.py``.
 
 
 
