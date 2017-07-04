@@ -890,15 +890,35 @@ We assume that a stage is represented by a three-digit integer,
 starting at "000" for the initialization information stage (no ballots
 sampled here), followed by "001", "002", ...
 
+#### Per-stage audit files
+
+##### Audit parameters files
+
 The **audit parameters files** for a stage may be copied from the
 previous stage, and possibly adjusted by hand by Audit
 Central to reflect pending deadlines, additional resources now available,
 etc.
 
-(TBD: give formats for the following.)
+Formats are as specified above.
 
-The **audit inputs** lists the audited vote files use
+##### Audit inputs file
+
+The **audit inputs** file lists the audited vote files use
 in the audit computations (perhaps with their SHA256 hash values).
+
+| Filename                   | SHA256 hash of file |
+|---                         |---                  |
+| 11-election-2017-09-08.csv           | ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb |
+| 12-contests-2017-09-08.csv           | 3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d |
+| 13-collections-2017-09-08.csv        | 2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6 |
+| ...                                  | ...                                                              |
+| audited-votes-LOG-B13-2017-11-22.csv | 18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4
+| 23-reported-outcomes-2017-11-07.csv | 252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111 |
+| ...
+| 12-audit-parameters-collection-2017-11-22.csv | 3f79bb7b435b05321651daefd374cdc681dc06faa65e374e38337b88ca046dea |
+
+
+##### Audit output file(s)
 
 The **audit outputs** file(s) give the measured risks.
 
@@ -906,11 +926,18 @@ The computation of Audit Central determines which measurements
 have now reached their risk limits, so that certain collection
 managers may be told that their work is completed.
 
-The **audit plan** gives estimated workloads (amount of work
+Format: TBD
+
+##### Audit plan file
+
+The **audit plan** file gives estimated workloads (amount of work
 remaining) for each collection manager, and provides guidelines
 on how to allocate the work between collections (if there is
 an exploitable tradeoff, to reduce overall workload). (Some
 optimization may be applied here.)
+
+Format: TBD
+
 
 
 
