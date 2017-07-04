@@ -613,6 +613,9 @@ and one by a frequentist (RLA) method.  This flexibility may allow more
 convenient testing and comparison of different risk-measurement methods.
 (Although it should be noted that the notions of ``risk'' may differ, so
 that this is a bit of an apples-and-oranges comparison.)
+This feature also enables the simultaneous use of different Bayesian
+priors (say one for each candidate), as explained in
+[Rivest and Shen (2012)](http://people.csail.mit.edu/rivest/pubs.html#RS12z).
 
 The filename for a contest audit parameters file is of the form
 ``11-audit-parameters-contest-2017-11-22.csv``
