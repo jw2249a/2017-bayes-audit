@@ -408,7 +408,7 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
-## Election data (CVRs and ballot manifests)
+## Election data (CVRs, ballot manifests, and reported outcomes)
 
 When the election is run, paper ballots are cast and scanned.  The
 electronic results are organized in "**reported vote files**".
@@ -841,6 +841,7 @@ Goes into directories:
     2-election
       21-reported-votes
       22-ballot-manifests
+      23-reported-outcomes
 
 ### Setup audit
 
@@ -872,7 +873,8 @@ their audited votes file whenever they are ready to do so.
 These updates do **not** need to be synchronized on a
 per-stage basis.  (Note again that each updated audited-votes
 file contains *all* of the audited votes from the collection;
-they are cumulative.)  
+they are cumulative.) (For non-Bayesian risk measurement
+methods, the uploads may need to be synchronized.)
 
 ### Audit stages
 
