@@ -42,7 +42,7 @@ Note that some contests may be associated with collections of both types,
 some CVR collections as well as some noCVR collections.
 
 We assume that the vote-casting, scanning, and subsequent storage
-process yields a ``**ballot manifest**'' for each collection,
+process yields a "**ballot manifest**" for each collection,
 specifying how many paper ballots are in the collection, how they are
 organized, and how they are stored.  The ballot manifest defines the
 population of paper ballots in the collection that will be sampled
@@ -197,6 +197,13 @@ as a comma-separated string of selection ids:
 
 During an audit, data may be augmented or improved somehow.  We
 use a file naming scheme that doesn't overwrite older data.
+
+We support the principles of "**transparency**" and
+"**repoducibility**": the information relied upon by the audit, and
+the information produced by the audit, should be identifiable,
+readable by the public, and usable to confirm the audit computations.
+To support this principle, information is never changed in-place;
+the older version is kept, but a newer version is added.
 
 This is done by interpreting part of the filename as a
 "version label".  When looking for a file, there may be
