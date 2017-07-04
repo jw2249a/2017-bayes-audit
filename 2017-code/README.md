@@ -8,7 +8,7 @@ The software is designed to be helpful for auditing elections such as
 the November 2017 Colorado election, which has hundreds of contests
 spread across 64 counties.
 
-## Election structure
+## Election and audit
 
 We assume the following:
 * a number of **contests** (for now, all plurality contests),
@@ -23,6 +23,12 @@ We assume the following:
   (** THIS IS BEING FIXED **)
 * for a given contest, there may be one or several collections having ballots
   showing that contest,
+
+We assume that the election has the following components:
+1. ("_Pre-election_") Election definition and setup.
+2. ("_Election_") Vote-casting, interpretation and preliminary reporting.
+3. ("_Post-election_") Audit.
+4. ("_Certification_") Certification.
 
 ## Scanning of cast paper ballots
 
@@ -87,27 +93,6 @@ the audit in collaboration with the collection managers (the
 Coordinator might be from the Secretary of State's office).
 
 ## Overall audit structure
-
-We assume that the election has the following components:
-1. ("_Pre-election_") Election definition and setup.
-2. ("_Election_") Vote-casting, interpretation and preliminary reporting.
-3. ("_Post-election_") Audit.
-4. ("_Certification_") Certification.
-
-### (Pre-election) Election definition.
-
-The election definition phase answers the questions:
-* What contests are there?
-* For each contest, what selections (choices) may the voter mark?
-* For each contest, what **voting method** will be used to determine the
-  outcome?
-* How many collections of cast paper ballots will there be?
-* For each such collection, who will be the collection manager?
-* For each collection, which contests may be on the ballots in
-  that collection?
-* How will the paper ballots in each collection be scanned?
-* For each collection, will it be a CVR collection or a noCVR
-  collection?
 
 ### Identifiers
 
@@ -315,7 +300,22 @@ version labels.
           audit-stage-003
              ...
  
-## Election file
+## (Pre-election) Election definition.
+
+The election definition phase answers the questions:
+* What contests are there?
+* For each contest, what selections (choices) may the voter mark?
+* For each contest, what **voting method** will be used to determine the
+  outcome?
+* How many collections of cast paper ballots will there be?
+* For each such collection, who will be the collection manager?
+* For each collection, which contests may be on the ballots in
+  that collection?
+* How will the paper ballots in each collection be scanned?
+* For each collection, will it be a CVR collection or a noCVR
+  collection?
+
+### Election file
 
 An **election file** gives some high-level attributes of the election.
 
@@ -328,7 +328,7 @@ An **election file** gives some high-level attributes of the election.
 This is a CSV file, with the name ``11-election.csv`` (possibly with a version
 label, as in ``11-election-2017-09-08.csv``).
 
-## Contests file
+### Contests file
 
 A **contests file** is needed to specify the contests
 of the election, their type (e.g. plurality), whether
@@ -349,7 +349,7 @@ Additional contest types may be supported as needed.
 This is a CSV file, with the name ``12-contests.csv`` (possibly with a version
 label, as in ``12-contests-2017-09-08.csv``).
 
-## Collections file
+### Collections file
 
 A **collections file** is needed to specify the various
 collections of paper ballots, contact info for the collection
@@ -371,7 +371,9 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
-## Reported Vote file (CVRs)
+## Election data (CVRs and ballot manifests)
+
+### Reported Vote file (CVRs)
 
 A **reported vote file** is a CSV format file containing a number of
 rows, where each row represents a voter's choices for a
@@ -441,7 +443,83 @@ The reported vote file will have a name of the form
 ``reported-cvrs-<bcid>.csv``, possibly
 with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
 
-## Sample vote file (actual vote file)
+### Ballot manifest file
+
+A **ballot manifest file** lists all of the ballot ids for a given collection.
+It may also indicate their physical location (if it is not already encoded in
+the ballot id).
+
+| Collection id | Original index | Ballot id | Location          |
+|---            | ---            |---        | ---               |
+| LOG-B13       | 1              | B-0001    | Box 001 no 0001   |
+| LOG-B13       | 2              | B-0002    | Box 001 no 0002   |
+| LOG-B13       | 3              | B-0003    | Box 001 no 0003   |
+| LOG-B13       | 4              | B-0004    | Box 001 no 0004   |
+| LOG-B13       | 5              | C-0001    | Box 002 no 0001   |
+
+A ballot manifest file has a filename of the form
+``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
+(possibly with a version label, as exemplified).
+
+## Audit
+
+### Audit setup
+
+#### Audit seed file
+
+The **audit seed file** contains the audit seed used to control the random
+sampling of the audit.
+
+| Audit seed           |
+|---                   | 
+| 13456201235197891138 |
+
+The audit seed should be made by rolling a decimal die twenty or more
+times.  This should be done **after** the reported votes have been
+collected and published by Audit Central.
+
+The audit seed file has a filename of the form
+``311-audit-seed-2017-11-20.csv`` or the like (shown here
+with a version label).
+
+
+#### Sampling order file
+
+A **sampling order file** lists all the ballots from a collection
+in a cryptographically scrambled order depending on the audit seed.
+The sample order field
+indicates the order in which they are to be examined during
+the audit.  Ballots must not be skipped during the audit.
+
+| Collection id | Sample order  | Original index | Ballot id | Location          |
+|---            |---            | ---            | ---       | ---               |
+| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |
+| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |
+| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |
+| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |
+| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |
+
+A sampling order file has a filename of the form
+``sampling-order-<pbcid>.csv``.  Example:
+``sampling-order-DEN-A01-2017-11-20.csv`` (including a version label).
+
+The sampling order file and the reported cvrs file may be used
+with an appropriate UI interface to generate the sampled cvrs
+file.  (With care to handling the case that the sampled ballot does not
+seem to be of the correct ballot style.)
+
+### Audited votes
+
+####  Random number generation
+
+The audit seed is fed into a cryptographic random number function,
+such as SHA256 used in counter mode.
+
+####  Sampling
+
+Sampling is done without replacement.
+
+#### Sample vote file (actual vote file)
 
 A **sample vote file** represents a set of votes that have
 been sampled during an audit.  It is similar to a reported
@@ -486,68 +564,9 @@ examined ballots.
 The file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
 ``audited-votes-DEN-A01-2017-11-21.csv``.
 
-## Audit seed file
+### Audit stages
 
-The **audit seed file** contains the audit seed used to control the random
-sampling of the audit.
-
-| Audit seed           |
-|---                   | 
-| 13456201235197891138 |
-
-The audit seed should be made by rolling a decimal die twenty or more
-times.  This should be done **after** the reported votes have been
-collected and published by Audit Central.
-
-The audit seed file has a filename of the form
-``311-audit-seed-2017-11-20.csv`` or the like (shown here
-with a version label).
-
-
-## Ballot manifest file
-
-A **ballot manifest file** lists all of the ballot ids for a given collection.
-It may also indicate their physical location (if it is not already encoded in
-the ballot id).
-
-| Collection id | Original index | Ballot id | Location          |
-|---            | ---            |---        | ---               |
-| LOG-B13       | 1              | B-0001    | Box 001 no 0001   |
-| LOG-B13       | 2              | B-0002    | Box 001 no 0002   |
-| LOG-B13       | 3              | B-0003    | Box 001 no 0003   |
-| LOG-B13       | 4              | B-0004    | Box 001 no 0004   |
-| LOG-B13       | 5              | C-0001    | Box 002 no 0001   |
-
-A ballot manifest file has a filename of the form
-``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
-(possibly with a version label, as exemplified).
-
-## Sampling order file
-
-A **sampling order file** lists all the ballots from a collection
-in a cryptographically scrambled order depending on the audit seed.
-The sample order field
-indicates the order in which they are to be examined during
-the audit.  Ballots must not be skipped during the audit.
-
-| Collection id | Sample order  | Original index | Ballot id | Location          |
-|---            |---            | ---            | ---       | ---               |
-| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |
-| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |
-| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |
-| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |
-| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |
-
-A sampling order file has a filename of the form
-``sampling-order-<pbcid>.csv``.  Example:
-``sampling-order-DEN-A01-2017-11-20.csv`` (including a version label).
-
-The sampling order file and the reported cvrs file may be used
-with an appropriate UI interface to generate the sampled cvrs
-file.  (With care to handling the case that the sampled ballot does not
-seem to be of the correct ballot style.)
-
-## Audit parameters files
+#### Audit parameters files
 
 An **audit parameters** file gives parameters used in the audit.  
 There are *three* such files: one for global parameters, one for
@@ -558,7 +577,7 @@ be updated from stage to stage.  Typically, however, they will not
 change, and the audit parameters for one stage will just be a
 copy of the audit parameters from the previous stage.
 
-### Global audit parameters
+##### Global audit parameters
 
 The **global audit parameters file** is simple.
 
@@ -570,7 +589,7 @@ The filename is of the form
 ``10-audit-parameters-global-2017-11-22.csv``
 (showing a year-month-day version label).
 
-### Contest audit parameters
+##### Contest audit parameters
 
 The **contest audit parameters file** shows the audit measurements
 and risk limits that will be applied to each contest.  
@@ -628,7 +647,7 @@ The filename for a contest audit parameters file is of the form
 ``11-audit-parameters-contest-2017-11-22.csv``
 (showing a year-month-day version label).
 
-### Collection audit parameters
+##### Collection audit parameters
 
 A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
@@ -646,16 +665,7 @@ The filename for a collection audit parameters file is of the form
 ``12-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
 
-##  Random number generation
-
-The audit seed is fed into a cryptographic random number function,
-such as SHA256 used in counter mode.
-
-##  Sampling
-
-Sampling is done without replacement.
-
-## Output file formats (per stage)
+#### Output file formats (per stage)
 
 The outputs include a file ``20-audit-inputs.csv`` that gives the SHA256
 hashes of the files used as inputs to the computations of that stage.
