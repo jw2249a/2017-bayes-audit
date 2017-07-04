@@ -547,7 +547,7 @@ A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
 (possibly with a version label, as exemplified).
 
-*** Reported outcomes file
+### Reported outcomes file
 
 A "**reported outcomes file**" gives the reported outcome for every
 contests.  It may indicate final vote tallies for the winner, and
