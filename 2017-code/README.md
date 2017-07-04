@@ -348,7 +348,7 @@ of the election, their type (e.g. plurality), whether
 write-ins are allowed, and the officially allowed selections.
 
 | Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...        |...         |
-| ---             | ---          | ---       |---        | ---        | ---        |---        |---         |
+| ---             | ---          | ---       |---        | ---        | ---        |---        |---        |            |
 | DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
 | DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |           |            |
 | DEN-mayor       | Plurality    | 1         | Yes       | John Smith | Bob Cat   | Mary Mee   |           |            |
