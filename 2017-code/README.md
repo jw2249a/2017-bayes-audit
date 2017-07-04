@@ -131,6 +131,9 @@ We have:
   pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.
 
+  (CO remark: A ballot id (or at least the ballot location may consist of
+  a four-tuple (TabulatorId, BatchId, RecordId, CountingGroupId).)
+
 Identifiers are converted to "reduced" form when first encountered, by
 removing any initial or final whitespace characters, and converting
 any internal subsequence of two or more whitespace characters to a
@@ -786,15 +789,14 @@ Goes into directories:
 
 ### Setup audit
 
-Produce random audit seed, put it into directory/file
+Produce random audit seed.
+Produce random sampling orders from audit seed.
+These outputs go into the audit seed file and
+the sampling orders directory.
 
     31-setup
        311-audit-seed.csv
-
-Produce random sampling orders from audit seed, put
-these per-collection files into directory
-
-    312-sampling-orders
+       312-sampling-orders
 
 Produce first *plan* for the audit, put this information
 into directory/file:
@@ -843,6 +845,8 @@ remaining) for each collection manager, and provides guidelines
 on how to allocate the work between collections (if there is
 an exploitable tradeoff, to reduce overall workload). (Some
 optimization may be applied here.)
+
+
 
 
 
