@@ -360,7 +360,7 @@ must be pre-qualified), and the officially allowed selections.
 | DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
 | DEN-mayor       | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost  |            |
 | LOG-mayor       | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu |             |            |
-| US-Senate-1     | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Long Shot |
+| US-Senate-1     | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Tom Cruz  |
 | Boulder-clerk   | IRV          | 1         | Arbitrary | Rock Ohn   | Peh Bull  | Roll Stone |             |            |
 | Boulder-council | Plurality    | 4         | No        | Dave Diddle| Ben Borg  | Sue Mee    | Fan Tacy    | Jill Snead |
 
@@ -453,8 +453,8 @@ For a noCVR collection, the format is the same except that the "Ballot ID" field
 is replaced by a "Tally" field.
 
 **Example:** A reported vote file table from a scanner in a CVR collection.  Here
-each row represents a single vote of a voter in a contest.  
-There are three voters (ballot ids ``B-231``, ``B-777``, and ``B888``) and three
+each row represents a single vote of a voter in a contest.  There are three voters
+(ballot ids ``B-231``, ``B-777``, and ``B888``) and three
 contests.
 
 
@@ -465,7 +465,7 @@ contests.
 |DEN-A01         | L      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
 |DEN-A01         | L      | B-777       | DEN-prop-1  | No             |           |
 |DEN-A01         | L      | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         | L      | B-777       | US-Senate-1 | +Harry Potter  |           |
+|DEN-A01         | L      | B-777       | US-Senate-1 | +Tom Cruz      |           |
 |DEN-A01         | L      | B-888       | US-Senate-1 | -Invalid       |           |
 
 
@@ -491,7 +491,7 @@ column is replaced by a "Tally" column:
 |LOG-B13         | L      | 542         | US-Senate-1 | Deb O'Crat     |           |
 |LOG-B13         | L      | 216         | US-Senate-1 | Val Green      |           |
 |LOG-B13         | L      | 99          | US-Senate-1 | Sarah Day      |           |
-|LOG-B13         | L      | 9           | US-Senate-1 | +Long Shot     |           |
+|LOG-B13         | L      | 9           | US-Senate-1 | +Tom Cruz      |           |
 |LOG-B13         | L      | 1           | US-Senate-1 | -Invalid       |           |
 
 This file format for noCVRs is also used for output tally files for CVR
@@ -517,7 +517,36 @@ A ballot manifest file has a filename of the form
 
 ## Audit
 
+The audit process begins with a single "audit setup" phase,
+in which a random "**audit seed**" is generated, and a
+"**sampling order**" is then produced for each collection.
+
+Following that is the actual audit, which involves coordinated
+work between the various collections and Audit Central.
+
+The collection managers arrange for the retrieval of paper ballots in
+the order prescribed by the sampling order for their collection.  At
+predetermined times (or when possible or convenient) the collection
+manager will send to Audit Central an "**audited votes file**"
+describing (in a cumulative way) the hand-to-eye interpretations of
+all ballots retrieved so far in that collection.  Each new upload
+has a larger (later) version label.
+
+Audit Central will process the uploaded sample data, and determine
+for each contest whether the audit is complete or not.  Audit Central
+then provides guidance to the collection mangers (in the form of a
+"**plan**") that details the work yet to be done.  
+
+(For contests whose ballots are entirely within one collection, the
+``multi.py`` software may in principle also be run by the collection manager,
+if desired, to give faster evaluation of the audit progress. But the audited
+votes data should nonetheless be uploaded to Audit Central.)
+
 ### Audit setup
+
+The audit setup determines the "**audit seed**", a long random number,
+and then from the audit seed a "**sampling order**" for each collection,
+listing the ballots of that collection in a scrambled order.
 
 #### Audit seed file
 
@@ -529,21 +558,32 @@ sampling of the audit.
 | 13456201235197891138 |
 
 The audit seed should be made by rolling a decimal die twenty or more
-times.  This should be done **after** the reported votes have been
-collected and published by Audit Central.
+times.  **It is important that this be done *after* the reported votes have been
+collected and published by Audit Central.**  The generation of the audit
+seed should preferably be done in a videotaped public ceremony.  
 
 The audit seed file has a filename of the form
-``311-audit-seed-2017-11-20.csv`` or the like (shown here
-with a version label).
-
+``311-audit-seed-2017-11-20.csv`` or the like.
+(This example shows a version label to record the date, but the audit
+seed should only be made once.)
 
 #### Sampling order file
 
 A **sampling order file** lists all the ballots from a collection
 in a cryptographically scrambled order depending on the audit seed.
 The sample order field
-indicates the order in which they are to be examined during
-the audit.  Ballots must not be skipped during the audit.
+indicates the order in which they must be examined during
+the audit.  Ballots may not be skipped during the audit.
+
+Sampling is done without replacement, since each ballot occurs
+exactly once in the sampling order file.
+
+To produce the sampling order, ``multi.py`` feeds the audit seed,
+followed by the collection id and a nine-digit counter value, into a
+cryptographic random number function (specifically, SHA256 used in
+counter mode, starting with counter value 1).
+
+### Audited votes
 
 | Collection id | Sample order  | Original index | Ballot id | Location          |
 |---            |---            | ---            | ---       | ---               |
@@ -562,23 +602,12 @@ with an appropriate UI interface to generate the sampled cvrs
 file.  (With care to handling the case that the sampled ballot does not
 seem to be of the correct ballot style.)
 
-### Audited votes
-
-####  Random number generation
-
-The audit seed is fed into a cryptographic random number function,
-such as SHA256 used in counter mode.
-
-####  Sampling
-
-Sampling is done without replacement.
-
 #### Sample vote file (actual vote file)
 
-A **sample vote file** represents a set of votes that have
-been sampled during an audit.  It is similar to a reported
-file, but the Source field is now used differently, to
-indicate the sort of sampling used to produce this entry.
+A **sample vote file** represents a set of votes that have been
+sampled during an audit.  It is similar to a reported file (for a CVR
+collection), but the Source field is now used differently, to indicate
+the sort of sampling used to produce this entry.
 
 1. **source** (src): one of three values:
     * **P**: a ballot chosen uniformly from PBC
@@ -612,10 +641,10 @@ an undervote, while the hand examination showed a ``No`` vote.
 The sample vote file will have a name of the form ``audited-votes-<bcid>.csv``, possibly
 with a version label.  An example filename: ``audited-votes-DEN-A01-2017-11-21.csv``.
 
-As noted elsewhere, if the sample is expanded, then the new sample vote file will
+As noted, if the sample is expanded, then the new sample vote file will
 contain records for not only the newly examined ballots, but also for the previously
 examined ballots.
-The file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
+For example, the file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
 ``audited-votes-DEN-A01-2017-11-21.csv``.
 
 ### Audit stages
