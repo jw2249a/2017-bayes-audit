@@ -940,8 +940,26 @@ Format: TBD
 
 ## Command-line interface to ``multi.py``
 
-This section sketches the command-line interfact to ``multi.py``.
+This section sketches the command-line interface to ``multi.py``.
+Here we assume that the election data is in the directory
+``./elections/CO-2017-11``.
 
+    ``python --read-structure CO-2017-11`` (reads and checks structure)
+
+    ``python --read-reported CO-2017-11`` (reads and checks reported data)
+
+    ``python --read-seed CO-2017-11`` (reads and checks audit seed)
+
+    ``python --make-sampling CO-2017-11`` (produces sampling order files)
+
+    ``python --read-audited CO-2017-11`` (reads and checks audited votes)
+
+    ``python --stage 002 CO-2017-11``  (runs stage 002 of the audit)
+
+Because of the way ``multi.py`` works, the program can be run by Audit
+Central, or by a local collection manager.  For the latter use, the audit
+parameters should to be adjusted to only audit files local to the collection.
+(That is, setting the risk limits to all nonlocal contests to 1.00.)
 
 
 
