@@ -517,17 +517,42 @@ As the reported votes files are certain to be the largest files used by ``multi.
 some form of compression may be useful.
 
 Here is a suggestion (for possible later implementation), suitable for compressing
-CSV files.  Call this format ``redundant line compression`` (RLC), and give the
-compressed file a name ``foo.csv.rlc``.
+CSV files.  Call this format ``redundant row compression`` (RRC), and give the
+compressed file a name ``foo.csv.rrc``.
 
-An RLC file compresses each row, using the previous rows if
-possible.  An RLC entry of the form **&c^b** means "copy c cell
+An RRC file compresses each row, using the previous rows if
+possible.  An RRC cell entry of the form **&c^b** means "copy c cell
 contents, starting with the current column, from the line b lines
 previous to this one.  Either &c or ^b may be omitted, and these can
 be given in either order.  They both default to 1 if either ^ or & is
 present, so **^** means copy the corresponding cell from the previous row, **&4**
 means copy the next four corresponding cells from the previous row, and **&3^9**
 means copy the next three cells from the row nine rows earlier.
+
+Example:  The following file:
+
+|Collection id   | Source | Ballot id   | Contest     | Selections     | ...       |
+|---             |---     | ---         | ---         | ---            | ---       |
+|DEN-A01         | L      | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         | L      | B-231       | DEN-prop-2  |                |           |
+|DEN-A01         | L      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|DEN-A01         | L      | B-777       | DEN-prop-1  | No             |           |
+|DEN-A01         | L      | B-777       | DEN-prop-2  | Yes            |           |
+|DEN-A01         | L      | B-777       | US-Senate-1 | +Tom Cruz      |           |
+|DEN-A01         | L      | B-888       | US-Senate-1 | -Invalid       |           |
+
+can be compressed to the RRC CSV file:
+
+```
+Collection id,Source,Ballot id,Contest,Selections,...
+DEN-A01,L,B-231,DEN-prop-1,Yes,
+&3,DEN-prop-2,
+&3,US-Senate-1,Rhee Pub,Sarah Day
+&2,B-777,^3,No
+&3,^3,Yes
+&3,^2,+Tom Cruz
+&2,B-888,^,-Invalid
+```
 
 ### Ballot manifest file
 
