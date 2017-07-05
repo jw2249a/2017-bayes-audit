@@ -796,7 +796,8 @@ are specific to each collection.
 | Collection     | max audit rate  |
 |---             |---              |
 |  DEN-A01       | 50              |
-|  LOG-B13       | 60              |
+|  DEN-A02       | 50              |
+|  LOG-B13       | 30              |
 
 At this point, we only have one collection-specific audit parameter:
 the *max audit rate*, which is the maximum number of
@@ -943,7 +944,12 @@ on how to allocate the work between collections (if there is
 an exploitable tradeoff, to reduce overall workload). (Some
 optimization may be applied here.)
 
-Format: TBD
+| Collection             | Audited so far | Next stage increment request  | Estimated total needed |
+|---                     |---             |---                            |---                     |
+|  DEN-A01               | 150            | 50                            | 300                    |
+|  DEN-A01               | 150            | 50                            | 300                    |
+|  LOG-B13               |  90            | 30                            | 150                    |
+
 
 ## Command-line interface to ``multi.py``
 
@@ -962,8 +968,8 @@ Here we assume that the election data is in the directory
 
 Because of the way ``multi.py`` works, the program can be run by Audit
 Central, or by a local collection manager.  For the latter use, the audit
-parameters should to be adjusted to only audit files local to the collection.
-(That is, setting the risk limits to all nonlocal contests to 1.00.)
+parameters should to be adjusted to only those audit contests local to the collection, 
+by setting the risk limits to all other contests to 1.00.
 
 
 
