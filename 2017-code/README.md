@@ -560,7 +560,7 @@ do the same for the losers.
 | Boulder-council | Dave Diddle| Ben Borg   | Sue Mee   | Jill Snead  |
 
 When a contest outcome includes multiple winners, they are listed in
-additional columns, as shown.  (Their order is not important.)
+additional columns, as shown.  The order of these winners may be important.
 
 This file shows only the reported winners, it does not show tally
 information, or additional information about how the winner(s) was/were
@@ -904,7 +904,14 @@ Formats are as specified above.
 ##### Audit inputs file
 
 The **audit inputs** file lists the audited vote files use
-in the audit computations (perhaps with their SHA256 hash values).
+in the audit computations with their SHA256 hash values.
+The audits input file is an *output* of the audit program, not an
+input to the program.  It lists the files that the audit program
+will use for the computation of this stage.  The SHA-256 hashes
+are there for definiteness, allowing at a later time that you still
+have the correct input files, if you want to check the audit program.
+The audits input file is not used elsewhere by ``multi.py``.
+
 
 | Filename                   | SHA256 hash of file |
 |---                         |---                  |
@@ -944,17 +951,14 @@ This section sketches the command-line interface to ``multi.py``.
 Here we assume that the election data is in the directory
 ``./elections/CO-2017-11``.
 
-    ``python --read-structure CO-2017-11`` (reads and checks structure)
-
-    ``python --read-reported CO-2017-11`` (reads and checks reported data)
-
-    ``python --read-seed CO-2017-11`` (reads and checks audit seed)
-
-    ``python --make-sampling CO-2017-11`` (produces sampling order files)
-
-    ``python --read-audited CO-2017-11`` (reads and checks audited votes)
-
-    ``python --stage 002 CO-2017-11``  (runs stage 002 of the audit)
+    | Command                                  | Action                              |
+    |---                                       |---                                  |
+    | ``python --read-structure CO-2017-11``   | Reads and checks structure          |
+    | ``python --read-reported CO-2017-11``    | Reads and checks reported data      |
+    | ``python --read-seed CO-2017-11``        | Reads and checks audit seed         |
+    | ``python --make-orders CO-2017-11        | Produces sampling order files       |
+    | ``python --read-audited CO-2017-11``     | Reads and checks audited votes      |
+    | ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
 
 Because of the way ``multi.py`` works, the program can be run by Audit
 Central, or by a local collection manager.  For the latter use, the audit
