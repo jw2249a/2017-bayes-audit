@@ -956,7 +956,7 @@ Here we assume that the election data is in the directory
 | ``python --read-structure CO-2017-11``   | Reads and checks structure          |
 | ``python --read-reported CO-2017-11``    | Reads and checks reported data      |
 | ``python --read-seed CO-2017-11``        | Reads and checks audit seed         |
-| ``python --make-orders CO-2017-11        | Produces sampling order files       |
+| ``python --make-orders CO-2017-11``      | Produces sampling order files       |
 | ``python --read-audited CO-2017-11``     | Reads and checks audited votes      |
 | ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
 
