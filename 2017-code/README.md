@@ -947,7 +947,7 @@ optimization may be applied here.)
 | Collection             | Audited so far | Next stage increment request  | Estimated total needed |
 |---                     |---             |---                            |---                     |
 |  DEN-A01               | 150            | 50                            | 300                    |
-|  DEN-A01               | 150            | 50                            | 300                    |
+|  DEN-A02               | 150            | 50                            | 300                    |
 |  LOG-B13               |  90            | 30                            | 150                    |
 
 
@@ -966,10 +966,18 @@ Here we assume that the election data is in the directory
 | ``python --read-audited CO-2017-11``     | Reads and checks audited votes      |
 | ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
 
+The program ``multi.py`` will be run by Audit Central for each stage.
+
+It may also be run by an audit observer, since no data is ever lost.  That is,
+inputs to each audit stage computation are still available for re-doing any
+of the audit computations.  (The audits input file will need to be used here to
+assist in obtaining the correct input files.)
+
 Because of the way ``multi.py`` works, the program can be run by Audit
 Central, or by a local collection manager.  For the latter use, the audit
 parameters should to be adjusted to only those audit contests local to the collection, 
 by setting the risk limits to all other contests to 1.00.
+
 
 
 
