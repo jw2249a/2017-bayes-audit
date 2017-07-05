@@ -1,0 +1,199 @@
+====== Election structure ======
+e.cids (contest ids):
+    I C1 C2 C3 F23 
+e.jids (jurisdiction ids) (aka paper ballot collection ids):
+    J1 J2 J3 
+e.w (valid jids for each cid):
+    I: J1 J2 J3 
+    C1: J1 
+    C2: J2 
+    C3: J3 
+    F23: J2 J3 
+e.vids (allowable vote ids for each cid):
+    I: 0 1 
+    C1: 0 1 
+    C2: 0 1 
+    C3: 0 1 
+    F23: 0 1 
+====== Reported election results ======
+e.t (total votes for each vid by cid and jid):
+    I.J1: 0:49500 1:50500 
+    I.J2: 0:49500 1:50500 
+    I.J3: 0:49500 1:50500 
+    C1.J1: 0:35000 1:65000 
+    C2.J2: 0:40000 1:60000 
+    C3.J3: 0:45000 1:55000 
+    F23.J2: 0:47500 1:52500 
+    F23.J3: 0:47500 1:52500 
+e.totcid (total votes cast for each cid):
+    I: 300000
+    C1: 100000
+    C2: 100000
+    C3: 100000
+    F23: 200000
+e.totvot (total cast for each vid for each cid):
+    I: 0:148500 1:151500 
+    C1: 0:35000 1:65000 
+    C2: 0:40000 1:60000 
+    C3: 0:45000 1:55000 
+    F23: 0:95000 1:105000 
+e.av (first five actual votes cast for each cid and jid):
+    I.J1: [0, 1, 0, 1, 0]
+    I.J2: [0, 1, 1, 1, 1]
+    I.J3: [0, 1, 1, 1, 0]
+    C1.J1: [1, 0, 0, 1, 1]
+    C2.J2: [0, 0, 1, 0, 1]
+    C3.J3: [1, 0, 0, 0, 1]
+    F23.J2: [0, 1, 1, 0, 1]
+    F23.J3: [1, 0, 1, 1, 0]
+e.ro (reported outcome for each cid):
+    I:1
+    C1:1
+    C2:1
+    C3:1
+    F23:1
+====== Audit setup ======
+e.risk_limit (risk limit per contest):
+    I:0.05
+    C1:0.05
+    C2:0.05
+    C3:0.05
+    F23:0.1
+e.audit_rate (max number of ballots audited/day):
+    J1:40
+    J2:60
+    J3:80
+====== Audit ======
+audit stage 1
+    New sample sizes by jurisdiction:
+      J1: 40 (+40)
+      J2: 60 (+60)
+      J3: 80 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:20  1:20  total:40
+      I.J2  0:32  1:28  total:60
+      I.J3  0:42  1:38  total:80
+      C1.J1  0:18  1:22  total:40
+      C2.J2  0:25  1:35  total:60
+      C3.J3  0:36  1:44  total:80
+      F23.J2  0:25  1:35  total:60
+      F23.J3  0:41  1:39  total:80
+    Risks per cid:
+      risk that reported outcome is wrong I 0.692 (limit 0.05)
+      risk that reported outcome is wrong C1 0.258725 (limit 0.05)
+      risk that reported outcome is wrong C2 0.09875 (limit 0.05)
+      risk that reported outcome is wrong C3 0.18105 (limit 0.05)
+      risk that reported outcome is wrong F23 0.20295 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 1.1334749999999998
+audit stage 2
+    New sample sizes by jurisdiction:
+      J1: 80 (+40)
+      J2: 120 (+60)
+      J3: 160 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:39  1:41  total:80
+      I.J2  0:51  1:69  total:120
+      I.J3  0:80  1:80  total:160
+      C1.J1  0:35  1:45  total:80
+      C2.J2  0:50  1:70  total:120
+      C3.J3  0:81  1:79  total:160
+      F23.J2  0:50  1:70  total:120
+      F23.J3  0:78  1:82  total:160
+    Risks per cid:
+      risk that reported outcome is wrong I 0.141875 (limit 0.05)
+      risk that reported outcome is wrong C1 0.131875 (limit 0.05)
+      risk that reported outcome is wrong C2 0.03215 (limit 0.05)
+      risk that reported outcome is wrong C3 0.56 (limit 0.05)
+      risk that reported outcome is wrong F23 0.05655 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 0.68375
+audit stage 3
+    New sample sizes by jurisdiction:
+      J1: 120 (+40)
+      J2: 180 (+60)
+      J3: 240 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:54  1:66  total:120
+      I.J2  0:80  1:100  total:180
+      I.J3  0:119  1:121  total:240
+      C1.J1  0:53  1:67  total:120
+      C2.J2  0:88  1:92  total:180
+      C3.J3  0:115  1:125  total:240
+      F23.J2  0:73  1:107  total:180
+      F23.J3  0:115  1:125  total:240
+    Risks per cid:
+      risk that reported outcome is wrong I 0.05145 (limit 0.05)
+      risk that reported outcome is wrong C1 0.0985 (limit 0.05)
+      risk that reported outcome is wrong C2 0.3812 (limit 0.05)
+      risk that reported outcome is wrong C3 0.263075 (limit 0.05)
+      risk that reported outcome is wrong F23 0.008725 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 0.594225
+audit stage 4
+    New sample sizes by jurisdiction:
+      J1: 160 (+40)
+      J2: 240 (+60)
+      J3: 320 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:72  1:88  total:160
+      I.J2  0:105  1:135  total:240
+      I.J3  0:151  1:169  total:320
+      C1.J1  0:66  1:94  total:160
+      C2.J2  0:113  1:127  total:240
+      C3.J3  0:149  1:171  total:320
+      F23.J2  0:100  1:140  total:240
+      F23.J3  0:152  1:168  total:320
+    Risks per cid:
+      risk that reported outcome is wrong I 0.008125 (limit 0.05)
+      risk that reported outcome is wrong C1 0.0123 (limit 0.05)
+      risk that reported outcome is wrong C2 0.1822 (limit 0.05)
+      risk that reported outcome is wrong C3 0.109325 (limit 0.05)
+      risk that reported outcome is wrong F23 0.005175 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 0.191525
+audit stage 5
+    New sample sizes by jurisdiction:
+      J1: 160 (+0)
+      J2: 300 (+60)
+      J3: 400 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:72  1:88  total:160
+      I.J2  0:143  1:157  total:300
+      I.J3  0:186  1:214  total:400
+      C1.J1  0:66  1:94  total:160
+      C2.J2  0:132  1:168  total:300
+      C3.J3  0:186  1:214  total:400
+      F23.J2  0:127  1:173  total:300
+      F23.J3  0:186  1:214  total:400
+    Risks per cid:
+      risk that reported outcome is wrong I 0.02365 (limit 0.05)
+      risk that reported outcome is wrong C1 0.013525 (limit 0.05)
+      risk that reported outcome is wrong C2 0.017875 (limit 0.05)
+      risk that reported outcome is wrong C3 0.082 (limit 0.05)
+      risk that reported outcome is wrong F23 0.0016 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 0.032
+audit stage 6
+    New sample sizes by jurisdiction:
+      J1: 160 (+0)
+      J2: 300 (+0)
+      J3: 480 (+80)
+    Total sample counts by contest, jurisdiction, and vote:
+      I.J1  0:72  1:88  total:160
+      I.J2  0:143  1:157  total:300
+      I.J3  0:228  1:252  total:480
+      C1.J1  0:66  1:94  total:160
+      C2.J2  0:132  1:168  total:300
+      C3.J3  0:219  1:261  total:480
+      F23.J2  0:127  1:173  total:300
+      F23.J3  0:226  1:254  total:480
+    Risks per cid:
+      risk that reported outcome is wrong I 0.033075 (limit 0.05)
+      risk that reported outcome is wrong C1 0.012875 (limit 0.05)
+      risk that reported outcome is wrong C2 0.019 (limit 0.05)
+      risk that reported outcome is wrong C3 0.026375 (limit 0.05)
+      risk that reported outcome is wrong F23 0.00175 (limit 0.1)
+    Excess risk: sum over cids of amt risk exceeds limit = 0.0
+============
+Audit done (all risk limits reached)!
+Number of ballots sampled, by jurisdiction:
+  J1:160
+  J2:300
+  J3:480
+Total number of ballots sampled: 940

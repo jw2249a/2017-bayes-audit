@@ -1,0 +1,139 @@
+File ./elections/ex1/structure.js loaded.
+====== Election structure ======
+Election type:
+    Synthetic
+Number of contests:
+    5
+e.cids (contest ids):
+    I C1 C2 C3 F23 
+Number of paper ballot collections)
+    3
+e.pbcids (paper ballot collection ids (e.g. jurisdictions)):
+    PBC1 PBC2 PBC3 
+e.collection_type (either CVR or noCVR) for each pbcid:
+    PBC1:CVR 
+    PBC2:CVR 
+    PBC3:CVR 
+e.rel (valid pbcids for each cid):
+    I: PBC1 PBC3 PBC2 
+    C1: PBC1 
+    C2: PBC2 
+    C3: PBC3 
+    F23: PBC3 PBC2 
+e.vvids (valid vote ids for each cid):
+    I: 0 1 
+    C1: 0 1 
+    C2: 0 1 
+    C3: 0 1 
+    F23: 0 1 
+e.ivids (invalid vote ids for each cid):
+    I: Invalid Overvote Undervote 
+    C1: Invalid Overvote Undervote 
+    C2: Invalid Overvote Undervote 
+    C3: Invalid Overvote Undervote 
+    F23: Invalid Overvote Undervote 
+e.vids (valid or invalid vote ids for each cid):
+    I: 0 1 Invalid Overvote Undervote 
+    C1: 0 1 Invalid Overvote Undervote 
+    C2: 0 1 Invalid Overvote Undervote 
+    C3: 0 1 Invalid Overvote Undervote 
+    F23: 0 1 Invalid Overvote Undervote 
+File ./elections/ex1/data.js loaded.
+Synthetic vote generation seed: 8
+====== Reported election data ======
+e.t (total votes for each vid by cid and pbcid):
+    I.PBC1: 0:4950 1:5050 Invalid:0 Overvote:0 Undervote:0 
+    I.PBC3: 0:4950 1:5050 Invalid:0 Overvote:0 Undervote:0 
+    I.PBC2: 0:4950 1:5050 Invalid:0 Overvote:0 Undervote:0 
+    C1.PBC1: 0:3500 1:6500 Invalid:0 Overvote:0 Undervote:0 
+    C2.PBC2: 0:4000 1:6000 Invalid:0 Overvote:0 Undervote:0 
+    C3.PBC3: 0:4500 1:5500 Invalid:0 Overvote:0 Undervote:0 
+    F23.PBC3: 0:4750 1:5250 Invalid:0 Overvote:0 Undervote:0 
+    F23.PBC2: 0:4750 1:5250 Invalid:0 Overvote:0 Undervote:0 
+e.totcid (total votes cast for each cid):
+    I: 30000
+    C1: 10000
+    C2: 10000
+    C3: 10000
+    F23: 20000
+e.totvot (total cast for each vid for each cid):
+    I: 0:14850 1:15150 Invalid:0 Overvote:0 Undervote:0 
+    C1: 0:3500 1:6500 Invalid:0 Overvote:0 Undervote:0 
+    C2: 0:4000 1:6000 Invalid:0 Overvote:0 Undervote:0 
+    C3: 0:4500 1:5500 Invalid:0 Overvote:0 Undervote:0 
+    F23: 0:9500 1:10500 Invalid:0 Overvote:0 Undervote:0 
+e.av (first five or so actual votes cast for each cid and pbcid):
+    I.PBC1:0 0 1 1 0 
+    I.PBC3:0 0 1 1 0 
+    I.PBC2:0 0 1 1 0 
+    C1.PBC1:1 0 1 0 0 
+    C2.PBC2:0 0 1 0 1 
+    C3.PBC3:0 0 1 0 0 
+    F23.PBC3:0 0 1 0 0 
+    F23.PBC2:0 0 1 0 0 
+e.ro (reported outcome for each cid):
+    I:1
+    C1:1
+    C2:1
+    C3:1
+    F23:0
+File ./elections/ex1/audit_parameters.js loaded.
+====== Audit parameters ======
+e.contest_status (initial audit status for each contest):
+    I:Auditing
+    C1:Auditing
+    C2:Auditing
+    C3:Auditing
+    F23:Auditing
+e.risk_limit (risk limit per contest):
+    I:0.05
+    C1:0.05
+    C2:0.05
+    C3:0.05
+    F23:0.1
+e.audit_rate (max number of ballots audited/day per pbcid):
+    PBC1:20
+    PBC2:25
+    PBC3:30
+e.n_trials (number of trials used to estimate risk in compute_contest_risk):
+    100000
+e.pseudocount (hyperparameter for prior distribution, e.g. 0.5 for Jeffrey's prior)
+    0.001
+====== Audit ======
+audit stage 1
+    New target sample sizes by paper ballot collection:
+      PBC1: 20 (+20)
+      PBC2: 25 (+25)
+      PBC3: 30 (+30)
+    Total sample counts by Contest.PaperBallotCollection[reported vote] and actual votes:
+      I.PBC1[0]  0:11  total:11
+      I.PBC1[1]  1:9  total:9
+      I.PBC3[0]  0:14  total:14
+      I.PBC3[1]  1:16  total:16
+      I.PBC2[0]  0:13  total:13
+      I.PBC2[1]  1:12  total:12
+      C1.PBC1[0]  0:7  total:7
+      C1.PBC1[1]  1:13  total:13
+      C2.PBC2[0]  0:8  total:8
+      C2.PBC2[1]  1:17  total:17
+      C3.PBC3[0]  0:17  total:17
+      C3.PBC3[1]  1:13  total:13
+      F23.PBC3[0]  0:17  total:17
+      F23.PBC3[1]  1:13  total:13
+      F23.PBC2[0]  0:16  total:16
+      F23.PBC2[1]  1:9  total:9
+    Risk (that reported outcome is wrong) per cid and contest status:
+      I 0.00264 (limit 0.05) Risk Limit Reached
+      C1 0.0 (limit 0.05) Risk Limit Reached
+      C2 0.0 (limit 0.05) Risk Limit Reached
+      C3 0.00026 (limit 0.05) Risk Limit Reached
+      F23 0.99862 (limit 0.1) Full Recount Needed
+    Election status: ['Full Recount Needed', 'Risk Limit Reached']
+=============
+Audit completed!
+All contests have a status in the following list: ['Full Recount Needed', 'Risk Limit Reached']
+Number of ballots sampled, by paper ballot collection:
+  PBC1:20
+  PBC2:25
+  PBC3:30
+Total number of ballots sampled: 75
