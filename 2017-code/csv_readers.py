@@ -92,6 +92,8 @@ def read_csv_file(filename, varlen=False):
                 elif None not in row:
                     value = (row[lastfieldname],)
                 else:
+                    while len(row[None])>0 and clean_id(row[None][-1])=='':
+                        row[None].pop()
                     value = tuple([row[lastfieldname]] + \
                                    [clean_id(id) for id in row[None]])
                     del row[None]
