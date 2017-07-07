@@ -320,14 +320,14 @@ of that directory might look as follows.
              10-audit-parameters-global-2017-11-22.csv
              11-audit-parameters-contest-2017-11-22.csv
              12-audit-parameters-collection-2017-11-22.csv
-             20-audit-inputs-2017-11-22.csv
+             20-audit-snapshot-2017-11-22.csv
              30-audit-output-2017-11-22.csv
              40-audit-plan-2017-11-22.csv
           audit-stage-002
              10-audit-parameters-global-2017-11-23.csv
              11-audit-parameters-contest-2017-11-23.csv
              12-audit-parameters-collection-2017-11-23.csv
-             20-audit-inputs-2017-11-23.csv
+             20-audit-snapshot-2017-11-23.csv
              30-audit-outputs-2017-11-23.csv
              40-audit-plan-2017-11.23.csv
           audit-stage-003
@@ -841,8 +841,10 @@ The filename for a collection audit parameters file is of the form
 
 #### Output file formats (per stage)
 
-The outputs include a file ``20-audit-inputs.csv`` that gives the SHA256
+The outputs include a file ``20-audit-snapshot.csv`` that gives the SHA256
 hashes of the files used as inputs to the computations of that stage.
+This is a "snapshot" of the current directory structure.  It is used
+if/when re-running a audit stage computation.
 
 The output file ``30-audit-outputs.csv`` gives the detailed audit outputs
 for the stage.
@@ -934,19 +936,21 @@ etc.
 
 Formats are as specified above.
 
-##### Audit inputs file
+##### Audit snapshot file
 
-The **audit inputs** file lists the audited vote files use
-in the audit computations with their SHA256 hash values.
-The audits input file is an *output* of the audit program, not an
+The **audit snapshot** file lists the all files currently
+in the directory for the election, together with their
+SHA256 hash values.
+The audit snapshot file is an *output* of the audit program, not an
 input to the program.  It lists the files that the audit program
 will use for the computation of this stage.  The SHA-256 hashes
 are there for definiteness, allowing at a later time that you still
 have the correct input files, if you want to check the audit program.
-The audits input file is not used elsewhere by ``multi.py``.
+(If the audit stage is re-run, it will use the same files, even if files
+with later version labels have been added to the directory structure.)
 
 
-| Filename                   | SHA256 hash of file |
+| Filename                   | Hash |
 |---                         |---                  |
 | ``11-election-2017-09-08.csv``           | ``ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb`` |
 | ``12-contests-2017-09-08.csv``           | ``3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d`` |

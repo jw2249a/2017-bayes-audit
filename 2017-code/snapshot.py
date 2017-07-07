@@ -47,14 +47,16 @@ def verify_dir_hash(topdirname, dir_hash, exclusions=[]):
         (Only checks entries in dir_hash; others may exist in
         directory now as well, but they aren't checked.  This
         is OK.)
-        Files listed in exclusions are not checked (allowing
-        for the snapshot file itself to be excluded).
+        Files whose filename starts with a prefix listed in exclusions 
+        are not checked (allowing for the snapshot file itself to be 
+        excluded).
     """
 
     new_dir_hash = compute_dir_hash(topdirname)
     for filename in dir_hash:
-        if filename not in exclusions and\
-           new_dir_hash.get(filename, "") != dir_hash[filename]:
+        if any([filename.startswith(prefix) for prefix in exclusions]):
+            continue
+        if new_dir_hash.get(filename, "") != dir_hash[filename]:
             return False
     return True
     
@@ -73,7 +75,7 @@ def hash_speed():
             h.update(s)
         hash_value = h.hexdigest()
         t1 = time.time()
-        print("{:0.2f} Gbytes/sec".format((2**(k-30))/(t1-t0)))
+        print("    Estimated speed {:0.2f} Gbytes/sec".format((2**(k-30))/(t1-t0)))
 
 
 def write_hash_dir(topdirname, output_filename):
@@ -95,8 +97,11 @@ def write_hash_dir(topdirname, output_filename):
 if __name__=="__main__":
 
     dir_hash = compute_dir_hash(".")
-    print(verify_dir_hash(".", dir_hash))
+    print("Does snapshot work on current directory:",
+          verify_dir_hash(".", dir_hash))
 
     hash_speed()
 
-    write_hash_dir(".", "dir_hash.csv")
+    hash_filename = "20_audit-snapshot.csv"
+    write_hash_dir(".", hash_filename)
+    print("hash file {} written.".format(hash_filename))
