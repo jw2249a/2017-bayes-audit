@@ -1359,6 +1359,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="""multi.py: A Bayesian post-election audit program for an
             election with multiple contests and multiple paper ballot 
             collections.""")
+
+    #v1 and v2:
     parser.add_argument("election_name", help="""
                         The name of the election.  Same as the name of the 
                         subdirectory within the 'elections' directory 
@@ -1369,13 +1371,51 @@ def parse_args():
     parser.add_argument("--audit_seed",
                         help="""Seed for the random number generator used for
                         auditing (32-bit value). (If omitted, uses clock.)""")
-    return parser.parse_args()
+    ## v2:
+    parser.add_argument("--read_structure", action="store_true", help="""
+                        Read and check election structure.""")
+    parser.add_argument("--read_reported", action="store_true", help="""
+                        Read and check reported election data and results.""")
+    parser.add_argument("--read_seed", action="store_true", help="""
+                        Read audit seed.""")
+    parser.add_argument("--make_orders", action="store_true", help="""
+                        Make sampling orders files.""")
+    parser.add_argument("--read_audited", action="store_true", help="""
+                        Read and check audited votes.""")
+    parser.add_argument("--stage",
+                        help="""Run stage STAGE of the audit (may specify "ALL").""")
+    args = parser.parse_args()
+    print("Command line arguments:", args)
+    return args
 
 
 def process_args(e, args):
 
     e.elections_dir = args.elections_dir
     e.election_name = args.election_name
+
+    if args.read_structure:
+        print("read_structure")
+        get_election_structure(e)
+    elif args.read_reported:
+        print("read_reported")
+        get_election_structure(e)
+        get_election_data(e)
+    elif args.read_seed:
+        print("read_seed")
+        get_election_structure(e)
+        get_election_data(e)
+        get_audit_parameters(e, args)
+    elif args.make_orders:
+        print("make_orders")
+    elif args.read_audited:
+        print("read_audited")
+    elif args.stage:
+        print("stage", args.stage)
+        get_election_structure(e)
+        get_election_data(e)
+        get_audit_parameters(e, args)
+        audit(e, args)
 
 
 def main():
@@ -1393,11 +1433,6 @@ def main():
     args = parse_args()
     e = Election()
     process_args(e, args)
-    get_election_structure(e)
-    get_election_data(e)
-    get_audit_parameters(e, args)
-    audit(e, args)
-
     close_myprint_files()
 
 
