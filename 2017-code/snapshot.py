@@ -102,6 +102,6 @@ if __name__=="__main__":
 
     hash_speed()
 
-    hash_filename = "20_audit-snapshot.csv"
+    hash_filename = "20-audit-snapshot.csv"
     write_hash_dir(".", hash_filename)
     print("hash file {} written.".format(hash_filename))
