@@ -944,8 +944,8 @@ SHA256 hash values.
 The audit snapshot file is an *output* of the audit program, not an
 input to the program.  It lists the files that the audit program
 will use for the computation of this stage.  The SHA-256 hashes
-are there for definiteness, allowing at a later time that you still
-have the correct input files, if you want to check the audit program.
+are there for definiteness, allowing at a later time for you to check that you still
+have the correct input files, if you want to check the audit program by re-running it.
 (If the audit stage is re-run, it will use the same files, even if files
 with later version labels have been added to the directory structure.)
 

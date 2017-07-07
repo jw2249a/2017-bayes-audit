@@ -1,7 +1,7 @@
 # multi.py
 # Ronald L. Rivest
 # (with help from Karim Husayn Karimi and Neal McBurnett)
-# July 6, 2017
+# July 7, 2017
 
 # python3
 # clean up with autopep8
@@ -27,6 +27,8 @@ import json
 import numpy as np
 import os
 import sys
+
+import snapshot
 
 ##############################################################################
 # datetime
@@ -98,7 +100,6 @@ def mywarning(msg):
 # see numpy.random.RandomState documentation
 # Random states used in the program:
 # auditRandomState        -- controls random sampling and other audit aspects
-# syntheticRandomState    -- controls generation of synthetic vote datasets
 
 # Gamma distribution
 # https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
@@ -216,10 +217,8 @@ class Election(object):
 
         e.elections_dir = ""
         # where the election data is e.g. "./elections",
-        # so e.g. election data is all in "./elections/CO-Nov-2017"
-
-        e.election_type = ""
-        # string, either "Synthetic" or "Real"
+        # so e.g. election data for CO-Nov-2017
+        # is all in "./elections/CO-Nov-2017"
 
         e.cids = []
         # list of contest ids (cids)
@@ -478,9 +477,6 @@ def check_id(id, check_for_whitespace=False):
 
 def check_election_structure(e):
 
-    if e.election_type not in ["Synthetic", "Real"]:
-        myerror("Unknown election_type:{}.".format(e.election_type))
-
     if not isinstance(e.cids, (list, tuple)):
         myerror("e.cids is not a list or a tuple.")
     if len(e.cids) == 0:
@@ -539,8 +535,6 @@ def check_election_structure(e):
 
 def show_election_structure(e):
     myprint("====== Election structure ======")
-    myprint("Election type:")
-    myprint("    {}".format(e.election_type))
     myprint("Number of contests:")
     myprint("    {}".format(len(e.cids)))
     myprint("e.cids (contest ids):")
@@ -573,87 +567,6 @@ def show_election_structure(e):
 
 
 ##############################################################################
-# Generate synthetic data
-##############################################################################
-
-def compute_rv(e, cid, pbcid, bid, vote):
-    """
-    Compute synthetic reported vote for e.rv_cpb[cid][pbcid][bid]
-    based on whether pbcid is CVR or noCVR, and based on
-    a prior for errors.  Input vote is the actual vote.
-    e.error_rate (default 0.0001) is chance that 
-    reported vote differs from actual vote.  If they differ, 
-    then all possibilities (including original vote)
-    are equally likely to occur.
-    Only generates votes with a single selid.
-    TODO: ensure that we get "-Invalids" etc. too
-    """
-
-    if e.collection_type_p[pbcid] == "noCVR":
-        return ("-noCVR",)
-    # Otherwise, we generate a reported vote
-    # m = number of selection options for this cid
-    m = len(e.selids_c[cid])
-    if syntheticRandomState.uniform() > e.error_rate or m <= 1:
-        # no error is typical case
-        return vote
-    else:
-        # generate "error" (may be the same as original vote)
-        selids = list(e.selids_c[cid])
-        return (syntheticRandomState.choice(selids),)
-
-
-def compute_synthetic_selections(e):
-    """
-    Make up reported and actual votes and randomly permute their order.
-    Only useful for test elections, not for real elections.
-    Form of bid is e.g. PBC1-00576
-    """
-
-    global syntheticRandomState
-    syntheticRandomState = np.random.RandomState(e.synthetic_seed)
-
-    # make up bids
-    for pbcid in e.pbcids:
-        e.bids_p[pbcid] = list()
-        i = 0
-        for j in range(i, i + e.rn_p[pbcid]):
-            bid = pbcid + "-" + "%05d" % j
-            e.bids_p[pbcid].append(bid)
-        i += e.rn_p[pbcid]
-
-    # get rn_cr from syn_rn_cr
-    # (needs to be computed early, in order to make up votes)
-    for cid in e.cids:
-        e.rn_cr[cid] = {}
-        for vote in e.syn_rn_cr[cid]:
-            e.rn_cr[cid][vote] = e.syn_rn_cr[cid][vote]
-
-    # make up votes
-    for cid in e.cids:
-        e.rv_cpb[cid] = {}
-        e.av_cpb[cid] = {}
-        # make up all votes first, so overall tally for cid is right
-        votes = []
-        for vote in e.rn_cr[cid]:
-            votes.extend([vote] * e.rn_cr[cid][vote])
-        syntheticRandomState.shuffle(votes)          # in-place shuffle
-        # break list of votes up into pieces by pbcid
-        i = 0
-        for pbcid in e.rel_cp[cid]:
-            e.av_cpb[cid][pbcid] = {}
-            e.rv_cpb[cid][pbcid] = {}
-            for j in range(e.rn_p[pbcid]):
-                bid = e.bids_p[pbcid][j]
-                vote = votes[j]
-                av = vote
-                e.av_cpb[cid][pbcid][bid] = av
-                rv = compute_rv(e, cid, pbcid, bid, vote)
-                e.rv_cpb[cid][pbcid][bid] = rv
-            i += e.rn_p[pbcid]
-
-
-##############################################################################
 # Election data I/O and validation (stuff that depends on cast votes)
 ##############################################################################
 
@@ -679,12 +592,6 @@ def get_election_data(e):
         unpack_json_keys(e.syn_rn_cr[cid])
         for pbcid in e.rn_cpr[cid]:
             unpack_json_keys(e.rn_cpr[cid][pbcid])
-
-    if e.election_type == "Synthetic":
-        myprint("Synthetic selection generation seed:", e.synthetic_seed)
-        compute_synthetic_selections(e)
-    else:
-        myerror("For now, data must be synthetic!")
 
     finish_election_data(e)
     check_election_data(e)
