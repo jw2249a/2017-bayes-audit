@@ -178,7 +178,7 @@ or of length greater than one (an overvote).
 Implementation note: Within Python, we represent a vote as a
 tuple, such as
 
-    (,)              for the empty sequence
+    ()               for the empty sequence
 
     ("AliceJones",)  a vote with only one selection
 
@@ -466,7 +466,7 @@ Here are the fields of a row of a reported vote file:
 
    Implementation note: the voter's selections are combined into
    a python "tuple".  An empty vote is the zero-length python
-   tuple ``(,)``.  The python representation uses tuples, not lists,
+   tuple ``()``.  The python representation uses tuples, not lists,
    since tuples are hashable and so may be used as keys in
    python dictionaries.
 
