@@ -358,11 +358,13 @@ for the election itself.
 
 An **election file** gives some high-level attributes of the election.
 
-| Attribute     | Value                                   |
-| ---           | ---                                     |
-| Election name | Colorado general election               |
-| Election date | 2017-11-07                              |
-| Election info | https://sos.co.gov/election/2017-11-07/ |
+| Attribute        | Value                                   |
+| ---              | ---                                     |
+| Election name    | Colorado general election               |
+| Election dirname | CO-2017-11-07
+| Election date    | 2017-11-07                              |
+| Election URL     | https://sos.co.gov/election/2017-11-07/ |
+
 
 This is a CSV file, with the name ``11-election.csv`` (possibly with a version
 label, as in ``11-election-2017-09-08.csv``).
@@ -400,7 +402,7 @@ collections of paper ballots, contact info for the collection
 manager, collection type (CVR or noCVR),
 and a list of contests that may appear on ballots in that collection.
 
-| Collection id | Contact (Mgr)    |  CVR type | Contests   | ...        | ...         |...         |...    |
+| Collection id | Manager          | CVR type  | Contests   | ...        | ...         |...         |...    |
 | ---           | ---              | ---       | ---        | ---        | ---         |---         |---    |
 | DEN-A01       | abe@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |

@@ -215,13 +215,29 @@ class Election(object):
         # Name of election (e.g. "CO-Nov-2017")
         # This is also used as a directory name.
 
-        e.elections_dir = ""
+        e.election_dirname = ""
         # where the election data is e.g. "./elections",
         # so e.g. election data for CO-Nov-2017
         # is all in "./elections/CO-Nov-2017"
 
+        e.election_date = ""
+        # In ISO8601 format, e.g. "2017-11-07"
+
+        e.election_url = ""
+        # URL to find more information about the election
+
         e.cids = []
         # list of contest ids (cids)
+
+        e.contest_type = {}
+        # cid->contest type  (e.g. "plurality" or "irv")
+
+        e.winners = {}
+        # cid->int
+        # number of winners in contest 
+
+        e.write_ins = {}
+        # cid->str  (e.g. "no" or "qualified" or "arbitrary")
 
         e.selids_c = {}
         # cid->[selids]
@@ -233,17 +249,22 @@ class Election(object):
         e.pbcids = []
         # list of paper ballot collection ids (pbcids)
 
-        e.bids_p = {}
-        # pbcid->[bids]
-        # list of ballot ids (bids) for each pcbid
+
+        e.manager_p = {}
+        # pbcid->manager
+        # Gives name and/or contact information for collection manager
+
+        e.cvr_type_p = {}
+        # pbcid-> "CVR" or "noCVR"
 
         e.rel_cp = {}
         # cid->pbcid->"True"
         # relevance; only relevant pbcids in e.rel_cp[cid]
         # True means the pbcid *might* contains ballots relevant to cid
 
-        e.collection_type_p = {}
-        # pbcid-> "CVR" or "noCVR"
+        e.bids_p = {}
+        # pbcid->[bids]
+        # list of ballot ids (bids) for each pcbid
 
         # election data (reported election results)
 
@@ -460,7 +481,7 @@ def finish_election_structure(e):
         for selid in e.selids_c[cid]:
             e.votes_c[cid][(selid,)] = True
         for pbcid in e.rel_cp[cid]:
-            if e.collection_type_p[pbcid] == "noCVR":
+            if e.cvr_type_p[pbcid] == "noCVR":
                 e.votes_c[cid][noCVRvote] = True
 
 
@@ -516,17 +537,17 @@ def check_election_structure(e):
         if cid not in e.selids_c:
             mywarning("cid `{}` should be key in e.selids_c".format(cid))
 
-    if not isinstance(e.collection_type_p, dict):
-        myerror("e_collection_type is not a dict.")
-    for pbcid in e.collection_type_p:
+    if not isinstance(e.cvr_type_p, dict):
+        myerror("e_cvr_type is not a dict.")
+    for pbcid in e.cvr_type_p:
         if pbcid not in e.pbcids:
             mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
-        if e.collection_type_p[pbcid] not in ["CVR", "noCVR"]:
-            mywarning("e.collection_type_p[{}]==`{}` is not CVR or noCVR"
-                      .format(pbcid, e.collection_type_p[pbcid]))
+        if e.cvr_type_p[pbcid] not in ["CVR", "noCVR"]:
+            mywarning("e.cvr_type_p[{}]==`{}` is not CVR or noCVR"
+                      .format(pbcid, e.cvr_type_p[pbcid]))
     for pbcid in e.pbcids:
-        if pbcid not in e.collection_type_p:
-            mywarning("pbcid `{}` not key in e.collection_type_p."
+        if pbcid not in e.cvr_type_p:
+            mywarning("pbcid `{}` not key in e.cvr_type_p."
                       .format(pbcid))
 
     if warnings_given > 0:
@@ -549,9 +570,9 @@ def show_election_structure(e):
     for pbcid in sorted(e.pbcids):
         myprint(pbcid, end=' ')
     myprint()
-    myprint("e.collection_type_p (either CVR or noCVR) for each pbcid:")
+    myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}:{} ".format(pbcid, e.collection_type_p[pbcid]))
+        myprint("    {}:{} ".format(pbcid, e.cvr_type_p[pbcid]))
     myprint("e.rel_cp (possible pbcids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
@@ -1242,8 +1263,9 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
 
     selected_filename = ""
     for filename in os.listdir(dirpath):
-        if (dir_wanted == False and os.path.isfile(filename) or
-            dir_wanted == True and not os.path.isfile(filename)) and\
+        full_filename = os.path.join(dirpath,filename)
+        if (dir_wanted == False and os.path.isfile(full_filename) or \
+            dir_wanted == True and not os.path.isfile(full_filename)) and\
            filename.startswith(startswith) and \
            filename.endswith(endswith) and \
            filename > selected_filename:
