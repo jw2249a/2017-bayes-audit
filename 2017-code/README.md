@@ -171,9 +171,9 @@ or of length greater than one (an overvote).
 Implementation note: Within Python, we represent a vote as a
 tuple, such as
 
-    ()               for the empty sequence
+    (,)              for the empty sequence
 
-    ("AliceJones")   a vote with only one selection
+    ("AliceJones",)  a vote with only one selection
 
     ("AliceJones", "+BobSmith")  a vote with two selections, one of
                      which is a write-in for Bob Smith.

@@ -177,8 +177,6 @@ class Election(object):
                ("AliceJones", "BobSmith", "+LizardPeople") indicates that Alice
                is the voter's first choice, Bob the second, etc.               
 
-    An id may NOT contain a comma (",") for reasons having to do with the
-    encoding of python tuples for json keys as comma-separated lists.
     It is recommended (but not required) that ids not contain anything but
              A-Z   a-z   0-9  -   _   .   +
     (In particular, avoid whitespace if possible.)
@@ -235,6 +233,7 @@ class Election(object):
         # list of paper ballot collection ids (pbcids)
 
         e.bids_p = {}
+        # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
 
         e.rel_cp = {}
@@ -248,15 +247,17 @@ class Election(object):
         # election data (reported election results)
 
         e.rn_p = {}
+        # pbcid -> count
         # e.rn_p[pbcid] number ballots cast in collection pbcid
 
         e.votes_c = {}
+        # cid->count
         # e.votes_c[cid] gives all votes seen for cid, reported or actual
 
         e.rn_cpr = {}
         # cid->pbcid->rvote->count
         # reported number of votes by contest, paper ballot collection,
-        # nd reported vote.
+        # and reported vote.
 
         e.ro_c = {}
         # cid->outcome
