@@ -11,16 +11,36 @@ formats, and put the results into the Election data structure.
 """
 All CSV files have a single header line, giving the column (field) names.
 
-For most file formats, a data row must have length no longer than the header row.
+For most file formats, a data row must have length no longer than the header row,
+and missing values are represented as "".
 
-For vote files, it is a little bit different:
-the last header is called "Selections", and there may
-be 0, 1, 2, or more selections made by the voter.  So the data row
-may be shorter (by one), equal to, or longer than the header row.
-In any case, the selections for a vote file row are compiled into
-a tuple.
+For "varlen" (files with variable row lengths) files, it is a little bit 
+different: the last header may have 0, 1, 2, or more values.
+So the data row may be shorter (by one), equal to, or longer than the header row.
+In any case, the values for the last field are always compiled into a tuple
+(possibly an empty tuple).
 
 The reader returns a list of dictionaries, one per row.
+
+Example (regular csv file):
+    A,B,C
+    1,2,3
+    4,5
+becomes:
+    [ {'A':'1', 'B':'2', 'C':'3'},
+      {'A':'4', 'B':'5', 'C':''} 
+    ]
+
+Example: (varlen csv file)
+    A,B,C
+    1,2,3
+    4,5
+    6,7,8,9
+becomes:
+    [ {'A':'1', 'B':'2', 'C':('3',)},
+      {'A':'4', 'B':'5', 'C':()},
+      {'A':'6', 'B':'5', 'C':(8,9)},
+    ]
 """
 
 import csv
@@ -43,13 +63,13 @@ def clean_id(id):
     return new_id
 
 
-def read_csv_file(filename, votefile=False):
+def read_csv_file(filename, varlen=False):
 
     with open(filename) as file:
         reader = csv.DictReader(file)
         rows = [row for row in reader]
         for row in rows:
-            if None in row and not votefile:
+            if None in row and not varlen:
                 # raise Exception("Too many values in row:"+str(row))
                 print("Warning: Too many values in row:"+str(row))
                 del row[None]
@@ -65,7 +85,7 @@ def read_csv_file(filename, votefile=False):
                     row[fieldname] = ""
                 if isinstance(row[fieldname], str):
                     row[fieldname] = clean_id(row[fieldname])
-            if votefile:
+            if varlen:
                 lastfieldname = clean_id(reader.fieldnames[-1])
                 if row[lastfieldname] == None:
                     value = ()
@@ -83,8 +103,8 @@ if __name__=="__main__":
     print("Regular csv file:")
     for row in read_csv_file("test_reg.csv"):
         print([(fn, row[fn]) for fn in sorted(row)])
-    print("Vote csv file:")
-    for row in read_csv_file("test_vote.csv", votefile=True):
+    print("Varlen csv file:")
+    for row in read_csv_file("test_vote.csv", varlen=True):
         print([(fn, row[fn]) for fn in sorted(row)])
     
 
