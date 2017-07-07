@@ -1,6 +1,8 @@
 # multi.py
 # Ronald L. Rivest
-# June 30, 2017
+# (with help from Karim Husayn Karimi and Neal McBurnett)
+# July 6, 2017
+
 # python3
 # clean up with autopep8
 #   autopep8 -i multi.py
