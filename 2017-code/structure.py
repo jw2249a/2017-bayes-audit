@@ -1,4 +1,4 @@
-# read-structure.py
+# structure.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
 # July 7, 2017
 # python3
@@ -10,7 +10,7 @@ of an election:
    11-election-2017-09-08.csv
    12-contests-2017-09-08.csv
    13-collections-2017-09-08.csv
-with structures of the form:
+with structures represented by csv files of the form:
 
 11-election.csv:
 Attribute     , Value                                   
@@ -143,6 +143,129 @@ def test_read_collections(e):
 
     print("test_read_collections")
     read_collections(e)
+
+
+##############################################################################
+# Election structure I/O and validation
+##############################################################################
+
+def get_election_structure(e):
+
+    # load_part_from_json(e, "structure.js")
+    election_dirname = os.path.join(e.elections_dirname, e.election_name)
+    structure.read_election(e, election_dirname)
+    structure.read_contests(e)
+    structure.read_collections(e)
+    finish_election_structure(e)
+    check_election_structure(e)
+    show_election_structure(e)
+
+
+def finish_election_structure(e):
+
+    noCVRvote = ("-noCVR",)
+
+    for cid in e.cids:
+        e.votes_c[cid] = {}
+        for selid in e.selids_c[cid]:
+            e.votes_c[cid][(selid,)] = True
+        for pbcid in e.rel_cp[cid]:
+            if e.cvr_type_p[pbcid] == "noCVR":
+                e.votes_c[cid][noCVRvote] = True
+
+
+def check_id(id, check_for_whitespace=False):
+
+    if not isinstance(id, str) or not id.isprintable():
+        mywarning("id is not string or is not printable: {}".format(id))
+    if check_for_whitespace:
+        for c in id:
+            if c.isspace():
+                mywarning("id `id` contains whitespace.")
+                break
+
+
+def check_election_structure(e):
+
+    if not isinstance(e.cids, (list, tuple)):
+        myerror("e.cids is not a list or a tuple.")
+    if len(e.cids) == 0:
+        myerror("e.cids is an empty list of contests.")
+    for cid in e.cids:
+        check_id(cid)
+
+    if not isinstance(e.pbcids, (list, tuple)):
+        myerror("e.pbcids is not a list or a tuple.")
+    if len(e.pbcids) == 0:
+        myerror("e.pbcids is an empty list of pbcids.")
+    for pbcid in e.pbcids:
+        check_id(pbcid)
+
+    if not isinstance(e.rel_cp, dict):
+        myerror("e.rel_cp is not a dict.")
+    for cid in e.rel_cp:
+        if cid not in e.cids:
+            mywarning("cid is not in e.cids: {}".format(cid))
+        for pbcid in e.rel_cp[cid]:
+            if pbcid not in e.pbcids:
+                mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
+            if e.rel_cp[cid][pbcid] != True:
+                mywarning("e.rel_cp[{}][{}] != True.".format(
+                    cid, pbcid, e.rel_cp[cid][pbcid]))
+
+    for cid in e.selids_c:
+        if cid not in e.cids:
+            myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
+        for selid in e.selids_c[cid]:
+            check_id(selid)
+    for cid in e.cids:
+        if cid not in e.selids_c:
+            mywarning("cid `{}` should be key in e.selids_c".format(cid))
+
+    if not isinstance(e.cvr_type_p, dict):
+        myerror("e_cvr_type is not a dict.")
+    for pbcid in e.cvr_type_p:
+        if pbcid not in e.pbcids:
+            mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
+        if e.cvr_type_p[pbcid] not in ["CVR", "noCVR"]:
+            mywarning("e.cvr_type_p[{}]==`{}` is not CVR or noCVR"
+                      .format(pbcid, e.cvr_type_p[pbcid]))
+    for pbcid in e.pbcids:
+        if pbcid not in e.cvr_type_p:
+            mywarning("pbcid `{}` not key in e.cvr_type_p."
+                      .format(pbcid))
+
+    if warnings_given > 0:
+        myerror("Too many errors; terminating.")
+
+
+def show_election_structure(e):
+    myprint("====== Election structure ======")
+    myprint("Number of contests:")
+    myprint("    {}".format(len(e.cids)))
+    myprint("e.cids (contest ids):")
+    for cid in e.cids:
+        myprint("   ", cid)
+    myprint("Number of paper ballot collections)")
+    myprint("    {}".format(len(e.pbcids)))
+    myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
+    for pbcid in sorted(e.pbcids):
+        myprint("   ", pbcid)
+    myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
+    for pbcid in sorted(e.pbcids):
+        myprint("    {}: {} ".format(pbcid, e.cvr_type_p[pbcid]))
+    myprint("e.rel_cp (possible pbcids for each cid):")
+    for cid in e.cids:
+        myprint("    {}: ".format(cid), end='')
+        for pbcid in sorted(e.rel_cp[cid]):
+            myprint(pbcid, end=', ')
+        myprint()
+    myprint("e.selids_c (valid selection ids for each cid):")
+    for cid in e.cids:
+        myprint("    {}: ".format(cid), end='')
+        for selid in sorted(e.selids_c[cid]):
+            myprint(selid, end=', ')
+        myprint()
 
 
 if __name__=="__main__":
