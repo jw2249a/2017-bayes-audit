@@ -102,8 +102,8 @@ Coordinator might be from the Secretary of State's office).
 ## Implementation notes: identifiers, votes, file names, and directory structure
 
 This section describes some low-level but essential details regarding
-the use of identifiers in ``multi.py``, the way in which votes are
-represented as a sequence of identifiers, 
+the use of identifiers in ``multi.py``, the way in which votes in a contest are
+represented as a sets of identifiers, 
 use of CSV file formats,
 how transparency and reproducibility
 are supported by the use of file names that include version labels, and
@@ -122,7 +122,10 @@ We have:
 * **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"``)
   A selection identifier is called a ``"selid"`` in the code.
   Roughly speaking, there should be one selection identifier for each
-  optical scan bubble.
+  optical scan bubble.  If bubble are arranged in a matrix, as
+  they might be for preferential voting, score voting, or 3-2-1
+  voting, then the selid might have the form "rowid:colid", as
+  in "Smith:1" or "Jones:Excellent".
   A **write-in** selection has a selection id beginning with a plus
   sign (example: ``"+BobWhite"``).
 
@@ -158,7 +161,7 @@ are removed.
 ### Votes
 
 A **vote** is what is indicated by a voter on a paper ballot for a
-particular contest.  A vote is a (possibly empty) list of selection
+particular contest.  A vote is a (possibly empty) **set** of selection
 ids for a contest.
 
 A vote is more specific than a ballot, as a ballot may contain
@@ -169,32 +172,26 @@ since the voter may indicate more than one selection for a
 contest.  (Either by mistake, with an overvote, or intentionally
 when it is allowed, as for approval voting.)
 
-Thus, a vote is a **sequence** of selections.  Possibly of zero
-length, possibly of length one, possibly of length greater than
-one.  With plurality voting, the sequence is of length one for
-a valid selection, but it may be of length zero (an undervote)
-or of length greater than one (an overvote).
+Thus, a vote is a **set** of selections.  Possibly empty,
+possibly of size one, possibly of greater size.
+With plurality voting, the set is of size one for
+a valid selection, but it may be of size zero (an undervote)
+or of sizegreater than one (an overvote).
 
 Implementation note: Within Python, we represent a vote as a
 tuple, such as
 
-    ()               for the empty sequence
+    ()               for the empty set
 
     ("AliceJones",)  a vote with only one selection
 
     ("AliceJones", "+BobSmith")  a vote with two selections, one of
                      which is a write-in for Bob Smith.
 
-Implementation note: Within a json file, a vote is represented
-as a comma-separated string of selection ids:
-
-    ""               for the empty sequence
-
-    "AliceJones"     a vote with one selections, for AliceJones
-
-    "AliceJones,+BobSmith"  a vote with two selections,
-                     one for Alice Jones and one for Bob Smith
-
+We use a Python tuple rather than a Python set, since the tuple
+is hashable.  But the intent is to represent a set, not a sequence.
+To that end, the default order of a vote is with the selids
+sorted into increasing order (as strings).
 
 ### File formats
 
