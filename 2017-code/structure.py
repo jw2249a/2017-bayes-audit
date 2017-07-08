@@ -145,17 +145,13 @@ def test_read_collections(e):
     read_collections(e)
 
 
-##############################################################################
-# Election structure I/O and validation
-##############################################################################
-
 def get_election_structure(e):
 
     # load_part_from_json(e, "structure.js")
     election_dirname = os.path.join(e.elections_dirname, e.election_name)
-    structure.read_election(e, election_dirname)
-    structure.read_contests(e)
-    structure.read_collections(e)
+    read_election(e, election_dirname)
+    read_contests(e)
+    read_collections(e)
     finish_election_structure(e)
     check_election_structure(e)
     show_election_structure(e)

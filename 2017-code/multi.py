@@ -1101,16 +1101,16 @@ def process_args(e, args):
     e.elections_dirname = args.elections_dir
     e.election_name = args.election_name
 
-    if args.structure:
+    if args.read_structure:
         print("read_structure")
-        get_election_structure(e)
+        structure.get_election_structure(e)
     elif args.read_reported:
         print("read_reported")
-        get_election_structure(e)
+        structure.get_election_structure(e)
         get_election_data(e)
     elif args.read_seed:
         print("read_seed")
-        get_election_structure(e)
+        structure.get_election_structure(e)
         get_election_data(e)
         get_audit_parameters(e, args)
     elif args.make_orders:
@@ -1119,7 +1119,7 @@ def process_args(e, args):
         print("read_audited")
     elif args.stage:
         print("stage", args.stage)
-        get_election_structure(e)
+        structure.get_election_structure(e)
         get_election_data(e)
         get_audit_parameters(e, args)
         audit(e, args)
