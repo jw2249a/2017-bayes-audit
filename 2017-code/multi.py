@@ -270,11 +270,13 @@ class Election(object):
 
         e.rn_p = {}
         # pbcid -> count
-        # e.rn_p[pbcid] number ballots cast in collection pbcid
+        # e.rn_p[pbcid] number ballots reported cast in collection pbcid
 
         e.votes_c = {}
-        # cid->count
+        # cid->votes
         # e.votes_c[cid] gives all votes seen for cid, reported or actual
+        # (These are the votes, not the count.  So e.votes_c is the domain
+        # for tallies of contest cid.)
 
         e.rn_cpr = {}
         # cid->pbcid->rvote->count
