@@ -30,6 +30,7 @@ import sys
 
 import outcomes
 import structure
+import reported
 import snapshot
 
 ##############################################################################
@@ -417,256 +418,6 @@ def copy_dict_tree(dest, source):
                 # Maybe add option to disallow clobbering here??
                 dest[source_key] = source[source_key]
 
-
-##############################################################################
-# Election data I/O and validation (stuff that depends on cast votes)
-##############################################################################
-
-
-def is_writein(selid):
-
-    return len(selid) > 0 and selid[0] == "+"
-
-
-def is_error_selid(selid):
-
-    return len(selid) > 0 and selid[0] == "-"
-
-
-def get_election_data(e):
-
-    load_part_from_json(e, "data.js")
-    # fix up json vote encodings for votes in
-    #   e.rn_cpr[cid][pbcid]
-    #   e.syn_rn_cr[cid]
-    # need to do latter before synthetic data generated
-    for cid in e.rn_cpr:
-        unpack_json_keys(e.syn_rn_cr[cid])
-        for pbcid in e.rn_cpr[cid]:
-            unpack_json_keys(e.rn_cpr[cid][pbcid])
-
-    finish_election_data(e)
-    check_election_data(e)
-    show_election_data(e)
-
-
-def finish_election_data(e):
-    """ 
-    Compute election data attributes that are derivative from others. 
-    or that need conversion (e.g. strings-->tuples from json keys).
-    """
-
-    # make sure e.selids_c contains all +/- selids seen in reported votes
-    # and that e.votes_c[cid] contains all reported votes
-    for cid in e.cids:
-        for pbcid in e.rel_cp[cid]:
-            for bid in e.bids_p[pbcid]:
-                r = e.rv_cpb[cid][pbcid][bid]
-                e.votes_c[r] = True
-                for selid in r:
-                    if is_writein(selid) or is_error_selid(selid):
-                        e.selids_c[cid][selid] = True
-
-    # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
-    for cid in e.cids:
-        e.rn_cpr[cid] = {}
-        for pbcid in e.rel_cp[cid]:
-            e.rn_cpr[cid][pbcid] = {}
-            for r in e.votes_c[cid]:
-                e.rn_cpr[cid][pbcid][r] = len([bid for bid in e.bids_p[pbcid]
-                                               if e.rv_cpb[cid][pbcid][bid] == r])
-
-    # e.rn_c[cid] is reported number of votes cast in contest cid
-    for cid in e.cids:
-        e.rn_c[cid] = sum([e.rn_cpr[cid][pbcid][vote]
-                           for pbcid in e.rn_cpr[cid]
-                           for vote in e.votes_c[cid]])
-
-    # e.rn_cr[cid][vote] is reported number cast for vote in cid
-    for cid in e.cids:
-        e.rn_cr[cid] = {}
-        for pbcid in e.rn_cpr[cid]:
-            for vote in e.votes_c[cid]:
-                if vote not in e.rn_cr[cid]:
-                    e.rn_cr[cid][vote] = 0
-                if vote not in e.rn_cpr[cid][pbcid]:
-                    e.rn_cpr[cid][pbcid][vote] = 0
-                e.rn_cr[cid][vote] += e.rn_cpr[cid][pbcid][vote]
-
-
-def check_election_data(e):
-
-    if not isinstance(e.rn_cpr, dict):
-        myerror("e.rn_cpr is not a dict.")
-    for cid in e.rn_cpr:
-        if cid not in e.cids:
-            mywarning("cid `{}` not in e.cids.".format(cid))
-        for pbcid in e.rn_cpr[cid]:
-            if pbcid not in e.pbcids:
-                mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
-            for vote in e.rn_cpr[cid][pbcid]:
-                for selid in vote:
-                    if selid not in e.selids_c[cid] and selid[0].isalnum():
-                        mywarning(
-                            "selid `{}` is not in e.selids_c[{}]."
-                            .format(selid, cid))
-                if not isinstance(e.rn_cpr[cid][pbcid][vote], int):
-                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
-                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote]))
-                if not (0 <= e.rn_cpr[cid][pbcid][vote] <= e.rn_p[pbcid]):
-                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
-                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote],
-                                      e.rn_p[pbcid]))
-                if e.rn_cr[cid][vote] != \
-                        sum([e.rn_cpr[cid][pbcid][vote]
-                             for pbcid in e.rel_cp[cid]]):
-                    mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
-                              .format(cid, vote, cid, vote))
-    for cid in e.cids:
-        if cid not in e.rn_cpr:
-            mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
-        for pbcid in e.rel_cp[cid]:
-            if pbcid not in e.rn_cpr[cid]:
-                mywarning(
-                    "pbcid {} is not a key for e.rn_cpr[{}].".format(pbcid, cid))
-            # for selid in e.selids_c[cid]:
-            #     assert selid in e.rn_cpr[cid][pbcid], (cid, pbcid, selid)
-            # ## not necessary, since missing selids have assumed count of 0
-
-    if not isinstance(e.rn_c, dict):
-        myerror("e.rn_c is not a dict.")
-    for cid in e.rn_c:
-        if cid not in e.cids:
-            mywarning("e.rn_c key `{}` is not in e.cids.".format(cid))
-        if not isinstance(e.rn_c[cid], int):
-            mywarning("e.rn_c[{}] = {}  is not an integer.".format(
-                cid, e.rn_c[cid]))
-    for cid in e.cids:
-        if cid not in e.rn_c:
-            mywarning("cid `{}` is not a key for e.rn_c".format(cid))
-
-    if not isinstance(e.rn_cr, dict):
-        myerror("e.rn_cr is not a dict.")
-    for cid in e.rn_cr:
-        if cid not in e.cids:
-            mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
-        for vote in e.rn_cr[cid]:
-            for selid in vote:
-                if (not is_writein(selid) and not is_error_selid(selid)) \
-                   and not selid in e.selids_c[cid]:
-                    mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
-                              .format(cid, selid, cid))
-            if not isinstance(e.rn_cr[cid][vote], int):
-                mywarning("e.rn_cr[{}][{}] = {} is not an integer."
-                          .format(cid, vote, e.rn_cr[cid][vote]))
-    for cid in e.cids:
-        if cid not in e.rn_cr:
-            mywarning("cid `{}` is not a key for e.rn_cr".format(cid))
-
-    if not isinstance(e.bids_p, dict):
-        myerror("e.bids_p is not a dict.")
-    for pbcid in e.pbcids:
-        if not isinstance(e.bids_p[pbcid], list):
-            myerror("e.bids_p[{}] is not a list.".format(pbcid))
-
-    if not isinstance(e.av_cpb, dict):
-        myerror("e.av_cpb is not a dict.")
-    for cid in e.av_cpb:
-        if cid not in e.cids:
-            mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
-        for pbcid in e.av_cpb[cid]:
-            if pbcid not in e.pbcids:
-                mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
-                          .format(cid, pbcid))
-            if not isinstance(e.av_cpb[cid][pbcid], dict):
-                myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
-            bidsset = set(e.bids_p[pbcid])
-            for bid in e.av_cpb[cid][pbcid]:
-                if bid not in bidsset:
-                    mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
-                              .format(bid, cid, pbcid, pbcid))
-
-    for cid in e.cids:
-        if cid not in e.av_cpb:
-            mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
-        for pbcid in e.rel_cp[cid]:
-            if pbcid not in e.av_cpb[cid]:
-                mywarning("pbcid `{}` is not in e.av_cpb[{}]."
-                          .format(pbcid, cid))
-
-    if not isinstance(e.rv_cpb, dict):
-        myerror("e.rv_cpb is not a dict.")
-    for cid in e.rv_cpb:
-        if cid not in e.cids:
-            mywarning("e.rv_cpb key `{}` is not in e.cids.".format(cid))
-        for pbcid in e.rv_cpb[cid]:
-            if pbcid not in e.pbcids:
-                mywarning("e.rv_cpb[{}] key `{}` is not in e.pbcids."
-                          .format(cid, pbcid))
-            if not isinstance(e.rv_cpb[cid][pbcid], dict):
-                myerror("e.rv_cpb[{}][{}] is not a dict.".format(cid, pbcid))
-            bidsset = set(e.bids_p[pbcid])
-            for bid in e.rv_cpb[cid][pbcid]:
-                if bid not in bidsset:
-                    mywarning("bid `{}` from e.rv_cpb[{}][{}] is not in e.bids_p[{}]."
-                              .format(bid, cid, pbcid, pbcid))
-    for cid in e.cids:
-        if cid not in e.rv_cpb:
-            mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
-        for pbcid in e.rel_cp[cid]:
-            if pbcid not in e.rv_cpb[cid]:
-                mywarning("pbcid `{}` from e.rel_cp[{}] is not a key for e.rv_cpb[{}]."
-                          .format(pbcid, cid, cid))
-
-    if not isinstance(e.ro_c, dict):
-        myerror("e.ro_c is not a dict.")
-    for cid in e.ro_c:
-        if cid not in e.cids:
-            mywarning("cid `{}` from e.rv_cpb is not in e.cids".format(cid))
-    for cid in e.cids:
-        if cid not in e.ro_c:
-            mywarning("cid `{}` is not a key for e.ro_c.".format(cid))
-
-    if warnings_given > 0:
-        myerror("Too many errors; terminating.")
-
-
-def show_election_data(e):
-
-    myprint("====== Reported election data ======")
-
-    myprint("e.rn_cpr (total reported votes for each vote by cid and pbcid):")
-    for cid in e.cids:
-        for pbcid in sorted(e.rel_cp[cid]):
-            myprint("    {}.{}: ".format(cid, pbcid), end='')
-            for vote in sorted(e.rn_cpr[cid][pbcid]):
-                myprint("{}:{} ".format(
-                    vote, e.rn_cpr[cid][pbcid][vote]), end='')
-            myprint()
-
-    myprint("e.rn_c (total votes cast for each cid):")
-    for cid in e.cids:
-        myprint("    {}: {}".format(cid, e.rn_c[cid]))
-
-    myprint("e.rn_cr (total cast for each vote for each cid):")
-    for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
-        for vote in sorted(e.rn_cr[cid]):
-            myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
-        myprint()
-
-    myprint("e.av_cpb (first five or so actual votes cast for each cid and pbcid):")
-    for cid in e.cids:
-        for pbcid in sorted(e.rel_cp[cid]):
-            myprint("    {}.{}:".format(cid, pbcid), end='')
-            for j in range(min(5, len(e.bids_p[pbcid]))):
-                bid = e.bids_p[pbcid][j]
-                myprint(e.av_cpb[cid][pbcid][bid], end=' ')
-            myprint()
-
-    myprint("e.ro_c (reported outcome for each cid):")
-    for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.ro_c[cid]))
 
 ##############################################################################
 # Audit I/O and validation
@@ -1111,7 +862,7 @@ def process_args(e, args):
     elif args.read_seed:
         print("read_seed")
         structure.get_election_structure(e)
-        get_election_data(e)
+        reported.get_election_data(e)
         get_audit_parameters(e, args)
     elif args.make_orders:
         print("make_orders")
@@ -1120,7 +871,7 @@ def process_args(e, args):
     elif args.stage:
         print("stage", args.stage)
         structure.get_election_structure(e)
-        get_election_data(e)
+        reported.get_election_data(e)
         get_audit_parameters(e, args)
         audit(e, args)
 
