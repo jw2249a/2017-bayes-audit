@@ -71,13 +71,13 @@ def read_csv_file(filename, varlen=False):
         for row in rows:
             if None in row and not varlen:
                 # raise Exception("Too many values in row:"+str(row))
-                print("Warning: Too many values in row:"+str(row))
+                multi.mywarning("Too many values in row:"+str(row))
                 del row[None]
             for fieldname in reader.fieldnames:
                 clean_fieldname = clean_id(fieldname)
                 if clean_fieldname != fieldname:
                     if clean_fieldname in row:
-                        print("Warning: field name given twice:", clean_fieldname)
+                        multi.mywarning("field name given twice:", clean_fieldname)
                     row[clean_fieldname] = row[fieldname]
                     del row[fieldname]
                     fieldname = clean_fieldname
