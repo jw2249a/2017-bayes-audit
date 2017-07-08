@@ -101,7 +101,11 @@ def read_contests(e):
         
         e.write_ins = row["Write-ins"]
 
-        e.selids_c[cid] = row["Selections"]
+        e.selids_c[cid] = {}
+        for selid in row["Selections"]:
+            e.selids_c[cid][selid] = True
+
+        e.rel_cp[cid] = {}
 
         print(row)
 

@@ -28,6 +28,7 @@ import numpy as np
 import os
 import sys
 
+import outcomes
 import read_structure
 import snapshot
 
@@ -175,7 +176,7 @@ class Election(object):
                one bubble filled in on an optical scan ballot.
 
         vote   a tuple of selids, e.g. ("AliceJones", "BobSmith", "+LizardPeople").
-               An empty vote (e.g. (,)) is an undervote (for plurality).
+               An empty vote (e.g. () ) is an undervote (for plurality).
                A vote with more than one selid is an overvote (for plurality).
                The order may matter; for preferential voting a vote of the form
                ("AliceJones", "BobSmith", "+LizardPeople") indicates that Alice
@@ -183,8 +184,7 @@ class Election(object):
 
     It is recommended (but not required) that ids not contain anything but
              A-Z   a-z   0-9  -   _   .   +
-    (In particular, avoid whitespace if possible.)
-
+    and perhaps whitespace.
     """
 
     def __init__(self):
@@ -212,14 +212,14 @@ class Election(object):
 
         # election structure
 
-        e.election_name = ""
-        # Name of election (e.g. "CO-Nov-2017")
-        # This is also used as a directory name.
-
-        e.election_dirname = ""
-        # where the election data is e.g. "./elections",
+        e.elections_dirname = ""
+        # where the elections data is e.g. "./elections",
         # so e.g. election data for CO-Nov-2017
         # is all in "./elections/CO-Nov-2017"
+
+        e.election_name = ""
+        # Name of election (e.g. "CO-Nov-2017")
+        # Used as a directory name within elections_dir
 
         e.election_date = ""
         # In ISO8601 format, e.g. "2017-11-07"
@@ -241,8 +241,8 @@ class Election(object):
         # cid->str  (e.g. "no" or "qualified" or "arbitrary")
 
         e.selids_c = {}
-        # cid->[selids]
-        # list of selection ids (selids) for each cid
+        # cid->selids->True
+        # dict of some possible selection ids (selids) for each cid 
         # note that e.selids_c is used for both reported selections
         # (from votes in e.rv) and for actual selections (from votes in e.av)
         # it also increases when new selids starting with "+" or "-" are seen.
@@ -392,19 +392,12 @@ class Election(object):
 ##############################################################################
 # Low level i/o for reading election data structure
 
-def load_part_from_json(e, part_name):
-
-    part_filename = os.path.join(e.elections_dir, e.election_name, part_name)
-    part = json.load(open(part_filename, "r"))
-    copy_dict_tree(vars(e), part)
-    myprint("File {} loaded.".format(part_filename))
-
-
 def copy_dict_tree(dest, source):
     """
     Copy data from source dict tree to dest dict tree, recursively.
     Omit key/value pairs where key starts with "__".
     TODO?? Filter so only desired attributes are copied, for security. 
+    OBSOLETE--WAS USED FOR LOADING FROM JSON FILES.
     """
 
     if not isinstance(dest, dict) or not isinstance(source, dict):
@@ -425,51 +418,17 @@ def copy_dict_tree(dest, source):
                 dest[source_key] = source[source_key]
 
 
-# The following value is used as a separator when combining
-# several selids into a single string, so they can be used
-# as a json key, then unpacked into a tuple to be used as a
-# python dict key.  This value is long and random intentionally.
-JSON_PACKING_SEPARATOR = "-$|*;%2@-"
-
-def unpack_json_key(key):
-    """ Given a json dict key such as "A-$|*;%2@-B-$|*;%2@-C" 
-        return equivalent tuple ("A","B","C")
-        Return empty tuple (instead of ("",)) for empty string.
-    """
-
-    if key == "":
-        return tuple()
-    if isinstance(key, str):
-        return tuple(key.split(JSON_PACKING_SEPARATOR))
-    else:
-        return key
-
-
-def unpack_json_keys(d):
-    """ 
-    Replace in place all string keys in dict d by equivalent unpacked tuples. 
-    """
-
-    # use copy of key_list since d is mutated
-    key_list = d.keys()
-
-    for key in key_list:
-        if isinstance(key, str):
-            key_tuple = unpack_json_key(key)
-            if key_tuple in d and d[key] != d[key_tuple]:
-                myerror("unpack_json_key error - key {} exists with different value {}!={}!"
-                        .format(key_tuple, d[key], d[key_tuple]))
-            d[key_tuple] = d[key]
-            del d[key]
-
-
 ##############################################################################
 # Election structure I/O and validation
 ##############################################################################
 
 def get_election_structure(e):
 
-    load_part_from_json(e, "structure.js")
+    # load_part_from_json(e, "structure.js")
+    election_dirname = os.path.join(e.elections_dirname, e.election_name)
+    read_structure.read_election(e, election_dirname)
+    read_structure.read_contests(e)
+    read_structure.read_collections(e)
     finish_election_structure(e)
     check_election_structure(e)
     show_election_structure(e)
@@ -527,13 +486,9 @@ def check_election_structure(e):
                 mywarning("e.rel_cp[{}][{}] != True.".format(
                     cid, pbcid, e.rel_cp[cid][pbcid]))
 
-    if not isinstance(e.selids_c, dict):
-        myerror("e.selids_c is not a dict.")
     for cid in e.selids_c:
         if cid not in e.cids:
             myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
-        if not isinstance(e.selids_c[cid], dict):
-            myerror("e.selids_c[{}] is not a dict.".format(cid))
         for selid in e.selids_c[cid]:
             check_id(selid)
     for cid in e.cids:
@@ -562,31 +517,27 @@ def show_election_structure(e):
     myprint("Number of contests:")
     myprint("    {}".format(len(e.cids)))
     myprint("e.cids (contest ids):")
-    myprint("    ", end='')
     for cid in e.cids:
-        myprint(cid, end=' ')
-    myprint()
+        myprint("   ", cid)
     myprint("Number of paper ballot collections)")
     myprint("    {}".format(len(e.pbcids)))
     myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
-    myprint("    ", end='')
     for pbcid in sorted(e.pbcids):
-        myprint(pbcid, end=' ')
-    myprint()
+        myprint("   ", pbcid)
     myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}:{} ".format(pbcid, e.cvr_type_p[pbcid]))
+        myprint("    {}: {} ".format(pbcid, e.cvr_type_p[pbcid]))
     myprint("e.rel_cp (possible pbcids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for pbcid in sorted(e.rel_cp[cid]):
-            myprint(pbcid, end=' ')
+            myprint(pbcid, end=', ')
         myprint()
     myprint("e.selids_c (valid selection ids for each cid):")
     for cid in e.cids:
         myprint("    {}: ".format(cid), end='')
         for selid in sorted(e.selids_c[cid]):
-            myprint(selid, end=' ')
+            myprint(selid, end=', ')
         myprint()
 
 
@@ -841,59 +792,6 @@ def show_election_data(e):
         myprint("    {}:{}".format(cid, e.ro_c[cid]))
 
 ##############################################################################
-# Tally and outcome computations
-##############################################################################
-
-
-def compute_tally(vec):
-    """
-    Here vec is an iterable of hashable elements.
-    Return dict giving tally of elements.
-    """
-
-    tally = {}
-    for x in vec:
-        tally[x] = tally.get(x, 0) + 1
-    return tally
-
-
-def compute_tally2(vec):
-    """
-    Input vec is an iterable of (a, r) pairs. 
-    (i.e., (actual vote, reported vote) pairs).
-    Return dict giving mapping from r to dict
-    giving tally of a's that appear with that r.
-    """
-
-    tally2 = {}
-    for (a, r) in vec:
-        if r not in tally2:
-            tally2[r] = compute_tally([aa for (aa, rr) in vec if r == rr])
-    return tally2
-
-
-def plurality(e, cid, tally):
-    """
-    Return, for input dict tally mapping votes to (int) counts, 
-    vote with largest count.  (Tie-breaking done arbitrarily here.)
-    Winning vote must be a valid winner.
-    an Exception is raised if this is not possible.
-    An undervote or an overvote can't win.
-    """
-
-    max_cnt = -1e90
-    max_selid = None
-    for vote in tally:
-        if tally[vote] > max_cnt and \
-           len(vote) == 1 and \
-           not is_error_selid(vote[0]):
-            max_cnt = tally[vote]
-            max_selid = vote[0]
-    assert "No winner allowed in plurality contest.", tally
-    return max_selid
-
-
-##############################################################################
 # Audit I/O and validation
 ##############################################################################
 
@@ -924,7 +822,7 @@ def draw_sample(e):
             rvs = [e.rv_cpb[cid][pbcid][bid]
                    for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]]  # reported
             arvs = list(zip(avs, rvs))  # list of (actual, reported) vote pairs
-            e.sn_tcpra[e.stage][cid][pbcid] = compute_tally2(arvs)
+            e.sn_tcpra[e.stage][cid][pbcid] = outcomes.compute_tally2(arvs)
             for r in e.rn_cpr[cid][pbcid]:
                 e.sn_tcpr[e.stage][cid][pbcid][r] = len(
                     [rr for rr in rvs if rr == r])
@@ -986,7 +884,7 @@ def compute_contest_risk(e, cid, st):
                     test_tally[a] += tally[a]
                     if e.sn_tcpr[e.stage][cid][pbcid][r] > 0:
                         test_tally[a] += dirichlet_dict[a] * nonsample_size
-        if e.ro_c[cid] != plurality(e, cid, test_tally):
+        if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
     e.risk_tc[e.stage][cid] = wrong_outcome_count / e.n_trials
 
@@ -1323,7 +1221,7 @@ def parse_args():
 
 def process_args(e, args):
 
-    e.elections_dir = args.elections_dir
+    e.elections_dirname = args.elections_dir
     e.election_name = args.election_name
 
     if args.read_structure:
@@ -1364,8 +1262,10 @@ def main():
 
     args = parse_args()
     e = Election()
-    process_args(e, args)
-    close_myprint_files()
+    try:
+        process_args(e, args)
+    finally:
+        close_myprint_files()
 
 
 if __name__ == "__main__":
