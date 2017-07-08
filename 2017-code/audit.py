@@ -8,6 +8,51 @@ Routines to work with multi.py on post-election audits.
 """
 
 ##############################################################################
+# Random number generation
+##############################################################################
+
+# see numpy.random.RandomState documentation
+# Random states used in the program:
+# auditRandomState        -- controls random sampling and other audit aspects
+
+# Gamma distribution
+# https://docs.scipy.org/doc/numpy-1.11.0/reference/generated/numpy.random.gamma.html
+## from numpy.random import gamma
+# To generate random gamma variate with mean k:
+# gamma(k)  or rs.gamma(k) where rs is a numpy.random.RandomState object
+
+
+def gamma(k, rs=None):
+    """ 
+    Return sample from gamma distribution with mean k.
+    Differs from standard one that it allows k==0, which returns 0.
+    Parameter rs, if present, is a numpy.random.RandomState object.
+    """
+    global auditRandomState
+    if rs == None:
+        rs = auditRandomState
+    if k <= 0.0:
+        return 0.0
+    return rs.gamma(k)
+
+
+# Dirichlet distribution
+
+def dirichlet(tally):
+    """ 
+    Given tally dict mapping votes (tuples of selids) to nonnegative ints (counts), 
+    return dict mapping those votes to elements of Dirichlet distribution sample on
+    those votes, where tally values are used as Dirichlet hyperparameters.
+    The values produced sum to one.
+    """
+
+    dir = {vote: gamma(tally[vote]) for vote in tally}
+    total = sum(dir.values())
+    dir = {vote: dir[vote] / total for vote in dir}
+    return dir
+
+
+##############################################################################
 # Audit I/O and validation
 ##############################################################################
 
