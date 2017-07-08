@@ -299,7 +299,7 @@ of that directory might look as follows.
           manifest-DEN-A01-2017-11-07.csv
           manifest-DEN-A01-2017-11-07.csv
           manifest-LOG-B13-2017-11-07.csv
-       23-reported-outcomes-2017-11-07.csv``
+       23-reported-outcomes-2017-11-07.csv
 
     3-audit
        31-setup
