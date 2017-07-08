@@ -91,16 +91,16 @@ def draw_sample(e):
 
 def show_sample_counts(e):
 
-    myprint("    Total sample counts by Contest.PaperBallotCollection[reported selection]"
+    utils.myprint("    Total sample counts by Contest.PaperBallotCollection[reported selection]"
             "and actual selection:")
     for cid in e.cids:
         for pbcid in sorted(e.rel_cp[cid]):
             tally2 = e.sn_tcpra[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()):  # r = reported vote
-                myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
+                utils.myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
                 for a in sorted(tally2[r].keys()):
-                    myprint("  {}:{}".format(a, tally2[r][a]), end='')
-                myprint("  total:{}".format(e.sn_tcpr[e.stage][cid][pbcid][r]))
+                    utils.myprint("  {}:{}".format(a, tally2[r][a]), end='')
+                utils.myprint("  total:{}".format(e.sn_tcpr[e.stage][cid][pbcid][r]))
 
 
 ##############################################################################
@@ -201,12 +201,12 @@ def show_risks_and_statuses(e):
     Show election and contest statuses for current stage. 
     """
 
-    myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
+    utils.myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
     for cid in e.cids:
-        myprint("     ", cid, e.risk_tc[e.stage][cid],
+        utils.myprint("     ", cid, e.risk_tc[e.stage][cid],
                 "(limit {})".format(e.risk_limit_c[cid]),
                 e.contest_status_tc[e.stage][cid])
-    myprint("    Election status:", e.election_status_t[e.stage])
+    utils.myprint("    Election status:", e.election_status_t[e.stage])
 
 
 ##############################################################################
@@ -233,67 +233,67 @@ def get_audit_parameters(e, args):
 def check_audit_parameters(e):
 
     if not isinstance(e.risk_limit_c, dict):
-        myerror("e.risk_limit_c is not a dict.")
+        utils.myerror("e.risk_limit_c is not a dict.")
     for cid in e.risk_limit_c:
         if cid not in e.cids:
-            mywarning("e.risk_limit_c cid key `{}` is not in e.cids."
+            utils.mywarning("e.risk_limit_c cid key `{}` is not in e.cids."
                       .format(cid))
         if not (0.0 <= e.risk_limit_c[cid] <= 1.0):
-            mywarning("e.risk_limit_c[{}] not in interval [0,1]".format(cid))
+            utils.mywarning("e.risk_limit_c[{}] not in interval [0,1]".format(cid))
 
     if not isinstance(e.audit_rate_p, dict):
-        myerror("e.audit_rate_p is not a dict.")
+        utils.myerror("e.audit_rate_p is not a dict.")
     for pbcid in e.audit_rate_p:
         if pbcid not in e.pbcids:
-            mywarning("pbcid `{}` is a key for e.audit_rate_p but not in e.pbcids."
+            utils.mywarning("pbcid `{}` is a key for e.audit_rate_p but not in e.pbcids."
                       .format(pbcid))
         if not 0 <= e.audit_rate_p[pbcid]:
-            mywarning("e.audit_rate_p[{}] must be nonnegative.".format(pbcid))
+            utils.mywarning("e.audit_rate_p[{}] must be nonnegative.".format(pbcid))
 
     if not isinstance(e.contest_status_tc, dict):
-        myerror("e.contest_status_tc is not a dict.")
+        utils.myerror("e.contest_status_tc is not a dict.")
     if "0" not in e.contest_status_tc:
-        myerror("e.contest_status_tc must have `0` as a key.")
+        utils.myerror("e.contest_status_tc must have `0` as a key.")
     for cid in e.contest_status_tc["0"]:
         if cid not in e.cids:
-            mywarning("cid `{}` is key in e.contest_status_tc but not in e.cids"
+            utils.mywarning("cid `{}` is key in e.contest_status_tc but not in e.cids"
                       .format(cid))
         if e.contest_status_tc["0"][cid] not in ["Auditing", "Just Watching"]:
-            mywarning("e.contest_status_tc['0'][{}] must be `Auditing` or `Just Watching`."
+            utils.mywarning("e.contest_status_tc['0'][{}] must be `Auditing` or `Just Watching`."
                       .format(cid))
 
-    if warnings_given > 0:
-        myerror("Too many errors; terminating.")
+    if utils.warnings_given > 0:
+        utils.myerror("Too many errors; terminating.")
 
 
 def show_audit_parameters(e):
 
-    myprint("====== Audit parameters ======")
+    utils.myprint("====== Audit parameters ======")
 
-    myprint("e.contest_status_tc (initial audit status for each contest):")
+    utils.myprint("e.contest_status_tc (initial audit status for each contest):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.contest_status_tc["0"][cid]))
+        utils.myprint("    {}:{}".format(cid, e.contest_status_tc["0"][cid]))
 
-    myprint("e.risk_limit_c (risk limit per contest):")
+    utils.myprint("e.risk_limit_c (risk limit per contest):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.risk_limit_c[cid]))
+        utils.myprint("    {}:{}".format(cid, e.risk_limit_c[cid]))
 
-    myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
+    utils.myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}:{}".format(pbcid, e.audit_rate_p[pbcid]))
+        utils.myprint("    {}:{}".format(pbcid, e.audit_rate_p[pbcid]))
 
-    myprint("e.max_stages (max number of audit stages allowed):")
-    myprint("    {}".format(e.max_stages))
+    utils.myprint("e.max_stages (max number of audit stages allowed):")
+    utils.myprint("    {}".format(e.max_stages))
 
-    myprint("e.n_trials (number of trials used to estimate risk "
+    utils.myprint("e.n_trials (number of trials used to estimate risk "
             "in compute_contest_risk):")
-    myprint("    {}".format(e.n_trials))
+    utils.myprint("    {}".format(e.n_trials))
 
-    myprint("e.pseudocount (hyperparameter for prior distribution,")
-    myprint("    {}".format(e.pseudocount))
+    utils.myprint("e.pseudocount (hyperparameter for prior distribution,")
+    utils.myprint("    {}".format(e.pseudocount))
 
-    myprint("e.audit_seed (seed for audit pseudorandom number generation)")
-    myprint("    {}".format(e.audit_seed))
+    utils.myprint("e.audit_seed (seed for audit pseudorandom number generation)")
+    utils.myprint("    {}".format(e.audit_seed))
 
 
 def initialize_audit(e):
@@ -308,11 +308,11 @@ def initialize_audit(e):
 
 def show_audit_stage_header(e):
 
-    myprint("audit stage", e.stage)
-    myprint("    New target sample sizes by paper ballot collection:")
+    utils.myprint("audit stage", e.stage)
+    utils.myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
         last_s = e.sn_tp[e.last_stage]
-        myprint("      {}: {} (+{})"
+        utils.myprint("      {}: {} (+{})"
                 .format(pbcid,
                         e.plan_tp[e.last_stage][pbcid],
                         e.plan_tp[e.last_stage][pbcid] - last_s[pbcid]))
@@ -347,7 +347,7 @@ def audit(e, args):
     initialize_audit(e)
     show_audit_parameters(e)
 
-    myprint("====== Audit ======")
+    utils.myprint("====== Audit ======")
 
     for stage in range(1, e.max_stages + 1):
         audit_stage(e, stage)
@@ -359,26 +359,24 @@ def audit(e, args):
 
 def show_audit_summary(e):
 
-    global myprint_switches
+    utils.myprint("=============")
+    utils.myprint("Audit completed!")
 
-    myprint("=============")
-    myprint("Audit completed!")
-
-    myprint("All contests have a status in the following list:",
+    utils.myprint("All contests have a status in the following list:",
             e.election_status_t[e.stage])
     if "Auditing" not in e.election_status_t[e.stage]:
-        myprint("No contest still has `Auditing' status.")
+        utils.myprint("No contest still has `Auditing' status.")
     if "Full Recount Needed" in e.election_status_t[e.stage]:
-        myprint("At least one contest needs a full recount.")
+        utils.myprint("At least one contest needs a full recount.")
     if int(e.stage) == e.max_stages:
-        myprint("Maximum number of audit stages ({}) reached."
+        utils.myprint("Maximum number of audit stages ({}) reached."
                 .format(e.max_stages))
 
-    myprint("Number of ballots sampled, by paper ballot collection:")
+    utils.myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
-        myprint("  {}:{}".format(pbcid, e.sn_tp[e.stage][pbcid]))
-    myprint_switches = ["std"]
-    myprint("Total number of ballots sampled: ", end='')
-    myprint(sum([e.sn_tp[e.stage][pbcid] for pbcid in e.pbcids]))
+        utils.myprint("  {}:{}".format(pbcid, e.sn_tp[e.stage][pbcid]))
+    utils.myprint_switches = ["std"]
+    utils.myprint("Total number of ballots sampled: ", end='')
+    utils.myprint(sum([e.sn_tp[e.stage][pbcid] for pbcid in e.pbcids]))
 
 

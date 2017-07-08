@@ -1,7 +1,7 @@
 # multi.py
 # Ronald L. Rivest
 # (with help from Karim Husayn Karimi and Neal McBurnett)
-# July 7, 2017
+# July 8, 2017
 
 # python3
 # clean up with autopep8
@@ -12,6 +12,10 @@
 Prototype code for auditing an election having both multiple contests and
 multiple paper ballot collections (e.g. multiple jurisdictions).
 Possibly relevant to Colorado state-wide post-election audits in Nov 2017.
+
+Some documentation for this code can be found here:
+    https://github.com/ron-rivest/2017-bayes-audit.git
+    in the 2017-code README.md
 """
 
 """ 
@@ -35,69 +39,8 @@ import structure
 import reported
 import audit
 import planner
-
-##############################################################################
-# datetime
-##############################################################################
-
-
-def datetime_string():
-    """ Return current datetime as string e.g. '2017-06-26-21-18-30' 
-        Year-Month-Day-Hours-Minutes-Seconds
-        May be used as a version label in an output filename.
-    """
-    # https://docs.python.org/3.6/library/datetime.html
-
-    t = datetime.datetime.now()
-    return t.strftime("%Y-%m-%d-%H-%M-%S")
-
-
-##############################################################################
-# myprint  (like logging, maybe, but maybe simpler)
-##############################################################################
-
-myprint_files = {"stdout": sys.stdout}
-
-
-def myprint(*args, **kwargs):
-    """ variant print statement; prints to all files in myprint_files. """
-
-    for output_file_name in myprint_files:
-        kwargs["file"] = myprint_files[output_file_name]
-        print(*args, **kwargs)
-
-
-def close_myprint_files():
-    """ Close myprint files other than stdout and stderr. """
-
-    for output_file_name in myprint_files:
-        if output_file_name not in ["stdout", "stderr"]:
-            myprint_files[output_file_name].close()
-            del myprint_files[output_file_name]
-
-
-# error and warning messages
-
-
-def myerror(msg):
-    """ Print error message and halt immediately """
-
-    print("FATAL ERROR:", msg)
-    raise Exception
-
-
-warnings_given = 0
-
-
-def mywarning(msg):
-    """ Print error message, but keep going.
-        Keep track of how many warnings have been given.
-    """
-
-    global warnings_given
-    warnings_given += 1
-    print("WARNING:", msg)
-
+# import unused
+import utils
 
 ##############################################################################
 # Elections
@@ -349,35 +292,6 @@ class Election(object):
 
 
 ##############################################################################
-# Low level i/o for reading election data structure
-
-def copy_dict_tree(dest, source):
-    """
-    Copy data from source dict tree to dest dict tree, recursively.
-    Omit key/value pairs where key starts with "__".
-    TODO?? Filter so only desired attributes are copied, for security. 
-    OBSOLETE--WAS USED FOR LOADING FROM JSON FILES.
-    """
-
-    if not isinstance(dest, dict) or not isinstance(source, dict):
-        myprint("copy_dict_tree: source or dest is not a dict.")
-        return
-    for source_key in source:
-        if not source_key.startswith("__"):   # for comments, etc.
-            if isinstance(source[source_key], dict):
-                if not source_key in dest:
-                    dest_dict = {}
-                    dest[source_key] = dest_dict
-                else:
-                    dest_dict = dest[source_key]
-                source_dict = source[source_key]
-                copy_dict_tree(dest_dict, source_dict)
-            else:
-                # Maybe add option to disallow clobbering here??
-                dest[source_key] = source[source_key]
-
-
-##############################################################################
 # Input/output at the file-handling level
 
 def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
@@ -405,11 +319,11 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
             selected_filename = filename
     if selected_filename == "":
         if dir_wanted == False:
-            myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
-                    .format(dirpath, startswith, endswith))
+            utils.myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
+                          .format(dirpath, startswith, endswith))
         else:
-            myerror("No directories in `{}` have a name starting with `{}` and ending with `{}`."
-                    .format(dirpath, startswith, endswith))
+            utils.myerror ("No directories in `{}` have a name starting with `{}` and ending with `{}`."
+                           .format(dirpath, startswith, endswith))
     return selected_filename
 
 
@@ -482,22 +396,20 @@ def process_args(e, args):
 
 def main():
 
-    global myprint_switches
-    myprint_switches = []       # put this after following line to suppress printing
-    myprint_switches = ["std"]
+    utils.myprint_switches = []       # put this after following line to suppress printing
+    utils.myprint_switches = ["std"]
 
     print("multi.py -- Bayesian audit support program.")
 
-    global start_datetime_string
-    start_datetime_string = datetime_string()
-    print("Starting data/time:", start_datetime_string)
+    utils.start_datetime_string = utils.datetime_string()
+    print("Starting data/time:", utils.start_datetime_string)
 
     args = parse_args()
     e = Election()
     try:
         process_args(e, args)
     finally:
-        close_myprint_files()
+        utils.close_myprint_files()
 
 
 if __name__ == "__main__":

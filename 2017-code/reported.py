@@ -76,6 +76,9 @@ Boulder-council , Dave Diddle, Ben Borg   , Sue Mee   , Jill Snead
 
 """
 
+import multi
+import utils
+
 ##############################################################################
 # Election data I/O and validation (stuff that depends on cast votes)
 ##############################################################################
@@ -151,174 +154,174 @@ def finish_election_data(e):
 def check_election_data(e):
 
     if not isinstance(e.rn_cpr, dict):
-        myerror("e.rn_cpr is not a dict.")
+        utils.myerror("e.rn_cpr is not a dict.")
     for cid in e.rn_cpr:
         if cid not in e.cids:
-            mywarning("cid `{}` not in e.cids.".format(cid))
+            utils.mywarning("cid `{}` not in e.cids.".format(cid))
         for pbcid in e.rn_cpr[cid]:
             if pbcid not in e.pbcids:
-                mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
+                utils.mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
             for vote in e.rn_cpr[cid][pbcid]:
                 for selid in vote:
                     if selid not in e.selids_c[cid] and selid[0].isalnum():
-                        mywarning(
+                        utils.mywarning(
                             "selid `{}` is not in e.selids_c[{}]."
                             .format(selid, cid))
                 if not isinstance(e.rn_cpr[cid][pbcid][vote], int):
-                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
+                    utils.mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
                               .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote]))
                 if not (0 <= e.rn_cpr[cid][pbcid][vote] <= e.rn_p[pbcid]):
-                    mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
+                    utils.mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
                               .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote],
                                       e.rn_p[pbcid]))
                 if e.rn_cr[cid][vote] != \
                         sum([e.rn_cpr[cid][pbcid][vote]
                              for pbcid in e.rel_cp[cid]]):
-                    mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
+                    utils.mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
                               .format(cid, vote, cid, vote))
     for cid in e.cids:
         if cid not in e.rn_cpr:
-            mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
+            utils.mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
         for pbcid in e.rel_cp[cid]:
             if pbcid not in e.rn_cpr[cid]:
-                mywarning(
+                utils.mywarning(
                     "pbcid {} is not a key for e.rn_cpr[{}].".format(pbcid, cid))
             # for selid in e.selids_c[cid]:
             #     assert selid in e.rn_cpr[cid][pbcid], (cid, pbcid, selid)
             # ## not necessary, since missing selids have assumed count of 0
 
     if not isinstance(e.rn_c, dict):
-        myerror("e.rn_c is not a dict.")
+        utils.myerror("e.rn_c is not a dict.")
     for cid in e.rn_c:
         if cid not in e.cids:
-            mywarning("e.rn_c key `{}` is not in e.cids.".format(cid))
+            utils.mywarning("e.rn_c key `{}` is not in e.cids.".format(cid))
         if not isinstance(e.rn_c[cid], int):
-            mywarning("e.rn_c[{}] = {}  is not an integer.".format(
+            utils.mywarning("e.rn_c[{}] = {}  is not an integer.".format(
                 cid, e.rn_c[cid]))
     for cid in e.cids:
         if cid not in e.rn_c:
-            mywarning("cid `{}` is not a key for e.rn_c".format(cid))
+            utils.mywarning("cid `{}` is not a key for e.rn_c".format(cid))
 
     if not isinstance(e.rn_cr, dict):
-        myerror("e.rn_cr is not a dict.")
+        utils.myerror("e.rn_cr is not a dict.")
     for cid in e.rn_cr:
         if cid not in e.cids:
-            mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
+            utils.mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
         for vote in e.rn_cr[cid]:
             for selid in vote:
                 if (not is_writein(selid) and not is_error_selid(selid)) \
                    and not selid in e.selids_c[cid]:
-                    mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
+                    utils.mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
                               .format(cid, selid, cid))
             if not isinstance(e.rn_cr[cid][vote], int):
-                mywarning("e.rn_cr[{}][{}] = {} is not an integer."
+                utils.mywarning("e.rn_cr[{}][{}] = {} is not an integer."
                           .format(cid, vote, e.rn_cr[cid][vote]))
     for cid in e.cids:
         if cid not in e.rn_cr:
-            mywarning("cid `{}` is not a key for e.rn_cr".format(cid))
+            utils.mywarning("cid `{}` is not a key for e.rn_cr".format(cid))
 
     if not isinstance(e.bids_p, dict):
-        myerror("e.bids_p is not a dict.")
+        utils.myerror("e.bids_p is not a dict.")
     for pbcid in e.pbcids:
         if not isinstance(e.bids_p[pbcid], list):
-            myerror("e.bids_p[{}] is not a list.".format(pbcid))
+            utils.myerror("e.bids_p[{}] is not a list.".format(pbcid))
 
     if not isinstance(e.av_cpb, dict):
-        myerror("e.av_cpb is not a dict.")
+        utils.myerror("e.av_cpb is not a dict.")
     for cid in e.av_cpb:
         if cid not in e.cids:
-            mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
+            utils.mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
         for pbcid in e.av_cpb[cid]:
             if pbcid not in e.pbcids:
-                mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
+                utils.mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
                           .format(cid, pbcid))
             if not isinstance(e.av_cpb[cid][pbcid], dict):
-                myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
+                utils.myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
             bidsset = set(e.bids_p[pbcid])
             for bid in e.av_cpb[cid][pbcid]:
                 if bid not in bidsset:
-                    mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
+                    utils.mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
                               .format(bid, cid, pbcid, pbcid))
 
     for cid in e.cids:
         if cid not in e.av_cpb:
-            mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
+            utils.mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
         for pbcid in e.rel_cp[cid]:
             if pbcid not in e.av_cpb[cid]:
-                mywarning("pbcid `{}` is not in e.av_cpb[{}]."
+                utils.mywarning("pbcid `{}` is not in e.av_cpb[{}]."
                           .format(pbcid, cid))
 
     if not isinstance(e.rv_cpb, dict):
-        myerror("e.rv_cpb is not a dict.")
+        utils.myerror("e.rv_cpb is not a dict.")
     for cid in e.rv_cpb:
         if cid not in e.cids:
-            mywarning("e.rv_cpb key `{}` is not in e.cids.".format(cid))
+            utils.mywarning("e.rv_cpb key `{}` is not in e.cids.".format(cid))
         for pbcid in e.rv_cpb[cid]:
             if pbcid not in e.pbcids:
-                mywarning("e.rv_cpb[{}] key `{}` is not in e.pbcids."
+                utils.mywarning("e.rv_cpb[{}] key `{}` is not in e.pbcids."
                           .format(cid, pbcid))
             if not isinstance(e.rv_cpb[cid][pbcid], dict):
-                myerror("e.rv_cpb[{}][{}] is not a dict.".format(cid, pbcid))
+                utils.myerror("e.rv_cpb[{}][{}] is not a dict.".format(cid, pbcid))
             bidsset = set(e.bids_p[pbcid])
             for bid in e.rv_cpb[cid][pbcid]:
                 if bid not in bidsset:
-                    mywarning("bid `{}` from e.rv_cpb[{}][{}] is not in e.bids_p[{}]."
+                    utils.mywarning("bid `{}` from e.rv_cpb[{}][{}] is not in e.bids_p[{}]."
                               .format(bid, cid, pbcid, pbcid))
     for cid in e.cids:
         if cid not in e.rv_cpb:
-            mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
+            utils.mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
         for pbcid in e.rel_cp[cid]:
             if pbcid not in e.rv_cpb[cid]:
-                mywarning("pbcid `{}` from e.rel_cp[{}] is not a key for e.rv_cpb[{}]."
+                utils.mywarning("pbcid `{}` from e.rel_cp[{}] is not a key for e.rv_cpb[{}]."
                           .format(pbcid, cid, cid))
 
     if not isinstance(e.ro_c, dict):
-        myerror("e.ro_c is not a dict.")
+        utils.myerror("e.ro_c is not a dict.")
     for cid in e.ro_c:
         if cid not in e.cids:
-            mywarning("cid `{}` from e.rv_cpb is not in e.cids".format(cid))
+            utils.mywarning("cid `{}` from e.rv_cpb is not in e.cids".format(cid))
     for cid in e.cids:
         if cid not in e.ro_c:
-            mywarning("cid `{}` is not a key for e.ro_c.".format(cid))
+            utils.mywarning("cid `{}` is not a key for e.ro_c.".format(cid))
 
-    if warnings_given > 0:
-        myerror("Too many errors; terminating.")
+    if utils.warnings_given > 0:
+        utils.myerror("Too many errors; terminating.")
 
 
 def show_election_data(e):
 
-    myprint("====== Reported election data ======")
+    utils.myprint("====== Reported election data ======")
 
-    myprint("e.rn_cpr (total reported votes for each vote by cid and pbcid):")
+    utils.myprint("e.rn_cpr (total reported votes for each vote by cid and pbcid):")
     for cid in e.cids:
         for pbcid in sorted(e.rel_cp[cid]):
-            myprint("    {}.{}: ".format(cid, pbcid), end='')
+            utils.myprint("    {}.{}: ".format(cid, pbcid), end='')
             for vote in sorted(e.rn_cpr[cid][pbcid]):
-                myprint("{}:{} ".format(
+                utils.myprint("{}:{} ".format(
                     vote, e.rn_cpr[cid][pbcid][vote]), end='')
-            myprint()
+            utils.myprint()
 
-    myprint("e.rn_c (total votes cast for each cid):")
+    utils.myprint("e.rn_c (total votes cast for each cid):")
     for cid in e.cids:
-        myprint("    {}: {}".format(cid, e.rn_c[cid]))
+        utils.myprint("    {}: {}".format(cid, e.rn_c[cid]))
 
-    myprint("e.rn_cr (total cast for each vote for each cid):")
+    utils.myprint("e.rn_cr (total cast for each vote for each cid):")
     for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
+        utils.myprint("    {}: ".format(cid), end='')
         for vote in sorted(e.rn_cr[cid]):
-            myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
-        myprint()
+            utils.myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
+        utils.myprint()
 
-    myprint("e.av_cpb (first five or so actual votes cast for each cid and pbcid):")
+    utils.myprint("e.av_cpb (first five or so actual votes cast for each cid and pbcid):")
     for cid in e.cids:
         for pbcid in sorted(e.rel_cp[cid]):
-            myprint("    {}.{}:".format(cid, pbcid), end='')
+            utils.myprint("    {}.{}:".format(cid, pbcid), end='')
             for j in range(min(5, len(e.bids_p[pbcid]))):
                 bid = e.bids_p[pbcid][j]
-                myprint(e.av_cpb[cid][pbcid][bid], end=' ')
-            myprint()
+                utils.myprint(e.av_cpb[cid][pbcid][bid], end=' ')
+            utils.myprint()
 
-    myprint("e.ro_c (reported outcome for each cid):")
+    utils.myprint("e.ro_c (reported outcome for each cid):")
     for cid in e.cids:
-        myprint("    {}:{}".format(cid, e.ro_c[cid]))
+        utils.myprint("    {}:{}".format(cid, e.ro_c[cid]))
 
