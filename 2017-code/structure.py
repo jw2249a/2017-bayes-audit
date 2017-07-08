@@ -70,7 +70,7 @@ def read_election(e, election_dirname):
             multi.mywarning("Attribute {} not present in 11-election.csv."
                             .format(attribute))
     if multi.warnings_given > 0:
-        multi.myerror("Too many errors; terminating.")
+        multi.multi.myerror("Too many errors; terminating.")
 
 
 def test_read_election(e):        
@@ -107,7 +107,6 @@ def read_contests(e):
 
         e.rel_cp[cid] = {}
 
-        print(row)
 
 def test_read_contests(e):
 
@@ -136,7 +135,6 @@ def read_collections(e):
             if cid not in e.rel_cp:
                 e.rel_cp[cid] = {}
             e.rel_cp[cid][pbcid] = True
-        print(row)
     
 
 def test_read_collections(e):
@@ -173,95 +171,95 @@ def finish_election_structure(e):
 def check_id(id, check_for_whitespace=False):
 
     if not isinstance(id, str) or not id.isprintable():
-        mywarning("id is not string or is not printable: {}".format(id))
+        multi.mywarning("id is not string or is not printable: {}".format(id))
     if check_for_whitespace:
         for c in id:
             if c.isspace():
-                mywarning("id `id` contains whitespace.")
+                multi.mywarning("id `id` contains whitespace.")
                 break
 
 
 def check_election_structure(e):
 
     if not isinstance(e.cids, (list, tuple)):
-        myerror("e.cids is not a list or a tuple.")
+        multi.myerror("e.cids is not a list or a tuple.")
     if len(e.cids) == 0:
-        myerror("e.cids is an empty list of contests.")
+        multi.myerror("e.cids is an empty list of contests.")
     for cid in e.cids:
         check_id(cid)
 
     if not isinstance(e.pbcids, (list, tuple)):
-        myerror("e.pbcids is not a list or a tuple.")
+        multi.myerror("e.pbcids is not a list or a tuple.")
     if len(e.pbcids) == 0:
-        myerror("e.pbcids is an empty list of pbcids.")
+        multi.myerror("e.pbcids is an empty list of pbcids.")
     for pbcid in e.pbcids:
         check_id(pbcid)
 
     if not isinstance(e.rel_cp, dict):
-        myerror("e.rel_cp is not a dict.")
+        multi.myerror("e.rel_cp is not a dict.")
     for cid in e.rel_cp:
         if cid not in e.cids:
-            mywarning("cid is not in e.cids: {}".format(cid))
+            multi.mywarning("cid is not in e.cids: {}".format(cid))
         for pbcid in e.rel_cp[cid]:
             if pbcid not in e.pbcids:
-                mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
+                multi.mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
             if e.rel_cp[cid][pbcid] != True:
-                mywarning("e.rel_cp[{}][{}] != True.".format(
+                multi.mywarning("e.rel_cp[{}][{}] != True.".format(
                     cid, pbcid, e.rel_cp[cid][pbcid]))
 
     for cid in e.selids_c:
         if cid not in e.cids:
-            myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
+            multi.myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
         for selid in e.selids_c[cid]:
             check_id(selid)
     for cid in e.cids:
         if cid not in e.selids_c:
-            mywarning("cid `{}` should be key in e.selids_c".format(cid))
+            multi.mywarning("cid `{}` should be key in e.selids_c".format(cid))
 
     if not isinstance(e.cvr_type_p, dict):
-        myerror("e_cvr_type is not a dict.")
+        multi.myerror("e_cvr_type is not a dict.")
     for pbcid in e.cvr_type_p:
         if pbcid not in e.pbcids:
-            mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
+            multi.mywarning("pbcid `{}` is not in e.pbcids".format(pbcid))
         if e.cvr_type_p[pbcid] not in ["CVR", "noCVR"]:
-            mywarning("e.cvr_type_p[{}]==`{}` is not CVR or noCVR"
+            multi.mywarning("e.cvr_type_p[{}]==`{}` is not CVR or noCVR"
                       .format(pbcid, e.cvr_type_p[pbcid]))
     for pbcid in e.pbcids:
         if pbcid not in e.cvr_type_p:
-            mywarning("pbcid `{}` not key in e.cvr_type_p."
+            multi.mywarning("pbcid `{}` not key in e.cvr_type_p."
                       .format(pbcid))
 
-    if warnings_given > 0:
-        myerror("Too many errors; terminating.")
+    if multi.warnings_given > 0:
+        multi.myerror("Too many errors; terminating.")
 
 
 def show_election_structure(e):
-    myprint("====== Election structure ======")
-    myprint("Number of contests:")
-    myprint("    {}".format(len(e.cids)))
-    myprint("e.cids (contest ids):")
+    multi.myprint("====== Election structure ======")
+    multi.myprint("Number of contests:")
+    multi.myprint("    {}".format(len(e.cids)))
+    multi.myprint("e.cids (contest ids):")
     for cid in e.cids:
-        myprint("   ", cid)
-    myprint("Number of paper ballot collections)")
-    myprint("    {}".format(len(e.pbcids)))
-    myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
+        multi.myprint("   ", cid)
+    multi.myprint("Number of paper ballot collections)")
+    multi.myprint("    {}".format(len(e.pbcids)))
+    multi.myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
     for pbcid in sorted(e.pbcids):
-        myprint("   ", pbcid)
-    myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
+        multi.myprint("   ", pbcid)
+    multi.myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
     for pbcid in sorted(e.pbcids):
-        myprint("    {}: {} ".format(pbcid, e.cvr_type_p[pbcid]))
-    myprint("e.rel_cp (possible pbcids for each cid):")
+        multi.myprint("    {}: {} ".format(pbcid, e.cvr_type_p[pbcid]))
+    multi.myprint("e.rel_cp (possible pbcids for each cid):")
     for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
+        multi.myprint("    {}: ".format(cid), end='')
         for pbcid in sorted(e.rel_cp[cid]):
-            myprint(pbcid, end=', ')
-        myprint()
-    myprint("e.selids_c (valid selection ids for each cid):")
+            multi.myprint(pbcid, end=', ')
+        multi.myprint()
+    multi.myprint("e.selids_c (valid selection ids for each cid):")
     for cid in e.cids:
-        myprint("    {}: ".format(cid), end='')
+        multi.myprint("    {}: ".format(cid), end='')
         for selid in sorted(e.selids_c[cid]):
-            myprint(selid, end=', ')
-        myprint()
+            multi.myprint(selid, end=', ')
+        multi.myprint()
 
 
 if __name__=="__main__":
