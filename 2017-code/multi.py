@@ -135,7 +135,7 @@ class Election(object):
         e.contest_type_c = {}
         # cid->contest type  (e.g. "plurality" or "irv")
 
-        e.winners = {}
+        e.winners_c = {}
         # cid->int
         # number of winners in contest 
 

@@ -98,7 +98,7 @@ def read_contests(e):
         
         e.contest_type_c[cid] = row["Contest type"].lower()
         
-        e.winners[cid] = int(row["Winners"])
+        e.winners_c[cid] = int(row["Winners"])
         
         e.write_ins = row["Write-ins"]
 
