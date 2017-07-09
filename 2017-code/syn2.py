@@ -204,15 +204,32 @@ def write_12_contests_csv(se):
     with open(filename, "w") as file:
         for fieldname in ["Contest id", "Contest type", "Winners",
                           "Write-ins", "Selections"]:
-            file.write(fieldname+",")
+            file.write("{},".format(fieldname))
         file.write("\n")
         for cid in se.cids:
             file.write(cid+",")
-            pass # TBD
-
+            file.write("{},".format(se.contest_type_c[cid].title()))
+            file.write("{},".format(se.winners_c[cid]))
+            file.write("{},".format(se.write_ins_c[cid].title()))
+            for selid in se.selids_c[cid]:
+                file.write("{},".format(selid))
+            file.write("\n")
+        
 def write_13_collections_csv(se):
 
-    pass #TBD
+    filename = "./13_collections.csv"
+    with open(filename, "w") as file:
+        for fieldname in ["Collection id", "Manager", "CVR type", "Contests"]:
+            file.write("{},".format(fieldname))
+        file.write("\n")
+        for pbcid in se.pbcids:
+            file.write("{},".format(pbcid))
+            file.write("{},".format(se.manager_p[pbcid]))
+            file.write("{},".format(se.cvr_type_p[pbcid]))
+            for cid in se.cids:
+                if pbcid in se.rel_cp[cid]:
+                    file.write("{},".format(cid))
+            file.write("\n")
 
 ##############################################################################
 ## generate reported data
@@ -259,6 +276,8 @@ def test():
     print("Checking structure:", structure.check_election_structure(se))
     
     write_11_election_csv(se)
+    write_12_contests_csv(se)
+    write_13_collections_csv(se)
 
 if __name__=="__main__":
     test()
