@@ -139,7 +139,7 @@ class Election(object):
         # cid->int
         # number of winners in contest 
 
-        e.write_ins = {}
+        e.write_ins_c = {}
         # cid->str  (e.g. "no" or "qualified" or "arbitrary")
 
         e.selids_c = {}

@@ -100,7 +100,7 @@ def read_contests(e):
         
         e.winners_c[cid] = int(row["Winners"])
         
-        e.write_ins = row["Write-ins"]
+        e.write_ins_c = row["Write-ins"].lower()
 
         e.selids_c[cid] = {}
         for selid in row["Selections"]:
