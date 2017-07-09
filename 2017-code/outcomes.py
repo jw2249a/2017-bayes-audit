@@ -50,12 +50,12 @@ def compute_outcome(e, cid, tally):
     """
     Return outcome for the given contest, given tally of votes.
     """
-    if e.contest_type[cid].lower()=="plurality":
+    if e.contest_type_c[cid].lower()=="plurality":
         return plurality(e, cid, tally)
     else:
         # TBD: IRV, etc...
         multi.myerror("Non-plurality outcome rule {} for contest {} not yet implemented!"
-                      .format(e.contest_type[cid], cid))
+                      .format(e.contest_type_c[cid], cid))
 
 
 def compute_tally2(vec):
