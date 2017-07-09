@@ -182,6 +182,41 @@ def generate_collections(se):
             se.rel_cp[cid][pbcid] = True
 
 
+def write_structure_csvs(se):
+
+    write_11_election_csv(se)
+    write_12_contests_csv(se)
+    write_13_collections-csv(se)
+
+def write_11_election_csv(se):
+
+    filename = "./11_election.csv"
+    with open(filename, "w") as file:
+        file.write("Attribute,Value\n")
+        file.write("Election name,"+se.election_name+"\n")
+        file.write("Election dirname,"+se.election_dirname+"\n")
+        file.write("Election date,"+se.election_date+"\n")
+        file.write("Election URL,"+se.election_url+"\n")
+
+def write_12_contests_csv(se):
+
+    filename = "./12_contests.csv"
+    with open(filename, "w") as file:
+        for fieldname in ["Contest id", "Contest type", "Winners",
+                          "Write-ins", "Selections"]:
+            file.write(fieldname+",")
+        file.write("\n")
+        for cid in se.cids:
+            file.write(cid+",")
+            pass # TBD
+
+def write_13_collections_csv(se):
+
+    pass #TBD
+
+##############################################################################
+## generate reported data
+
 def generate_reported(se):
 
     # generate number of bids for each pbcid
@@ -223,6 +258,7 @@ def test():
         print("    ", vars(se)[key])
     print("Checking structure:", structure.check_election_structure(se))
     
+    write_11_election_csv(se)
 
 if __name__=="__main__":
     test()
