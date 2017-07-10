@@ -15,6 +15,7 @@ with structures represented by csv files of the form:
 11-election.csv:
 Attribute     , Value                                   
 Election name , Colorado general election               
+Election dirname , CO-2017-11-07,
 Election date , 2017-11-07                              
 Election URL  , https://sos.co.gov/election/2017-11-07/ 
 
@@ -85,11 +86,11 @@ def read_contests(e):
     Read file 12-contests.csv, put results into Election e.
     """
 
-    election_dirname = e.election_dirname
-    structure_dirname = os.path.join(election_dirname, "1-structure")
-    filename = multi.greatest_name(structure_dirname, "12-contests", ".csv")
-    full_filename = os.path.join(structure_dirname, filename)
-    rows = csv_readers.read_csv_file(full_filename, varlen=True)
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname, "1-structure")
+    filename = multi.greatest_name(structure_pathname, "12-contests", ".csv")
+    file_pathname = os.path.join(structure_pathname, filename)
+    rows = csv_readers.read_csv_file(file_pathname, varlen=True)
     for row in rows:
 
         cid = row["Contest id"]
@@ -121,11 +122,11 @@ def read_collections(e):
     Read file 13-collections.csv, put results into Election e.
     """
 
-    election_dirname = e.election_dirname
-    structure_dirname = os.path.join(election_dirname, "1-structure")
-    filename = multi.greatest_name(structure_dirname, "13-collections", ".csv")
-    full_filename = os.path.join(structure_dirname, filename)
-    rows = csv_readers.read_csv_file(full_filename, varlen=True)
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname, "1-structure")
+    filename = multi.greatest_name(structure_pathname, "13-collections", ".csv")
+    file_pathname = os.path.join(structure_pathname, filename)
+    rows = csv_readers.read_csv_file(file_pathname, varlen=True)
     for row in rows:
 
         pbcid = row["Collection id"]
@@ -147,8 +148,8 @@ def test_read_collections(e):
 def get_election_structure(e):
 
     # load_part_from_json(e, "structure.js")
-    election_dirname = os.path.join(e.elections_dirname, e.election_name)
-    read_election(e, election_dirname)
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    read_election(e, election_pathname)
     read_contests(e)
     read_collections(e)
     finish_election_structure(e)

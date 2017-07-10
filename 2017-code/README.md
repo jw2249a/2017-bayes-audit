@@ -355,13 +355,18 @@ for the election itself.
 
 An **election file** gives some high-level attributes of the election.
 
-| Attribute        | Value                                   |
-| ---              | ---                                     |
-| Election name    | Colorado general election               |
-| Election dirname | CO-2017-11-07
-| Election date    | 2017-11-07                              |
-| Election URL     | https://sos.co.gov/election/2017-11-07/ |
+| Attribute         | Value                                   |
+| ---               | ---                                     |
+| Election name     | Colorado 2017 General Election          |
+| Election dirname  | CO-2017-11-07                           |
+| Election date     | 2017-11-07                              |
+| Election URL      | https://sos.co.gov/election/2017-11-07/ |
 
+
+The election dirname is the name of the directory where information
+about this election is held.  This directory is within some
+"standard directory where election information is held", such
+as "./elections".
 
 This is a CSV file, with the name ``11-election.csv`` (possibly with a version
 label, as in ``11-election-2017-09-08.csv``).

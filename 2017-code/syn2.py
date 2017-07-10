@@ -1,4 +1,4 @@
-# synth2.py
+# syn2.py
 # Ronald L. Rivest
 # July 8, 2017
 # python3
@@ -59,6 +59,7 @@ class SynElection(multi.Election):
         self.seed = seed
         self.RandomState = np.random.RandomState(self.seed)
 
+
 default_SynElection = SynElection()          
 
 
@@ -107,9 +108,10 @@ def generate_election_structure(se=default_SynElection):
     # reset RandomState from seed
     se.RandomState = np.random.RandomState(se.seed)
 
-    se.election_name = "Election-"+utils.datetime_string()
-    se.election_dirname = "test"                   # FIX
-    se.election_date = utils.datetime_string()     # FIX?
+    dts = utils.datetime_string()
+    se.election_name = "TestElection-"+dts
+    se.election_dirname = "TestElection-"+dts
+    se.election_date = dts                     # FIX ??
     se.election_url = "None"            
 
 
@@ -194,7 +196,7 @@ def write_11_election_csv(se):
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
-        file.write("Election dirname,"+se.election_dirname+"\n")
+        file.write("Elections dirname,"+se.election_dirname+"\n")
         file.write("Election date,"+se.election_date+"\n")
         file.write("Election URL,"+se.election_url+"\n")
 

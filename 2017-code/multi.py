@@ -46,6 +46,8 @@ import utils
 # Elections
 ##############################################################################
 
+ELECTIONS_ROOT = "./elections"
+
 class Election(object):
 
     """
@@ -114,14 +116,19 @@ class Election(object):
 
         # election structure
 
-        e.elections_dirname = ""
-        # where the elections data is e.g. "./elections",
+        # There is a standard directory ELECTIONS_ROOT where "all information
+        # about elections is held", defaulting to "./elections".
+        # This can be changed with a command-line option.
+
+        e.election_dirname = ""
+        # Dirname of election (e.g. "CO-Nov-2017")
+        # Used as a directory name within the elections root dir.
         # so e.g. election data for CO-Nov-2017
         # is all in "./elections/CO-Nov-2017"
 
         e.election_name = ""
-        # Name of election (e.g. "CO-Nov-2017")
-        # Used as a directory name within elections_dir
+        # A human-readable name for the election, such as
+        # "Colorado November 2017 General Election"
 
         e.election_date = ""
         # In ISO8601 format, e.g. "2017-11-07"
@@ -337,11 +344,13 @@ def parse_args():
             collections.""")
 
     #v1 and v2:
-    parser.add_argument("election_name", help="""
+    parser.add_argument("--election_name", help="""
+                        Human-readable name of the election.""",
+                        default="TestElection")
+    parser.add_argument("election_dirname", help="""
                         The name of the election.  Same as the name of the 
-                        subdirectory within the 'elections' directory 
-                        for information about this election.""")
-    parser.add_argument("--elections_dir", help="""The directory where the subdirectory for the
+                        subdirectory within the elections root directory.""")
+    parser.add_argument("--elections_root", help="""The directory where the subdirectory for the
                         election is to be found.  Defaults to "./elections".""",
                         default="./elections")
     parser.add_argument("--audit_seed",
@@ -367,8 +376,9 @@ def parse_args():
 
 def process_args(e, args):
 
-    e.elections_dirname = args.elections_dir
+    e.election_dirname = args.election_dirname
     e.election_name = args.election_name
+    ELECTIONS_ROOT = args.elections_root
 
     if args.read_structure:
         print("read_structure")
