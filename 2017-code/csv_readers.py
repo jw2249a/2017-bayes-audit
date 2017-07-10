@@ -98,12 +98,12 @@ def read_csv_file(filename, varlen=False):
                         row[None].pop()
                     value = [row[lastfieldname]] + [clean_id(id) for id in row[None]]
                     value = tuple(value)
-                    if value == ("",):
-                        value = ()
                     # Note: the previous line does *not* sort the ids into
                     # order.  This will be needed if these ids represent selids in a
                     # vote, but the order may be important for other uses.
                     del row[None]
+                if value == ("",):
+                    value = ()
                 row[lastfieldname] = value
         return rows
 
