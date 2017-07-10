@@ -17,7 +17,7 @@ and missing values are represented as "".
 For "varlen" (files with variable row lengths) files, it is a little bit 
 different: the last header may have 0, 1, 2, or more values.
 So the data row may be shorter (by one), equal to, or longer than the header row.
-In any case, the values for the last field are always compiled into a tuple
+In any case, the values for the last field are *always* compiled into a tuple
 (possibly an empty tuple).
 
 The reader returns a list of dictionaries, one per row.
