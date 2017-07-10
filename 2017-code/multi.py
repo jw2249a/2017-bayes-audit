@@ -412,7 +412,7 @@ def main():
     print("multi.py -- Bayesian audit support program.")
 
     utils.start_datetime_string = utils.datetime_string()
-    print("Starting data/time:", utils.start_datetime_string)
+    print("Starting date-time:", utils.start_datetime_string)
 
     args = parse_args()
     e = Election()
