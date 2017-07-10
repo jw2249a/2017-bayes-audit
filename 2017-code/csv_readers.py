@@ -14,8 +14,8 @@ All CSV files have a single header line, giving the column (field) names.
 For most file formats, a data row must have length no longer than the header row,
 and missing values are represented as "".
 
-For "varlen" (files with variable row lengths) files, it is a little bit 
-different: the last header may have 0, 1, 2, or more values.
+For "varlen" files (files with variable row lengths), it is a little bit 
+different: the last header may correspond to 0, 1, 2, or more valuesin a data row.
 So the data row may be shorter (by one), equal to, or longer than the header row.
 In any case, the values for the last field are *always* compiled into a tuple
 (possibly an empty tuple).
@@ -109,11 +109,15 @@ def read_csv_file(filename, varlen=False):
 
 
 if __name__=="__main__":
-    print("Regular csv file:")
-    for row in read_csv_file("test_reg.csv"):
+
+    filename = "test_data/csv_readers_test_reg.csv"
+    print("Regular csv file:", filename)
+    for row in read_csv_file(filename):
         print([(fn, row[fn]) for fn in sorted(row)])
-    print("Varlen csv file:")
-    for row in read_csv_file("test_vote.csv", varlen=True):
+
+    filename = "test_data/csv_readers_test_varlen.csv"
+    print("Varlen csv file:", filename)
+    for row in read_csv_file(filename, varlen=True):
         print([(fn, row[fn]) for fn in sorted(row)])
     
 
