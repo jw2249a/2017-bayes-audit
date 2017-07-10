@@ -79,7 +79,7 @@ def hash_speed():
 
 
 def write_hash_dir(topdirname, output_filename):
-    """ Write CSV file representing dir_hash to output_file. """
+    """ Write CSV file representing dir_hash to output_file in CSV format. """
 
     dir_hash = compute_dir_hash(topdirname)
     try:
@@ -102,6 +102,6 @@ if __name__=="__main__":
 
     hash_speed()
 
-    hash_filename = "20-audit-snapshot.csv"
+    hash_filename = "test_data/20-audit-snapshot.csv"
     write_hash_dir(".", hash_filename)
     print("hash file {} written.".format(hash_filename))
