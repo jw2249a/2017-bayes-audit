@@ -34,6 +34,7 @@ had been read on, or else we (optionally) output the values as csv files.
 """
 
 import numpy as np
+import os
 
 import multi
 import structure
@@ -192,7 +193,9 @@ def write_structure_csvs(se):
 
 def write_11_election_csv(se):
 
-    filename = "./11_election.csv"
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath, "11_election.csv")
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
@@ -202,7 +205,9 @@ def write_11_election_csv(se):
 
 def write_12_contests_csv(se):
 
-    filename = "./12_contests.csv"
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath, "12_contests.csv")
     with open(filename, "w") as file:
         for fieldname in ["Contest id", "Contest type", "Winners",
                           "Write-ins", "Selections"]:
@@ -219,7 +224,9 @@ def write_12_contests_csv(se):
         
 def write_13_collections_csv(se):
 
-    filename = "./13_collections.csv"
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath, "13_collections.csv")
     with open(filename, "w") as file:
         for fieldname in ["Collection id", "Manager", "CVR type", "Contests"]:
             file.write("{},".format(fieldname))
