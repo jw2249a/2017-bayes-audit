@@ -237,26 +237,34 @@ def check_election_structure(e):
 
 def show_election_structure(e):
     utils.myprint("====== Election structure ======")
+    utils.myprint("Election name: (e.election_name):")
+    utils.myprint("    {}".format(e.election_name))
+    utils.myprint("Election dirname (e.election_dirname):")
+    utils.myprint("    {}".format(e.election_dirname))
+    utils.myprint("Election date (e.election date):")
+    utils.myprint("    {}".format(e.election_date))
+    utils.myprint("Election URL (e.election_url):")
+    utils.myprint("    {}".format(e.election_url))
     utils.myprint("Number of contests:")
     utils.myprint("    {}".format(len(e.cids)))
-    utils.myprint("e.cids (contest ids):")
+    utils.myprint("Contest ids) (e.cids):")
     for cid in e.cids:
         utils.myprint("   ", cid)
-    utils.myprint("Number of paper ballot collections)")
+    utils.myprint("Number of paper ballot collections:")
     utils.myprint("    {}".format(len(e.pbcids)))
-    utils.myprint("e.pbcids (paper ballot collection ids (e.g. jurisdictions)):")
+    utils.myprint("Paper ballot collection ids (e.g. jurisdictions))(e.pbcids):")
     for pbcid in sorted(e.pbcids):
         utils.myprint("   ", pbcid)
-    utils.myprint("e.cvr_type_p (either CVR or noCVR) for each pbcid:")
+    utils.myprint("CVR type (either CVR or noCVR) for each pbcid (e.cvr_type_p):")
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {}: {} ".format(pbcid, e.cvr_type_p[pbcid]))
-    utils.myprint("e.rel_cp (possible pbcids for each cid):")
+    utils.myprint("Possible pbcids for each cid (e.rel_cp):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
         for pbcid in sorted(e.rel_cp[cid]):
             utils.myprint(pbcid, end=', ')
         utils.myprint()
-    utils.myprint("e.selids_c (valid selection ids for each cid):")
+    utils.myprint("Valid selection ids for each cid (e.selids_c):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
         for selid in sorted(e.selids_c[cid]):
