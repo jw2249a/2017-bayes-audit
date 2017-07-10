@@ -189,7 +189,7 @@ def write_structure_csvs(se):
 
     write_11_election_csv(se)
     write_12_contests_csv(se)
-    write_13_collections-csv(se)
+    write_13_collections_csv(se)
 
 def write_11_election_csv(se):
 
@@ -275,18 +275,18 @@ def test():
 
     se = SynElection()
     se.seed = 9
+
     generate_election_structure(se)
     generate_contests(se)
     generate_collections(se)
     structure.finish_election_structure(se)
+    structure.check_election_structure(se)
+
     for key in sorted(vars(se)):
         print(key)
         print("    ", vars(se)[key])
-    print("Checking structure:", structure.check_election_structure(se))
     
-    write_11_election_csv(se)
-    write_12_contests_csv(se)
-    write_13_collections_csv(se)
+    write_structure_csvs(se)
 
 if __name__=="__main__":
     test()
