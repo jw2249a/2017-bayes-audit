@@ -26,6 +26,16 @@ def datetime_string():
     t = datetime.datetime.now()
     return t.strftime("%Y-%m-%d-%H-%M-%S")
 
+def date_string():
+    """ Return current date as string e.g. '2017-06-26' 
+        Year-Month-Day
+        May be used as a version label in an output filename.
+    """
+    # https://docs.python.org/3.6/library/datetime.html
+
+    t = datetime.datetime.now()
+    return t.strftime("%Y-%m-%d")
+
 
 
 ##############################################################################
