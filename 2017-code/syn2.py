@@ -110,9 +110,10 @@ def generate_election_structure(se=default_SynElection):
     se.RandomState = np.random.RandomState(se.seed)
 
     dts = utils.datetime_string()
-    se.election_name = "TestElection-"+dts
-    se.election_dirname = "TestElection-"+dts
-    se.election_date = dts                     # FIX ??
+    ds = utils.date_string()
+    se.election_name = "TestElection generated " + dts
+    se.election_dirname = "TestElection-"+ds
+    se.election_date = ds                     # FIX ??
     se.election_url = "None"            
 
 
