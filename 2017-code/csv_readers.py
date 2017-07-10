@@ -45,6 +45,8 @@ becomes:
 
 import csv
 
+import utils
+
 def clean_id(id):
     """ 
     Return id with initial and final whitespace removed, and
@@ -71,13 +73,13 @@ def read_csv_file(filename, varlen=False):
         for row in rows:
             if None in row and not varlen:
                 # raise Exception("Too many values in row:"+str(row))
-                multi.mywarning("Too many values in row:"+str(row))
+                utils.mywarning("Too many values in row:"+str(row))
                 del row[None]
             for fieldname in reader.fieldnames:
                 clean_fieldname = clean_id(fieldname)
                 if clean_fieldname != fieldname:
                     if clean_fieldname in row:
-                        multi.mywarning("field name given twice:", clean_fieldname)
+                        utils.mywarning("field name given twice:", clean_fieldname)
                     row[clean_fieldname] = row[fieldname]
                     del row[fieldname]
                     fieldname = clean_fieldname
@@ -94,8 +96,10 @@ def read_csv_file(filename, varlen=False):
                 else:
                     while len(row[None])>0 and clean_id(row[None][-1])=='':
                         row[None].pop()
-                    value = tuple([row[lastfieldname]] + \
-                                   [clean_id(id) for id in row[None]])
+                    value = [row[lastfieldname]] + [clean_id(id) for id in row[None]]
+                    value = tuple(value)
+                    if value == ("",):
+                        value = ()
                     # Note: the previous line does *not* sort the ids into
                     # order.  This will be needed if these ids represent selids in a
                     # vote, but the order may be important for other uses.
