@@ -70,6 +70,11 @@ def read_csv_file(filename, varlen=False):
     with open(filename) as file:
         reader = csv.DictReader(file)
         rows = [row for row in reader]
+        # take care of case last fieldname is followed by a comma
+        while len(reader.fieldnames)>0 and clean_id(reader.fieldnames[-1])=='':
+            reader.fieldnames.pop()
+            for row in rows:
+                row[None] = [row['']]+row.get(None,[])
         for row in rows:
             if None in row and not varlen:
                 # raise Exception("Too many values in row:"+str(row))
