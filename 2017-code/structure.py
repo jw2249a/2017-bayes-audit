@@ -247,7 +247,7 @@ def show_election_structure(e):
     utils.myprint("    {}".format(e.election_url))
     utils.myprint("Number of contests:")
     utils.myprint("    {}".format(len(e.cids)))
-    utils.myprint("Contest ids) (e.cids):")
+    utils.myprint("Contest ids (e.cids):")
     for cid in e.cids:
         utils.myprint("   ", cid)
     utils.myprint("Number of paper ballot collections:")
