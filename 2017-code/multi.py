@@ -381,7 +381,7 @@ def process_args(e, args):
     ELECTIONS_ROOT = args.elections_root
 
     if args.read_structure:
-        print("read_structure")
+        # print("read_structure")
         structure.get_election_structure(e)
     elif args.read_reported:
         print("read_reported")
