@@ -196,7 +196,7 @@ def write_11_election_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "11_election.csv")
+    filename = os.path.join(dirpath, "11-election.csv")
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
@@ -208,7 +208,7 @@ def write_12_contests_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "12_contests.csv")
+    filename = os.path.join(dirpath, "12-contests.csv")
     with open(filename, "w") as file:
         for fieldname in ["Contest id", "Contest type", "Winners",
                           "Write-ins", "Selections"]:
@@ -227,7 +227,7 @@ def write_13_collections_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "13_collections.csv")
+    filename = os.path.join(dirpath, "13-collections.csv")
     with open(filename, "w") as file:
         for fieldname in ["Collection id", "Manager", "CVR type", "Contests"]:
             file.write("{},".format(fieldname))

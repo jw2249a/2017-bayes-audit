@@ -199,6 +199,8 @@ def check_election_structure(e):
 
     if not isinstance(e.rel_cp, dict):
         utils.myerror("e.rel_cp is not a dict.")
+    print("e.rel_cp", e.rel_cp)
+    print("e.cids", e.cids)
     for cid in e.rel_cp:
         if cid not in e.cids:
             utils.mywarning("cid is not in e.cids: {}".format(cid))
