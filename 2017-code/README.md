@@ -574,8 +574,8 @@ the ballot id), and give any additional comments about specific ballots.
 The "Number of ballots" field enables compact encoding of batches of ballots for
 the manifest.  
 
-If the "Number of ballots" field is left blank (or equal to 1), then
-the row corresponds to a single ballot.
+If the "Number of ballots" field should be equal to 1 if the row represents
+a single ballot.
 
 if the "Number of ballots" field is greater than one, then the given
 row is treated as equivalent to "Number of ballots" rows, increasing
@@ -587,11 +587,13 @@ if necessary.
 
 Fields other than the "Original index" field and the "Ballot id" field are just copied.
 
+The size of the collection is just the sum of the values in the "Number of ballots" field.
+
 | Collection id | Original index | Ballot id | Number of ballots | Location        | Comments |
 |---            | ---            |---        | ---               | ---             | ---      |
-| LOG-B13       | 1              | B-0001    |                   | Box B no 0001   |          |
-| LOG-B13       | 2              | B-0002    |                   | Box B no 0002   |          |
-| LOG-B13       | 3              | B-0003    |                   | Box B no 0003   |          |
+| LOG-B13       | 1              | B-0001    |  1                | Box B no 0001   |          |
+| LOG-B13       | 2              | B-0002    |  1                | Box B no 0002   |          |
+| LOG-B13       | 3              | B-0003    |  1                | Box B no 0003   |          |
 | LOG-B13       | 4              | C-0001    |  3                | Box C           |          |
 | LOG-B13       | 7              | D-0001    |  50               | Box D           |          |
 | LOG-B13       | 57             | E-0200    |  50               | Box E           |          |
@@ -694,8 +696,6 @@ followed by the collection id and a nine-digit counter value, into a
 cryptographic random number function (specifically, SHA256 used in
 counter mode, starting with counter value 1).
 
-### Audited votes
-
 | Collection id | Sample order  | Original index | Ballot id | Location          |
 |---            |---            | ---            | ---       | ---               |
 | LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |
@@ -712,6 +712,8 @@ The sampling order file and the reported cvrs file may be used
 with an appropriate UI interface to generate the sampled cvrs
 file.  (With care to handling the case that the sampled ballot does not
 seem to be of the correct ballot style.)
+
+### Audited votes
 
 #### Sample vote file (actual vote file)
 
