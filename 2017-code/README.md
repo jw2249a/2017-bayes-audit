@@ -61,6 +61,11 @@ organized, and how they are stored.  The ballot manifest defines the
 population of paper ballots in the collection that will be sampled
 during the audit.
 
+Some elections have so many contests that the ballot is comprised of
+two or more separate "cards".  We do not deal with this complexity; we
+assume in such multi-card cases that the cards for a single ballot are
+always kept together. (Obviously a false assumption in practice.)
+
 ## Auditing
 
 A post-election audit provides statistical assurance that the reported
