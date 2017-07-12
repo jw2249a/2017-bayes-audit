@@ -177,6 +177,10 @@ class Election(object):
 
         # election data (manifests, reported votes, and reported outcomes)
 
+        e.manifest_p = {}
+        # pbcid -> manifest
+        # e.manifest[pbcid] is ballot manifest for that pbcid
+
         e.rn_p = {}
         # pbcid -> count
         # e.rn_p[pbcid] number ballots reported cast in collection pbcid
