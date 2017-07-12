@@ -96,7 +96,10 @@ def count_on(start, num):
     integers.
 
     Otherwise start may be a string, ending in a decimal field; we increment
-    within that decimal field.
+    within that decimal field.  If there is no decimal field suffix to start,
+    then one is added, with an initial value of 1, but only if num>1.
+    Size of decimal suffix field is preserved, unless we need to expand it
+    for larger integers.
     """
 
     assert num >= 0
