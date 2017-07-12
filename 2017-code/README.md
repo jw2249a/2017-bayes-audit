@@ -569,15 +569,30 @@ DEN-A01,L,B-231,DEN-prop-1,Yes,
 
 A **ballot manifest file** lists all of the ballot ids for a given collection.
 It may also indicate their physical location (if it is not already encoded in
-the ballot id).
+the ballot id), and give any additional comments about specific ballots.
 
-| Collection id | Original index | Ballot id | Location          |
-|---            | ---            |---        | ---               |
-| LOG-B13       | 1              | B-0001    | Box 001 no 0001   |
-| LOG-B13       | 2              | B-0002    | Box 001 no 0002   |
-| LOG-B13       | 3              | B-0003    | Box 001 no 0003   |
-| LOG-B13       | 4              | B-0004    | Box 001 no 0004   |
-| LOG-B13       | 5              | C-0001    | Box 002 no 0001   |
+The "Number of ballots" field enables compact encoding of batches of ballots for
+the manifest.  
+
+if the "Number of ballots" field is greater than one, then the given row is
+treated as equivalent to "Number of ballots" rows, increasing the "Original
+index" and "Ballot id" fields by one each time.
+
+If the "Number of ballots" field is left blank (or equal to 1), then
+the row corresponds to a single ballot.
+
+on the "Original index" field and the "Ballot id" field, and all other fields just copied.
+In this case, the "Ballot id" field must end with a number of digits.  The autoincrementing
+takes place within those digits, expanding the field if necessary.
+
+| Collection id | Original index | Ballot id | Number of ballots | Location        | Comments |
+|---            | ---            |---        | ---               | ---             | ---      |
+| LOG-B13       | 1              | B-0001    |                   | Box B no 0001   |          |
+| LOG-B13       | 2              | B-0002    |                   | Box B no 0002   |          |
+| LOG-B13       | 3              | B-0003    |                   | Box B no 0003   |          |
+| LOG-B13       | 4              | C-0001    |  3                | Box C           |          |
+| LOG-B13       | 7              | D-0001    |  50               | Box D           |          |
+| LOG-B13       | 57             | E-0200    |  50               | Box E           |          |
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
