@@ -159,7 +159,6 @@ class Election(object):
         e.pbcids = []
         # list of paper ballot collection ids (pbcids)
 
-
         e.manager_p = {}
         # pbcid->manager
         # Gives name and/or contact information for collection manager
@@ -176,7 +175,7 @@ class Election(object):
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
 
-        # election data (reported election results)
+        # election data (manifests, reported votes, and reported outcomes)
 
         e.rn_p = {}
         # pbcid -> count
