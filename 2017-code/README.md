@@ -574,16 +574,18 @@ the ballot id), and give any additional comments about specific ballots.
 The "Number of ballots" field enables compact encoding of batches of ballots for
 the manifest.  
 
-if the "Number of ballots" field is greater than one, then the given row is
-treated as equivalent to "Number of ballots" rows, increasing the "Original
-index" and "Ballot id" fields by one each time.
-
 If the "Number of ballots" field is left blank (or equal to 1), then
 the row corresponds to a single ballot.
 
-on the "Original index" field and the "Ballot id" field, and all other fields just copied.
-In this case, the "Ballot id" field must end with a number of digits.  The autoincrementing
-takes place within those digits, expanding the field if necessary.
+if the "Number of ballots" field is greater than one, then the given
+row is treated as equivalent to "Number of ballots" rows, increasing
+the "Original index" and "Ballot id" fields by one each time.  In this
+case, the "Ballot id" field must end with a number of digits.  The
+autoincrementing takes place within those digits, expanding the field
+if necessary.
+
+
+Fields other than the "Original index" field and the "Ballot id" field are just copied.
 
 | Collection id | Original index | Ballot id | Number of ballots | Location        | Comments |
 |---            | ---            |---        | ---               | ---             | ---      |
