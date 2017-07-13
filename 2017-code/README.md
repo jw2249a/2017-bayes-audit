@@ -133,6 +133,21 @@ We have:
   in "Smith:1" or "Jones:Excellent".
   A **write-in** selection has a selection id beginning with a plus
   sign (example: ``"+BobWhite"``).
+  Other potentially useful selection ids include
+    1. ``**-Unknown**``: Nothing is known about the ballot. It might
+       not even contain the desired contest.
+    2. ``**-Absent**``: The contest is missing from the ballot. Perhaps
+       the wrong ballot was pulled.
+    3. ``**-NoRecord**``: The ballot contains the desired contest, but
+       the voter's selection was not recorded.  Perhaps useful if the
+       desired contest is no longer being audited.
+    4. ``**-Invalid**``: The voter selections were invalid somehow.
+    5. ``**-Expected**``: The ballot style indicates that the ballot
+       *should* contain this contest, but the ballot hasn't been
+       further examined yet. (Requires a ballot style on the ballot.)
+    6. ``**-NotExpected`` The ballot style indicates that the ballot
+       *should* *not* contain this contest, but the ballot hasn't been
+       further examined yet. (Requires a ballot style on the ballot.)
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
