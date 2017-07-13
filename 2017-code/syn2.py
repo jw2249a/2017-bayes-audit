@@ -347,7 +347,7 @@ def generate_ballot_manifest(se):
     n_pc = dict()
     for contest in se.rv_cpb:
         for pbcid in se.rv_cpb[contest]:
-            nested_set(n_pc,[contest,pbcid],len(list(se.rv_cpb[contest][pbcid].keys)))
+            nested_set(n_pc,[contest,pbcid],len(list(se.rv_cpb[contest][pbcid].keys())))
     #the keys aren't ordered, so we need to use an ordered dictionary or something to keep track of the "first"
     #ballot before incrementing 
 
@@ -398,6 +398,7 @@ def test():
     generate_collections(se)
     generate_reported(se)
     generate_actual(se)
+    generate_ballot_manifest(se)
     structure.finish_election_structure(se)
     for key in sorted(vars(se)):
         print(key)
