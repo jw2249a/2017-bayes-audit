@@ -1,4 +1,5 @@
 import csv
+import csv_readers
 
 election_file = '/Users/hkarimi/Desktop/husayn_bayes_local/2017-code/test_files/election_file.csv'
 contests_file = '/Users/hkarimi/Desktop/husayn_bayes_local/2017-code/test_files/contests_file.csv'
@@ -116,6 +117,7 @@ def populate_collections(filename):
 def populate_contests(filename):
     selid_c = dict() 
     cids = set()
+    rows_ordered = csv_readers.read_csv_file(filename)
     with open(filename, 'r', encoding="utf8") as f:
         reader = csv.reader(f, delimiter = '|')
         for (i,row) in enumerate(reader):
