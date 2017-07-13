@@ -341,17 +341,22 @@ def generate_reported(se):
 
     return se
 
+
 def generate_ballot_manifest(se):
-    #generate everything other than location 
+    """ generate everything other than location """
+
     #we have 
     n_pc = dict()
-    for contest in se.rv_cpb:
-        for pbcid in se.rv_cpb[contest]:
-            nested_set(n_pc,[contest,pbcid],len(list(se.rv_cpb[contest][pbcid].keys())))
+    for cid in se.rv_cpb:
+        for pbcid in se.rv_cpb[cid]:
+            nested_set(n_pc,[pbcid, cid],len(se.rv_cpb[cid][pbcid]))
     #the keys aren't ordered, so we need to use an ordered dictionary or something to keep track of the "first"
     #ballot before incrementing 
+    # no -- just use one line per ballot; don't worry about compression/collapsing
+
 
 def nested_set(dic, keys, value):
+
     for key in keys[:-1]:
         dic = dic.setdefault(key, {})
     dic[keys[-1]] = value
@@ -375,18 +380,18 @@ def generate_audit(se):
 
 def generate_actual(se):
     se.av_cpb = dict()
-    for contest in se.rv_cpb:
-        for pbcid in se.rv_cpb[contest]:
-            for bid in se.rv_cpb[contest][pbcid]:
-                for vote in se.rv_cpb[contest][pbcid][bid]:
-                    if (random.uniform(0,1) > 0.995): #then choose a different selection other than the one on reported
+    for cid in se.rv_cpb:
+        for pbcid in se.rv_cpb[cid]:
+            for bid in se.rv_cpb[cid][pbcid]:
+                for vote in se.rv_cpb[cid][pbcid][bid]:
+                    if (se.SynRandomState.uniform() <= se.error_rate:
+                        #then choose a different selection other than the one on reported
                         selids = list(se.selids_c[contest].keys())
-                        selids.remove(se.rv_cpb[contest][pbcid][bid])
+                        # selids.remove(se.rv_cpb[contest][pbcid][bid])
                     else:
                         selids = list(se.selids_c[contest].keys())
-                    selection_index = random.randint(0, len(selids)-1)
-                    selection = selids[selection_index]
-                    nested_set(se.av_cpb, [contest, pbcid, bid], selection)
+                    selection = se.SynRandomState.choice(selids)
+                    nested_set(se.av_cpb, [cid, pbcid, bid], selection)
 
 
 def test():
