@@ -709,13 +709,13 @@ followed by the collection id and a nine-digit counter value, into a
 cryptographic random number function (specifically, SHA256 used in
 counter mode, starting with counter value 1).
 
-| Collection id | Sample order  | Original index | Ballot id | Location          |
-|---            |---            | ---            | ---       | ---               |
-| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |
-| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |
-| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |
-| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |
-| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |
+| Collection id | Sample order  | Original index | Ballot id | Location          | Comments |
+|---            |---            | ---            | ---       | ---               |---       |
+| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |          |
+| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |          |
+| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |          |
+| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |          |
+| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |          |
 
 A sampling order file has a filename of the form
 ``sampling-order-<pbcid>.csv``.  Example:

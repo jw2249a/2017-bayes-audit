@@ -59,22 +59,61 @@ def test_shuffle(seed=1234567890):
 def compute_sampling_orders(e):
 
     for pbcid in e.pbcids:
+        print("!!!", pbcid)
         compute_sampling_order(e, pbcid)
 
 
 def compute_sampling_order(e, pbcid):
 
-    L = shuffle(e.bids_p[pbcid], e.audit_seed)
+    pairs = zip(list(range(1, 1+len(e.bids_p[pbcid]))),
+                ebids_p[pbcid])
+    shuffled_pairs = shuffle(pairs, e.audit_seed)
+    e.shuffled_indices_p[pbcid] = [i for (i,b) in shuffled_pairs]
+    e.shuffled_bids_p[pbcid] = [b for (i,b) in shuffled_pairs]
 
+
+def write_sampling_orders(e):
+
+    for pbcid in e.pbcids:
+        write_sampling_order(e, pbcid)
+        
 
 def write_sampling_order(e, pbcid):
 
-    pass
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "2-reported")
+    os.makedirs(dirpath, exist_ok=True)
+    ds = utils.date_string()
+    filename = os.path.join(dirpath, "manifest-"+pbcid+"-"+ds+".csv")
+    with open(filename, "w") as file:
+        for fieldname in ["Collection id", "Sample order", "Original index", "Ballot id",
+                          "Location", "Comments"]:
+            file.write("{},".format(fieldname))
+        file.write("\n")
+        for i, index in enumerate(e.shuffled_indices_p[pbcid]):
+            file.write(pbcid+",")
+            file.write("{},".format(i))
+            file.write("{},".format(index))
+            file.write("{},".format(e.shuffled_bids_p[pbcid][i]))
+            file.write("{},".format(e.location_p[pbcid][index]))
+            file.write("{},".format(e.comments_p[pbcid][index]))
 
+
+def test_sampling_orders():
+
+    import syn2
+    e = syn2.SynElection()
+    # TODO: need to load ballot manifests right here
+    compute_sampling_orders(e)
+    write_sampling_orders(e)
+    
 
 if __name__=="__main__":
 
+
     test_shuffle()
+
+    test_sampling_orders()
+
 
     
     

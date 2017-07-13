@@ -173,7 +173,7 @@ class Election(object):
 
         # election data (manifests, reported votes, and reported outcomes)
 
-        e.bids_p = {}
+        e.bids_p = []
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
         # from ballot manifest "Ballot id" column (as expanded for batches)
@@ -235,6 +235,10 @@ class Election(object):
 
         e.audit_seed = None
         # seed for pseudo-random number generation for audit
+
+        e.shuffled_indices_p = []
+        e.shuffled_bids_p = []
+        # sampling order for bids of each pbcid 
 
         e.risk_limit_c = {}
         # cid->reals
