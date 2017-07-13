@@ -171,15 +171,22 @@ class Election(object):
         # relevance; only relevant pbcids in e.rel_cp[cid]
         # True means the pbcid *might* contains ballots relevant to cid
 
+        # election data (manifests, reported votes, and reported outcomes)
+
         e.bids_p = {}
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
+        # from ballot manifest "Ballot id" column (as expanded for batches)
+        # order is preserved from ballot manifest file, so no need for
+        # "index" field, and no need for "Number of ballots" (always 1 now).
 
-        # election data (manifests, reported votes, and reported outcomes)
+        e.location_pb = {}
+        # pbcid->bid->location
+        # from ballot manifest "Location" column
 
-        e.manifest_p = {}
-        # pbcid -> manifest
-        # e.manifest[pbcid] is ballot manifest for that pbcid
+        e.comments_pb = {}
+        # pbcid->bid->comments (string)
+        # from ballot manifest "Comments" column
 
         e.rn_p = {}
         # pbcid -> count

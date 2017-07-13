@@ -146,7 +146,8 @@ We have:
   the ballot (e.g. the box number and position within box), but
   need not do so.  The ballot id might or might not include the
   pbcid. The ballot id might be generated when the ballot
-  is printed, when it is scanned, or when it is stored.
+  is printed, when it is scanned, or when it is stored.  The
+  ballot ids need not be "sequential".
 
   (CO remark: A ballot id (or at least the ballot location may consist of
   a four-tuple (TabulatorId, BatchId, RecordId, CountingGroupId).)
@@ -384,7 +385,7 @@ write-ins are allowed (and if so, whether they may be arbitrary, or whether they
 must be pre-qualified), and the officially allowed selections.
 
 | Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...          |...         |
-| ---             | ---          | ---       |---        | ---        | ---        |---        |---          |---         |
+| ---             | ---          | ---       |---        | ---        | ---       |---         |---          |---         |
 | DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
 | DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
 | DEN-mayor       | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost  |            |
@@ -573,6 +574,10 @@ DEN-A01,L,B-231,DEN-prop-1,Yes,
 ### Ballot manifest file
 
 A **ballot manifest file** lists all of the ballot ids for a given collection.
+Each ballot id may be given explicitly, or, if some ballots are organized
+into a batch with sequential ballot ids, the first ballot id of the batch and
+the size of the batch may be given.
+
 It may also indicate their physical location (if it is not already encoded in
 the ballot id), and give any additional comments about specific ballots.
 
@@ -583,18 +588,18 @@ If the "Number of ballots" field should be equal to 1 if the row represents
 a single ballot.
 
 if the "Number of ballots" field is greater than one, then the given
-row is treated as equivalent to "Number of ballots" rows, increasing
-the "Original index" and "Ballot id" fields by one each time.  In this
-case, the "Ballot id" field must end with a number of digits.  The
-autoincrementing takes place within those digits, expanding the field
-if necessary.
+row represents a batch of ballots of size "Number of ballots".  The
+given row is treated as equivalent to "Number of ballots" rows,
+increasing the "Index" and "Ballot id" fields by one each
+time.  In this case, the "Ballot id" field must end with a number of
+digits (if not, a field of "1" is assumed).  The autoincrementing
+takes place within those digits, expanding the field if necessary.
 
-
-Fields other than the "Original index" field and the "Ballot id" field are just copied.
+Fields other than the "Index" field and the "Ballot id" field are just copied.
 
 The size of the collection is just the sum of the values in the "Number of ballots" field.
 
-| Collection id | Original index | Ballot id | Number of ballots | Location        | Comments |
+| Collection id | Index          | Ballot id | Number of ballots | Location        | Comments |
 |---            | ---            |---        | ---               | ---             | ---      |
 | LOG-B13       | 1              | B-0001    |  1                | Box B no 0001   |          |
 | LOG-B13       | 2              | B-0002    |  1                | Box B no 0002   |          |
@@ -602,6 +607,9 @@ The size of the collection is just the sum of the values in the "Number of ballo
 | LOG-B13       | 4              | C-0001    |  3                | Box C           |          |
 | LOG-B13       | 7              | D-0001    |  50               | Box D           |          |
 | LOG-B13       | 57             | E-0200    |  50               | Box E           |          |
+
+The ballot ids (bids) within a collection must be distinct from each other; this includes
+ballots ids that are generated via this repetition feature.
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
