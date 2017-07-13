@@ -75,7 +75,7 @@ class Election(object):
         selid  a selection id (e.g. "Yes" or "JohnSmith"). A string.
                If it begins with a "+", it denotes a write-in (e.g. "+BobJones")
                If it begins with a "-", it denotes an error (e.g. "-Invalid" or
-               "-Missing" or "-noCVR").  Errors for overvotes and undervotes
+               "-Absent" or "-noCVR").  Errors for overvotes and undervotes
                are indicated in another way.  Each selid naively corresponds to
                one bubble filled in on an optical scan ballot.
 
@@ -257,9 +257,16 @@ class Election(object):
         e.max_stages = 20
         # maximum number of stages allowed in audit
 
-        e.pseudocount = 0.5
-        # hyperparameter for prior distribution
-        # (e.g. 0.5 for Jeffrey's distribution)
+        e.pseudocount_base = 0.5
+        # base-level pseudocount (hyperparameter)
+        # to use for Bayesian priors
+        # (0.5 for Jeffrey's distribution)
+
+        e.pseudocount_match = 50.0
+        # hyperparameter for prior distribution to use
+        # for components where reported_vote==actual_vote
+        # This higher value reflects prior knowledge that
+        # the scanners are expected to be quite accurate.
 
         e.recount_threshold = 0.95
         # if e.risk[e.stage][cid] exceeds 0.95, then full recount called for

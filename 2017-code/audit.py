@@ -135,7 +135,10 @@ def compute_contest_risk(e, cid, st):
                 # for a in tally:
                 #    tally[a] = tally.get(a, 0)
                 for a in tally:
-                    tally[a] += e.pseudocount
+                    if r!=a:
+                        tally[a] += e.pseudocount_base
+                    else:
+                        tally[a] += e.pseudocount_match
                 dirichlet_dict = dirichlet(tally)
                 nonsample_size = e.rn_cpr[cid][pbcid][r] - \
                     e.sn_tcpr[e.stage][cid][pbcid][r]
