@@ -111,11 +111,11 @@ def geospace(start, stop, num=7):
 def geospace_choice(se, start, stop, num=7):
     """ 
     Return a random element from geospace(start, stop, num), 
-    based on se.RandomState.
+    based on se.SynRandomState.
     """
 
     elts = geospace(start, stop, num)
-    return se.RandomState.choice(elts)
+    return se.SynRandomState.choice(elts)
 
 
 ##############################################################################
@@ -159,7 +159,7 @@ def generate_contests(se):
     # determine which cids have wrong reported outcome
     se.cids_wrong = []
     while len(se.cids_wrong) < se.n_cids_wrong:
-        se.cids_wrong.append(se.RandomState.choice(se.cids))
+        se.cids_wrong.append(se.SynRandomState.choice(se.cids))
 
     # generate selids for each cid
     se.n_selids_c = {}
@@ -186,7 +186,7 @@ def generate_collections(se):
     # identify which pbcids have types CVR or noCVR
     se.cvr_type_p = {}
     while len(se.cvr_type_p) < se.n_pbcids_nocvr:
-        se.cvr_type_p[se.RandomState.choice[se.pbcids]] = "noCVR"
+        se.cvr_type_p[se.SynRandomState.choice[se.pbcids]] = "noCVR"
     for pbcid in se.pbcids:
         if pbcid not in se.cvr_type_p:
             se.cvr_type_p[pbcid] = "CVR"
@@ -201,7 +201,7 @@ def generate_collections(se):
     se.rel_cp = {}
     for cid in se.cids:
         s = geospace_choice(se, m, M)
-        se.firstpbcidx_c[cid] = se.RandomState.randint(0, se.n_pbcids - s + 1)
+        se.firstpbcidx_c[cid] = se.SynRandomState.randint(0, se.n_pbcids - s + 1)
         se.lastpbcidx_c[cid] = se.firstpbcidx_c[cid] + s - 1
         se.rel_cp[cid] = {}
         for pbcidx in range(se.firstpbcidx_c[cid], se.lastpbcidx_c[cid]+1):
