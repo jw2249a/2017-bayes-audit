@@ -5,28 +5,20 @@
 
 """
 Routines to generate a synthetic test election dataset, 
-given the following parameters (defaults in brackets):
-
-    # for structure
+given the following 13 parameters (defaults in brackets):
     n_cids = # number of contests [1]
+    n_cids_wrong = # number of contests with wrong reported outcome [0]
     min_n_selids_per_cid = minimum number of selids per contest [2]
     max_n_selids_per_cid = maximum number of selids per contest [5]
     n_pbcids = # number of pbcids [1]
     n_pbcids_nocvr = # number of collections with no CVRs [0]
+    min_n_bids_perp = minimum number of bids per pbcid [1000]
+    max_n_bids_perp = maximum number of bids per pbcid [100000]
     min_pbcids_per_cid = minimum number of pbcids per contest [1]
     max_pbcids_per_cid = maximum number of pbcids per contest [1]
-
-    # for reported
-    min_n_bids_per_pbcid = minimum number of bids per pbcid [1000]
-    max_n_bids_per_pbcidp = maximum number of bids per pbcid [100000]
-    n_cids_wrong = # number of contests with wrong reported outcome [0]
     dropoff = rate at which votes drop off with selection (geometric) [0.9]
-
-    # for audit
-    errorrate = rate at which actual votes != reported votes [0.005]
-
-    # general
-    synseed = random number seed (for reproducibility) [1]
+    errorrate = rate at which reported votes != actual votes [0.005]
+    seed = random number seed (for reproducibility) [1]
     RandomState = state for random number generator
 
     ### following are then computed ###
@@ -38,7 +30,7 @@ given the following parameters (defaults in brackets):
     
 The main data structure here, SynElection, is a subclass of 
 multi.Election.  We fill in the values of the fields as if they
-had been read in, or else we (optionally) output the values as csv files.
+had been read on, or else we (optionally) output the values as csv files.
 """
 
 import numpy as np
@@ -47,38 +39,28 @@ import os
 import multi
 import structure
 import utils
+import random 
 
 class SynElection(multi.Election):
 
-    def __init__(self, synseed=1):
+    def __init__(self, seed=1):
 
         super(SynElection, self).__init__()
-
-        # for structure
         self.n_cids = 2
+        self.n_cids_wrong = 0
         self.min_n_selids_per_cid = 2
         self.max_n_selids_per_cid = 5
         self.n_pbcids = 2
         self.n_pbcids_nocvr = 0
-        self.min_pbcids_per_cid = 1
-        self.max_pbcids_per_cid = self.n_pbcids
-
-        # for reported
         self.min_n_bids_per_pbcid = 10
         self.max_n_bids_per_pbcid = 20
-        self.n_cids_wrong = 0
+        self.min_pbcids_per_cid = 1
+        self.max_pbcids_per_cid = self.n_pbcids
         self.dropoff = 0.9
-
-        # for audit
         self.error_rate = 0.005
+        self.seed = seed
+        self.RandomState = np.random.RandomState(self.seed)
 
-        # general
-        self.synseed = synseed
-        self.SynRandomState = np.random.RandomState(self.synseed)
-
-        # to be computed
-        self.cids_wrong = []
-        
 
 default_SynElection = SynElection()          
 
@@ -100,7 +82,6 @@ def geospace(start, stop, num=7):
     [1, 2, 4, 8, 16, 32, 64]
     """
 
-    assert start <= stop
     answer = {start, stop}
     start = max(start, 1)
     for i in range(1, num-1):
@@ -111,15 +92,12 @@ def geospace(start, stop, num=7):
 def geospace_choice(se, start, stop, num=7):
     """ 
     Return a random element from geospace(start, stop, num), 
-    based on se.SynRandomState.
+    based on se.RandomState.
     """
 
     elts = geospace(start, stop, num)
-    return se.SynRandomState.choice(elts)
+    return se.RandomState.choice(elts)
 
-
-##############################################################################
-## Generate structure
 
 def generate_election_structure(se=default_SynElection):
     """
@@ -129,14 +107,13 @@ def generate_election_structure(se=default_SynElection):
     read_collections)
     """
 
-    # reset SynRandomState from synseed
-    se.SynRandomState = np.random.RandomState(se.synseed)
+    # reset RandomState from seed
+    se.RandomState = np.random.RandomState(se.seed)
 
     dts = utils.datetime_string()
-    ds = utils.date_string()
-    se.election_name = "TestElection generated " + dts
-    se.election_dirname = "TestElection-"+ds
-    se.election_date = ds                     # FIX ??
+    se.election_name = "TestElection-"+dts
+    se.election_dirname = "TestElection-"+dts
+    se.election_date = dts                     # FIX ??
     se.election_url = "None"            
 
 
@@ -159,7 +136,7 @@ def generate_contests(se):
     # determine which cids have wrong reported outcome
     se.cids_wrong = []
     while len(se.cids_wrong) < se.n_cids_wrong:
-        se.cids_wrong.append(se.SynRandomState.choice(se.cids))
+        se.cids_wrong.append(se.RandomState.choice(se.cids))
 
     # generate selids for each cid
     se.n_selids_c = {}
@@ -168,6 +145,7 @@ def generate_contests(se):
         se.n_selids_c[cid] = geospace_choice(se,
                                              se.min_n_selids_per_cid,
                                              se.max_n_selids_per_cid)
+
         se.selids_c[cid] = {"s{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
 
 
@@ -186,7 +164,7 @@ def generate_collections(se):
     # identify which pbcids have types CVR or noCVR
     se.cvr_type_p = {}
     while len(se.cvr_type_p) < se.n_pbcids_nocvr:
-        se.cvr_type_p[se.SynRandomState.choice[se.pbcids]] = "noCVR"
+        se.cvr_type_p[se.RandomState.choice[se.pbcids]] = "noCVR"
     for pbcid in se.pbcids:
         if pbcid not in se.cvr_type_p:
             se.cvr_type_p[pbcid] = "CVR"
@@ -201,7 +179,7 @@ def generate_collections(se):
     se.rel_cp = {}
     for cid in se.cids:
         s = geospace_choice(se, m, M)
-        se.firstpbcidx_c[cid] = se.SynRandomState.randint(0, se.n_pbcids - s + 1)
+        se.firstpbcidx_c[cid] = se.RandomState.randint(0, se.n_pbcids - s + 1)
         se.lastpbcidx_c[cid] = se.firstpbcidx_c[cid] + s - 1
         se.rel_cp[cid] = {}
         for pbcidx in range(se.firstpbcidx_c[cid], se.lastpbcidx_c[cid]+1):
@@ -213,13 +191,13 @@ def write_structure_csvs(se):
 
     write_11_election_csv(se)
     write_12_contests_csv(se)
-    write_13_collections_csv(se)
+    write_13_collections-csv(se)
 
 def write_11_election_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "11-election.csv")
+    filename = os.path.join(dirpath, "11_election.csv")
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
@@ -231,7 +209,7 @@ def write_12_contests_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "12-contests.csv")
+    filename = os.path.join(dirpath, "12_contests.csv")
     with open(filename, "w") as file:
         for fieldname in ["Contest id", "Contest type", "Winners",
                           "Write-ins", "Selections"]:
@@ -250,7 +228,7 @@ def write_13_collections_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "13-collections.csv")
+    filename = os.path.join(dirpath, "13_collections.csv")
     with open(filename, "w") as file:
         for fieldname in ["Collection id", "Manager", "CVR type", "Contests"]:
             file.write("{},".format(fieldname))
@@ -285,6 +263,75 @@ def generate_reported(se):
             se.n_bids += 1
             se.bids_p[pbcid].append(bid)
 
+    print('se.bids_p:', se.bids_p)
+
+    # figure out what contest(s) are on the ballot for given bid and pbcid 
+    # figure out if contest is CVR or not 
+    # draw from selection 
+
+    """
+    above we have the bids that correspond to the given paper ballot collections. what we want to do is assign 
+    contests to those ballot ids based on what contests are in the given pbcids as well as assign selections 
+    based on the possible selections for each contest
+    """
+    se.cids_b = {}
+
+    #change rel_cp to rel_pc 
+    rel_pc = {}
+    for cid in se.cids:
+        pbcids = se.rel_cp[cid]
+        for pbcid in pbcids:
+            if pbcid not in rel_pc:
+                rel_pc[pbcid]=[cid]
+            else:
+                rel_pc[pbcid].append(cid)
+
+    for pbcid in se.pbcids:
+        if (se.cvr_type_p[pbcid] == 'CVR'):
+            bids_pi = se.bids_p[pbcid]
+            available_contests = rel_pc[pbcid]
+            for i in range(len(bids_pi)):
+                num_contests = random.randint(1,len(available_contests))
+                contest_set = set()
+                for j in range(num_contests):
+                    contest = random.randint(0, len(available_contests)-1)
+                    if contest not in contest_set:
+                        contest_set.add(contest)
+                        se.cids_b[bids_pi[i]] = available_contests[contest]
+        else: #not sure what to do here if cvr_type_p[pbcid] == non-CVR 
+            pass 
+
+    #generate the selection for each contest. so basically populate rv_cpb. draw from selids_c. 
+    #also keep track of ro_c
+    se.rv_cpb = dict()
+    for contest in se.rel_cp:
+        for pbcid in se.rel_cp[contest]:
+            for bid in se.bids_p[pbcid]:
+                selids = list(se.selids_c[contest].keys())
+                if se.contest_type_c[contest] == 'plurality':
+                    selection_index = random.randint(0, len(selids)-1)
+                    selection = selids[selection_index]
+                    nested_set(se.rv_cpb, [contest, pbcid, bid], selection)
+                else: #we can handle this later when its not hardcoded 
+                    pass
+
+    #sum over ballot ids and pbcids to get se.ro_c
+    rn_cs = dict() 
+    for contest in se.cids:
+        for pbcid in se.rel_cp[contest]:
+            for bid in se.bids_p[pbcid]:
+                selection = se.rv_cpb[contest][pbcid][bid]
+                if contest not in rn_cs:
+                    nested_set(rn_cs, [contest, selection], 1)
+                else:
+                    if selection not in rn_cs[contest]:
+                        nested_set(rn_cs, [contest, selection], 1)
+                    else:
+                        rn_cs[contest][selection]+=1
+    se.ro_c = dict()
+    for contest in rn_cs:
+        outcome = max(rn_cs[contest], key=rn_cs[contest].get)
+        se.ro_c[contest] = outcome
 
     # dropoff
     assert 0 < se.dropoff <= 1
@@ -293,6 +340,21 @@ def generate_reported(se):
     assert 0 <= se.error_rate <= 1
 
     return se
+
+def generate_ballot_manifest(se):
+    #generate everything other than location 
+    #we have 
+    n_pc = dict()
+    for contest in se.rv_cpb:
+        for pbcid in se.rv_cpb[contest]:
+            nested_set(n_pc,[contest,pbcid],len(list(se.rv_cpb[contest][pbcid].keys)))
+    #the keys aren't ordered, so we need to use an ordered dictionary or something to keep track of the "first"
+    #ballot before incrementing 
+
+def nested_set(dic, keys, value):
+    for key in keys[:-1]:
+        dic = dic.setdefault(key, {})
+    dic[keys[-1]] = value
 
 
 ##############################################################################
@@ -311,23 +373,40 @@ def generate_audit(se):
 
     pass
 
+def generate_actual(se):
+    se.av_cpb = dict()
+    for contest in se.rv_cpb:
+        for pbcid in se.rv_cpb[contest]:
+            for bid in se.rv_cpb[contest][pbcid]:
+                for vote in se.rv_cpb[contest][pbcid][bid]:
+                    if (random.uniform(0,1) > 0.995): #then choose a different selection other than the one on reported
+                        selids = list(se.selids_c[contest].keys())
+                        selids.remove(se.rv_cpb[contest][pbcid][bid])
+                    else:
+                        selids = list(se.selids_c[contest].keys())
+                    selection_index = random.randint(0, len(selids)-1)
+                    selection = selids[selection_index]
+                    nested_set(se.av_cpb, [contest, pbcid, bid], selection)
+
 
 def test():
 
     se = SynElection()
-    se.synseed = 9
-
+    se.seed = 9
     generate_election_structure(se)
     generate_contests(se)
     generate_collections(se)
+    generate_reported(se)
+    generate_actual(se)
     structure.finish_election_structure(se)
-    structure.check_election_structure(se)
-
     for key in sorted(vars(se)):
         print(key)
         print("    ", vars(se)[key])
+    print("Checking structure:", structure.check_election_structure(se))
     
-    write_structure_csvs(se)
+    write_11_election_csv(se)
+    write_12_contests_csv(se)
+    write_13_collections_csv(se)
 
 if __name__=="__main__":
     test()
