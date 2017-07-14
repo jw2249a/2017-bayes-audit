@@ -43,7 +43,7 @@ import random
 
 class SynElection(multi.Election):
 
-    def __init__(self, seed=1):
+    def __init__(self, synseed=1):
 
         super(SynElection, self).__init__()
         self.n_cids = 2
@@ -58,8 +58,10 @@ class SynElection(multi.Election):
         self.max_pbcids_per_cid = self.n_pbcids
         self.dropoff = 0.9
         self.error_rate = 0.005
-        self.seed = seed
-        self.RandomState = np.random.RandomState(self.seed)
+        #self.seed = seed
+        self.synseed = synseed
+        self.SynRandomState = np.random.RandomState(self.synseed)
+        #self.RandomState = np.random.RandomState(self.seed)
 
 
 default_SynElection = SynElection()          
@@ -96,7 +98,7 @@ def geospace_choice(se, start, stop, num=7):
     """
 
     elts = geospace(start, stop, num)
-    return se.RandomState.choice(elts)
+    return se.SynRandomState.choice(elts)
 
 
 def generate_election_structure(se=default_SynElection):
@@ -108,7 +110,7 @@ def generate_election_structure(se=default_SynElection):
     """
 
     # reset RandomState from seed
-    se.RandomState = np.random.RandomState(se.seed)
+    se.SynRandomState = np.random.RandomState(se.synseed)
 
     dts = utils.datetime_string()
     se.election_name = "TestElection-"+dts
@@ -136,7 +138,7 @@ def generate_contests(se):
     # determine which cids have wrong reported outcome
     se.cids_wrong = []
     while len(se.cids_wrong) < se.n_cids_wrong:
-        se.cids_wrong.append(se.RandomState.choice(se.cids))
+        se.cids_wrong.append(se.SynRandomState.choice(se.cids))
 
     # generate selids for each cid
     se.n_selids_c = {}
@@ -164,7 +166,7 @@ def generate_collections(se):
     # identify which pbcids have types CVR or noCVR
     se.cvr_type_p = {}
     while len(se.cvr_type_p) < se.n_pbcids_nocvr:
-        se.cvr_type_p[se.RandomState.choice[se.pbcids]] = "noCVR"
+        se.cvr_type_p[se.SynRandomState.choice[se.pbcids]] = "noCVR"
     for pbcid in se.pbcids:
         if pbcid not in se.cvr_type_p:
             se.cvr_type_p[pbcid] = "CVR"
@@ -179,7 +181,7 @@ def generate_collections(se):
     se.rel_cp = {}
     for cid in se.cids:
         s = geospace_choice(se, m, M)
-        se.firstpbcidx_c[cid] = se.RandomState.randint(0, se.n_pbcids - s + 1)
+        se.firstpbcidx_c[cid] = se.SynRandomState.randint(0, se.n_pbcids - s + 1)
         se.lastpbcidx_c[cid] = se.firstpbcidx_c[cid] + s - 1
         se.rel_cp[cid] = {}
         for pbcidx in range(se.firstpbcidx_c[cid], se.lastpbcidx_c[cid]+1):
@@ -384,12 +386,12 @@ def generate_actual(se):
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
                 for vote in se.rv_cpb[cid][pbcid][bid]:
-                    if (se.SynRandomState.uniform() <= se.error_rate:
+                    if (se.SynRandomState.uniform() <= se.error_rate):
                         #then choose a different selection other than the one on reported
-                        selids = list(se.selids_c[contest].keys())
+                        selids = list(se.selids_c[cid].keys())
                         # selids.remove(se.rv_cpb[contest][pbcid][bid])
                     else:
-                        selids = list(se.selids_c[contest].keys())
+                        selids = list(se.selids_c[cid].keys())
                     selection = se.SynRandomState.choice(selids)
                     nested_set(se.av_cpb, [cid, pbcid, bid], selection)
 
