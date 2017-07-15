@@ -67,7 +67,7 @@ def compute_sampling_order(e, pbcid):
 
     pairs = zip(list(range(1, 1+len(e.bids_p[pbcid]))),
                 ebids_p[pbcid])
-    shuffled_pairs = shuffle(pairs, e.audit_seed)
+    shuffled_pairs = shuffle(pairs, str(e.audit_seed)+","+pbcid)
     e.shuffled_indices_p[pbcid] = [i for (i,b) in shuffled_pairs]
     e.shuffled_bids_p[pbcid] = [b for (i,b) in shuffled_pairs]
 

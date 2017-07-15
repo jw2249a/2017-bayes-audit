@@ -717,9 +717,10 @@ Sampling is done without replacement, since each ballot occurs
 exactly once in the sampling order file.
 
 To produce the sampling order, ``multi.py`` feeds the audit seed,
-followed by the collection id and a nine-digit counter value, into a
+followed by a comma, the collection id, another comma, and a decimal counter value, into a
 cryptographic random number function (specifically, SHA256 used in
-counter mode, starting with counter value 1).
+counter mode, starting with counter value 1).  The Fisher-Yates algorithm
+is then used to produce a random permutation of the ballots, using these random numbers.
 
 | Collection id | Sample order  | Original index | Ballot id | Location          | Comments |
 |---            |---            | ---            | ---       | ---               |---       |
