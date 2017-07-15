@@ -288,7 +288,7 @@ greater than the previous version label.
 
 If this sample is augmented, the above file is not changed, but
 a new file with a later date is just added to the directory.
-
+The earlier file may be deleted, if desired.
 
 
 ###  Directory structure
@@ -328,10 +328,7 @@ of that directory might look as follows.
              sampling-order-LOG-B13-2017-11-20.csv
        32-audited-votes
           audited-votes-DEN-A01-2017-11-21.csv
-          audited-votes-DEN-A01-2017-11-22.csv
           audited-votes-DEN-A02-2017-11-21.csv
-          audited-votes-DEN-A02-2017-11-22.csv
-          audited-votes-LOG-B13-2017-11-21.csv
           audited-votes-LOG-B13-2017-11-22.csv
        33-audit-stages
           audit-stage-001
