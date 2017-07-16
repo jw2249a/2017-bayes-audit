@@ -774,11 +774,38 @@ The filename is of the form
 ##### Contest audit parameters
 
 The **contest audit parameters file** shows the audit measurements
-and risk limits that will be applied to each contest.  
+and risk limits that will be applied to contests.  
+
+Each line specifies a risk measurement specific to a particular contest.
+The measured risk quantifies, on a scale from 0.0 (no risk) to 1.0
+(extreme risk) the risk associated with stopping the audit now and
+accepting the reported election outcome as correct.
+
+The risk measurements are always performed at the end of a stage,
+if there is new relevant data available for that test.
+
+The measured risk is compared against a specified **risk limi** (such as 0.05);
+if the measured risk is less than the specified risk limit, we say
+the test **passes**.
+
+The measured risk is also compared against a specified
+**risk upset threshold** (such as 0.99).
+If the measured risk *exceeds* the specified risk upset threshold, then
+we say the test **signals an upset** , as the measured risk is so high
+as to provide strong evidence that the reported election outcome is
+incorrect.
+
+Normally, each contest has exactly one line in the file, specifying
+a risk measurement to be performed.  But a contest may have no line
+in the file, in which case risk is not measured for that contest.
+Or, a contest may have more than one line, meaning that risk on that
+contest is measured in more than one way.  (This latter capability
+is perhaps most useful for research purposes, but is noted here.)
+
 
 Here is a sample contest audit parameters file:
 
-| Contest              | Risk Measurement Method | Risk Limit | Risk Threshold for Recount | Parameter 1 | Parameter 2 |
+| Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Parameter 1 | Parameter 2 |
 | ---                  | ---                     | ---        | ---                        | ---         | ---         |
 | DEN-prop-1           | Bayes                   | 0.05       | 0.95                       |             |             |
 | DEN-prop-2           | Bayes                   | 1.00       | 1.00                       |             |             |
@@ -791,37 +818,48 @@ Here is a sample contest audit parameters file:
 
 
 Each line describes a risk measurement that will be done on the specified contest
-(given in the first column) at the end of each stage.  The measured risk will
-be a value between 0.00 and 1.00, inclusive; larger values correspond to more risk.
+(given in the first column) at the end of each stage.  
+
+The second column specifies the risk measurement method.  The example
+shows using ``Bayes`` and ``Frequentist`` as risk measurement methods.
+Each such method invokes a specific software module for measuring the
+risk, given the reported outcome and the tally of votes in the sample
+for that contest.  The method may also use additional method-specific
+parameters, as specified in the later column of the row.
+
+The measured risk will be a value between 0.00 and 1.00, inclusive;
+larger values correspond to more risk
 
 The third column specifies the **risk limit** for that measurement.  If the
 measured risk is less than the risk limit, then that measurement **passes**.
 When all risk measurements pass, the audit stops.
 
 If the risk limit is 1.00, then the measurement will still always be made, but
-the measurement always passes.  Specifying a risk limit of 1.00 means that the
+the measurement always passes.  
+
+Specifying a risk limit of 1.00 means that the
 contest is subject to *opportunistic auditing*---risk measurements will be made but
 only opportunistically (ballots sampled for other contests may cause interpretation
 of these contests, giving information about the risk).  
 
-The fourth column specifies the **risk threshold for recount**.  If the measured
-risk exceeds the risk threshold for recount, then the auditing program will cease
+The fourth column specifies the **risk upset threshold**.  If the measured
+risk exceeds the risk upset threshold, then the auditing program may cease
 to sample more ballots in order to measure the risk of this contest, since it is
-apparent that the reported outcome is incorrect and a full recount must be
+apparent that the reported outcome is incorrect and a full hand count should be
 performed.
 
 Columns 5 and later specify additional parameters that might be needed for the
-risk measurement.  (None shown here, but something like the "Bayes pseudocount"
-might be one for the Bayes method.)
+specified risk measurement method.  (None shown here, but something like
+a gamma value for the frequentist method might be a possible example.)
 
-Note that **a contest can participate in more
-than one measurement**.  In the example shown above, the last contest
+Note again that **a contest can participate in more
+than one risk measurement**.  In the example shown above, the last contest
 (Boulder-council) has *two* measurements specified: one by a Bayes method
 and one by a frequentist (RLA) method.  This flexibility may allow more
 convenient testing and comparison of different risk-measurement methods.
 (Although it should be noted that the notions of ``risk'' may differ, so
 that this is a bit of an apples-and-oranges comparison.)
-This feature also enables the simultaneous use of different Bayesian
+This feature may also enable the simultaneous use of different Bayesian
 priors (say one for each candidate), as explained in
 [Rivest and Shen (2012)](http://people.csail.mit.edu/rivest/pubs.html#RS12z).
 
