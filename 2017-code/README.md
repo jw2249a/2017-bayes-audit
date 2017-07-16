@@ -217,9 +217,9 @@ sorted into increasing order (as strings).
 ### File formats
 
 ``Multi.py`` uses CSV (comma-separated values) format for files;
-a single header line specifies the column labels, and each line of
+a single header row specifies the column labels, and each subsequent line of
 the file specifies one spreadsheet row.  A compressed format is
-suggested below.
+suggested in the Appendix below.
 
 ### File names
 
@@ -545,42 +545,97 @@ collections.
 
 A **ballot manifest file** lists all of the ballot ids for a given collection.
 Each ballot id may be given explicitly, or, if some ballots are organized
-into a batch with sequential ballot ids, the first ballot id of the batch and
+into a batch (box) with sequential ballot ids, the first ballot id of the batch and
 the size of the batch may be given.
 
 It may also indicate their physical location (if it is not already encoded in
-the ballot id), and give any additional comments about specific ballots.
+the ballot id), any "stamp" or other identification imprinted on the ballot,
+and give any additional comments about specific ballots.
 
-The "Number of ballots" field enables compact encoding of batches of ballots for
-the manifest.  
+The **``Collection id``** field specifies the collection id for the ballot manifest.
+This should the same for all rows in the file.
 
-If the "Number of ballots" field should be equal to 1 if the row represents
-a single ballot.
+The **``Box id``** field gives the identifier for the box containing the ballot(s)
+described in that row.  The box id should be unique within the paper ballot collection.
+If it is omitted, a box id is assumed to be equal to the collection id. (Maybe there
+are no "boxes" for this collection.)
 
-if the "Number of ballots" field is greater than one, then the given
-row represents a batch of ballots of size "Number of ballots".  The
-given row is treated as equivalent to "Number of ballots" rows,
-increasing the "Index" and "Ballot id" fields by one each
-time.  In this case, the "Ballot id" field must end with a number of
-digits (if not, a field of "1" is assumed).  The autoincrementing
-takes place within those digits, expanding the field if necessary.
+The **``Position``** field gives the position (starting with 1) of the ballot within
+the box.  The auditor may find a particular by counting to the right position
+in the box.  It is assumed that the order of ballots within a box is never
+changed.
 
-Fields other than the "Index" field and the "Ballot id" field are just copied.
+The **``Stamp``** field, if used, gives the "stamp" that may have been
+impressed (imprinted) on the ballot when it was scanned or organized
+into boxes.  It is assumed that the stamps values are unique within a
+box.  They may be increasing in order within a box, but need not be.
+The stamps do not need to be numeric.  If stamps are used, the auditor
+knows she has the desired ballot if it has the expected stamp value.
+If no stamp value is specified, a value of ``""`` (the empty string)
+is assumed.  If both the ``Position`` field and the ``Stamp`` field are
+used, the Position field is used only as a hint as to where the ballot
+with the right stamp value is in the box.  The **``Stamp``** and the
+**``Comments``** are the only optional fields.
+
+The **``Ballot id``** gives a ballot id for the ballot described
+in that row.  It should be unique within all ballots of the collection.
+It may encode information (such as the box id) within it, but need not.
+If the row describes multiple ballots, via the "Number of ballots" feature
+about to be described, then those ballots should all have (generated)
+ballot ids that are unique within the collection.
+
+The **``Number of ballots``** field enables compact encoding of
+batches of ballots for the manifest.
+
+If the **``Number of ballots``** field should be equal to 1 if the row represents
+a single ballot.  This is perhaps the typical case.
+
+if the **``Number of ballots``** field is greater than one, then the given
+row represents a batch of ballots of size "Number of ballots".  
+Typically, the row would represent all ballots in a particular box.
+
+In this case, the fields of the row describe the *first* ballot in the
+box.  To generate the other rows, the **``Position``**, **``Stamp``**
+(if present), and **``Ballot id``** fields are increased by one for
+each successive newly-generated ballot
+Other fields are just copied for the newly-generated rows.
+This compact format may not be used if the ballot stamps are present
+but not sequential.
+
+The auto-incrementing for position, stamp, and ballot-id increments
+just the number in the trailing digit sequence of the position, stamp, or
+ballot-id, and preserves the length of that trailing digit sequence if
+possible (so ``"B-0001"`` increments to ``"B-0002"`` and not ``"B-2"``, but
+``"XY-9"`` increments to ``"XY-10"``.  If the given ballot id does not
+contain a trailing digit sequence, then a trailing digit sequence of
+``"1"`` is assumed for the first ballot of the generated set.
 
 The size of the collection is just the sum of the values in the "Number of ballots" field.
 
-| Collection id | Index          | Ballot id | Number of ballots | Location        | Comments |
-|---            | ---            |---        | ---               | ---             | ---      |
-| LOG-B13       | 1              | B-0001    |  1                | Box B no 0001   |          |
-| LOG-B13       | 2              | B-0002    |  1                | Box B no 0002   |          |
-| LOG-B13       | 3              | B-0003    |  1                | Box B no 0003   |          |
-| LOG-B13       | 4              | C-0001    |  3                | Box C           |          |
-| LOG-B13       | 7              | D-0001    |  50               | Box D           |          |
-| LOG-B13       | 57             | E-0200    |  50               | Box E           |          |
+The **``Number of ballots``** feature is just for compactness and
+convenience; when the ballot manifest file is read in by ``multi.py``,
+it expands such rows representing multiple ballots into individual
+rows as specified.  So, the compact format is just "shorthand" for the
+official fully-expanded one-ballot-per-row format.
 
-The ballot ids (bids) within a collection (including ballot
-ids generated via this repetition feature)
-must be distinct from each other.
+Here is an example.
+
+| Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Comments |
+|---            | --        | ---       | ---       | ---       | ---               |          |
+| LOG-B13       | B         | 1         | XY04213   | B-0001    |  1                |          |
+| LOG-B13       | B         | 2         | XY04214   | B-0002    |  1                |          |
+| LOG-B13       | B         | 3         | XY04215   | B-0003    |  1                |          |
+| LOG-B13       | C         | 1         | QE55311   | C-0001    |  3                |          |
+| LOG-B13       | D         | 1         |           | D-0001    |  50               |          |
+| LOG-B13       | E         | 1         | FF91320   | E-0200    |  50               |          |
+| LOG-B13       | F         | 1         | JS23334   | F-0001    |  1                | See Doc. #211 |
+
+Box B has three ballots, which are individually described, one row per ballot.
+Box C also has three ballots, but the compact format is used here.  The positions
+of the three ballots are 1,2,3; the stamps are ``QE55311``, ``QE55312``, and ``QE55313``;
+and the ballot ids are ``C-0001``, ``C-0002``, and ``C-0003`` (that is, the ballot id
+here encodes the box id and the position).  Box D has 50 unstamped ballots, in positions
+1--50, and ballot ids ``D-0001`` to ``D-0050``.
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
@@ -682,13 +737,13 @@ cryptographic random number function (specifically, SHA256 used in
 counter mode, starting with counter value 1).  The Fisher-Yates algorithm
 is then used to produce a random permutation of the ballots, using these random numbers.
 
-| Collection id | Sample order  | Original index | Ballot id | Location          | Comments |
-|---            |---            | ---            | ---       | ---               |---       |
-| LOG-B13       |  1            | 4              | B-0004    | Box 001 no 0004   |          |
-| LOG-B13       |  2            | 3              | B-0003    | Box 001 no 0003   |          |
-| LOG-B13       |  3            | 1              | B-0001    | Box 001 no 0001   |          |
-| LOG-B13       |  4            | 5              | C-0001    | Box 002 no 0001   |          |
-| LOG-B13       |  5            | 2              | B-0002    | Box 001 no 0002   |          |
+| Collection id | Sample order  | Ballot id | Location          | Comments |
+|---            |---            | ---       | ---               |---       |
+| LOG-B13       |  1            | B-0004    | Box 001 no 0004   |          |
+| LOG-B13       |  2            | B-0003    | Box 001 no 0003   |          |
+| LOG-B13       |  3            | B-0001    | Box 001 no 0001   |          |
+| LOG-B13       |  4            | C-0001    | Box 002 no 0001   |          |
+| LOG-B13       |  5            | B-0002    | Box 001 no 0002   |          |
 
 A sampling order file has a filename of the form
 ``sampling-order-<pbcid>.csv``.  Example:
@@ -776,13 +831,12 @@ The filename is of the form
 The **contest audit parameters file** shows the audit measurements
 and risk limits that will be applied to contests.  
 
-Each line specifies a risk measurement specific to a particular contest.
+Each row specifies a risk measurement specific to a particular contest.
 The measured risk quantifies, on a scale from 0.0 (no risk) to 1.0
-(extreme risk) the risk associated with stopping the audit now and
+(extreme risk), the risk associated with stopping the audit now and
 accepting the reported election outcome as correct.
 
-The risk measurements are always performed at the end of a stage,
-if there is new relevant data available for that test.
+At the end of each stage, each risk measurement is performed.
 
 The measured risk is compared against a specified **risk limi** (such as 0.05);
 if the measured risk is less than the specified risk limit, we say
@@ -795,29 +849,29 @@ we say the test **signals an upset** , as the measured risk is so high
 as to provide strong evidence that the reported election outcome is
 incorrect.
 
-Normally, each contest has exactly one line in the file, specifying
-a risk measurement to be performed.  But a contest may have no line
+Normally, each contest has exactly one row in the file, specifying
+a risk measurement to be performed.  But a contest may have no row
 in the file, in which case risk is not measured for that contest.
-Or, a contest may have more than one line, meaning that risk on that
+Or, a contest may have more than one row, meaning that risk on that
 contest is measured in more than one way.  (This latter capability
 is perhaps most useful for research purposes, but is noted here.)
 
 
 Here is a sample contest audit parameters file:
 
-| Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Parameter 1 | Parameter 2 |
-| ---                  | ---                     | ---        | ---                        | ---         | ---         |
-| DEN-prop-1           | Bayes                   | 0.05       | 0.95                       |             |             |
-| DEN-prop-2           | Bayes                   | 1.00       | 1.00                       |             |             |
-| DEN-mayor            | Bayes                   | 0.05       | 0.95                       |             |             |
-| LOG-mayor            | Bayes                   | 0.05       | 0.95                       |             |             |
-| US-Senate-1          | Bayes                   | 0.05       | 0.95                       |             |             |
-| Boulder-clerk        | Bayes                   | 1.00       | 1.00                       |             |             |
-| Boulder-council      | Bayes                   | 1.00       | 1.00                       |             |             |
-| Boulder-council      | Frequentist             | 0.05       | 0.95                       |             |             |
+| Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
+| ---                  | ---                     | ---        | ---                        |---            | ---    | ---     |         |
+| DEN-prop-1           | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
+| DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
+| DEN-mayor            | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
+| LOG-mayor            | Bayes                   | 0.05       | 0.95                       | Active        | Off    |         |         |
+| US-Senate-1          | Bayes                   | 0.05       | 0.95                       | Active        | Upset  |         |         |
+| Boulder-clerk        | Bayes                   | 1.00       | 1.00                       | Active        | Open   |         |         |
+| Boulder-council      | Bayes                   | 1.00       | 1.00                       | Active        | Open   |         |         |
+| Boulder-council      | Frequentist             | 0.05       | 0.95                       | Opportunistic | Open   |         |         |
 
 
-Each line describes a risk measurement that will be done on the specified contest
+Each row describes a risk measurement that will be done on the specified contest
 (given in the first column) at the end of each stage.  
 
 The second column specifies the risk measurement method.  The example
@@ -825,34 +879,54 @@ shows using ``Bayes`` and ``Frequentist`` as risk measurement methods.
 Each such method invokes a specific software module for measuring the
 risk, given the reported outcome and the tally of votes in the sample
 for that contest.  The method may also use additional method-specific
-parameters, as specified in the later column of the row.
+parameters, as specified in the later columns of the row.
 
 The measured risk will be a value between 0.00 and 1.00, inclusive;
-larger values correspond to more risk
+larger values correspond to more risk.
 
 The third column specifies the **risk limit** for that measurement.  If the
-measured risk is less than the risk limit, then that measurement **passes**.
-When all risk measurements pass, the audit stops.
+measured risk is at most the specified risk limit, then that measurement **passes**.
+When all risk measurements pass, the audit may stop.
 
-If the risk limit is 1.00, then the measurement will still always be made, but
-the measurement always passes.  
-
-Specifying a risk limit of 1.00 means that the
-contest is subject to *opportunistic auditing*---risk measurements will be made but
-only opportunistically (ballots sampled for other contests may cause interpretation
-of these contests, giving information about the risk).  
+If the risk limit is 1.00, then the measurement is still made, but
+the test always passes.  
 
 The fourth column specifies the **risk upset threshold**.  If the measured
-risk exceeds the risk upset threshold, then the auditing program may cease
+risk reaches or exceeds the risk upset threshold, then test **signals an upset**
+for that contest, and the auditing program may cease
 to sample more ballots in order to measure the risk of this contest, since it is
 apparent that the reported outcome is incorrect and a full hand count should be
 performed.
 
-Columns 5 and later specify additional parameters that might be needed for the
+The fifth column specifies the **sampling mode** for that test, which should
+be one of ``Active`` or ``Opportunistic``.  If the test specifies active
+sampling, then requests will be made to collection managers to draw samples
+that will shed light on the risk measurement and test.  Otherwise, if
+the sampling mode is opportunistic, then no active sampling will be done, but
+sample data will be obtained only by "piggybacking" on active sampling done
+for other tests, since a pulled ballot may have the votes for several
+contests recorded.
+
+The sixth column specifes the **status** of the test, which should be
+one of ``Open``, ``Passed``, ``Upset``, or ``Off``.  The status
+describes the status of this test, from the last stage risk
+measurements.  This is the only column that we expect to change from
+stage to stage of the audit.  Normally all tests start with an
+``Open`` status, and the audit proceeds to sample for the still-open
+active tests until they are all ``Passed`` or ``Upset``.  The ``Off``
+status is for administrative use, to designate and turn off tests that
+aren't being exercised in the current audit; a test that is ``Off``
+isn't measured and remains off.  For example, when running an audit in
+a county only on local contests, only the local contests may be
+specified as ``Open``; others are turned ``Off``.
+
+The audit may stop when no active tests remain open.
+
+Columns 7 and later specify additional parameters that might be needed for the
 specified risk measurement method.  (None shown here, but something like
 a gamma value for the frequentist method might be a possible example.)
 
-Note again that **a contest can participate in more
+Minor remark: We note again that **a contest can participate in more
 than one risk measurement**.  In the example shown above, the last contest
 (Boulder-council) has *two* measurements specified: one by a Bayes method
 and one by a frequentist (RLA) method.  This flexibility may allow more
@@ -970,7 +1044,7 @@ computations begin, based on all available sampling data
 
 We assume that a stage is represented by a three-digit integer,
 starting at "000" for the initialization information stage (no ballots
-sampled here), followed by "001", "002", ...
+sampled yet), followed by "001", "002", ...
 
 #### Per-stage audit files
 
@@ -1075,7 +1149,7 @@ compressed file a name ``foo.csv.rrc``.
 
 An RRC file compresses each row, using the previous rows if
 possible.  An RRC cell entry of the form **&c^b** means "copy c cell
-contents, starting with the current column, from the line b lines
+contents, starting with the current column, from the row b rows
 previous to this one.  Either &c or ^b may be omitted, and these can
 be given in either order.  They both default to 1 if either ^ or & is
 present, so **^** means copy the corresponding cell from the previous row, **&4**
