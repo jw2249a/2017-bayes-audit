@@ -934,7 +934,7 @@ is perhaps most useful for research purposes, but is noted here.)
 Here is a sample contest audit parameters file:
 
 | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
-| ---                  | ---                     | ---        | ---                        |---            | ---    | ---     |         |
+| ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
 | DEN-prop-1           | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
 | DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
 | DEN-mayor            | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
