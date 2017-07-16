@@ -840,34 +840,21 @@ file.
 #### Sample vote file (actual vote file)
 
 A **sample vote file** represents a set of votes that have been
-sampled during an audit.  It is similar to a reported file (for a CVR
-collection), but the Source field is now used differently, to indicate
-the sort of sampling used to produce this entry.
+sampled during an audit.  It is similar to a reported vote file (for a CVR
+collection), but the scanner field is omitted.
 
-1. **source** (src): one of three values:
-    * **P**: a ballot chosen uniformly from PBC
-    * **PC**: a ballot chosen uniformly from all ballots
-      within the PBC for a particular contest
-    * **PCR**: a ballot chosen uniformly from all ballots
-      within the PBC for a particular contest having a particular
-      reported vote.
+Here is an example of a sample vote file for the ``DEN-A01`` collection, for
+two ballots and three contests each.
 
-    The **P** label is the usual indicator for a sample.
-    
-    The **PC** and **PCR** labels are unlikely to be used (at least at
-    first).  If the sample was restricted to a particular
-    contest or reported vote, then that information was obtained
-    from the reported vote file.
 
-Here is an example of a sample vote file for the ``DEN-A01`` collection,
-containing a single ballot that was chosen uniformly from all ballots in
-that collection (thus the ``P`` for Source).
-
-|Collection id   |Source | Ballot id   | Contest     | Selections     | ...       |
-|---             |---    | ---         | ---         | ---            | ---       |
-|DEN-A01         |P      | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         |P      | B-231       | DEN-prop-2  | No             |           |
-|DEN-A01         |P      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|Collection id   | Ballot id   | Contest     | Selections     | ...       |
+|---             | ---         | ---         | ---            | ---       |
+|DEN-A01         | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         | B-231       | DEN-prop-2  | No             |           |
+|DEN-A01         | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|DEN-A01         | B-777       | DEN-prop-1  | No             |           |
+|DEN-A01         | B-777       | DEN-prop-2  | Yes            |           |
+|DEN-A01         | B-777       | US-Senate-1 | +Tom Cruz      |           |
 
 Compared to the reported vote file above, we note a discrepancy in the
 interpretation of contest ``DEN-prop-2`` for ballot ``B-231``: the scanner showed
