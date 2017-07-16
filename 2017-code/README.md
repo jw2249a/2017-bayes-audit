@@ -783,7 +783,10 @@ are recorded and filed.
 
 The sample order field indicates the order in which they must be
 examined during the audit.  Ballots may not be skipped during the
-audit.
+audit.  (Technically, it is OK if the ballots audited may be re=ordered
+to form the order given in the audit order file.  That is, the auditor
+should make sure to audit any skipped ballots before reporting the results
+of the audit to AC.)
 
 When a ballot is audited, the auditor should report the voter's selection(s)
 for all contests that are open status and either active or opportunistic sampling
@@ -811,6 +814,9 @@ audited from collection LOG-B13.
 | 5           | LOG-B13       | B         | 1         | XY04211   | B-0001    |           |
 | 6           | LOG-B13       | D         | 39        |           | D-0039    |           |
 
+
+The auditor may naturally group the requests for ballots from box B, and those from
+box D.
 
 Sampling is done without replacement.  Each ballot in the collection
 appears at most once in the audit order file.  The audit order file
