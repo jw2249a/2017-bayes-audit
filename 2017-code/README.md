@@ -791,13 +791,13 @@ mode.  Other contests should not be reported.
 
 The audit order file can be viewed as an initial segment of a permuted
 ballot manifest file.  The differences are that
-    * The ballots are given numbers giving their positions in the audit order.
-    * Each line represents a single ballot; no batching of lines is allowed.
-    * AC may determine the order dynamically, depending on what is seen during
-      the audit.  While AC could in principle and perhaps in fact just be requesting ballots that
-      form an initial segment of some fixed predetermined scrambled ballot
-      manifest file, the AC could alternatively dynamically determine how to
-      extend the audit order file as the audit progresses.
+* The ballots are given numbers giving their positions in the audit order.
+* Each line represents a single ballot; no batching of lines is allowed.
+* AC may determine the order dynamically, depending on what is seen during
+  the audit.  While AC could in principle and perhaps in fact just be requesting ballots that
+  form an initial segment of some fixed predetermined scrambled ballot
+  manifest file, the AC could alternatively dynamically determine how to
+  extend the audit order file as the audit progresses.
 
 Here is an example audit order file, specifying the first seven ballots to be
 audited from collection LOG-B13.
