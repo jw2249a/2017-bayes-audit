@@ -548,9 +548,9 @@ Each ballot id may be given explicitly, or, if some ballots are organized
 into a batch (box) with sequential ballot ids, the first ballot id of the batch and
 the size of the batch may be given.
 
-It may also indicate their physical location (if it is not already encoded in
-the ballot id), any "stamp" or other identification imprinted on the ballot,
-and give any additional comments about specific ballots.
+It indicates the physical location of each ballot (giving a box id and position within box),
+any "stamp" or other identification imprinted on the ballot,
+and any additional comments about specific ballots.
 
 The **``Collection id``** field specifies the collection id for the ballot manifest.
 This should the same for all rows in the file.
@@ -561,7 +561,7 @@ If it is omitted, a box id is assumed to be equal to the collection id. (Maybe t
 are no "boxes" for this collection.)
 
 The **``Position``** field gives the position (starting with 1) of the ballot within
-the box.  The auditor may find a particular by counting to the right position
+the box.  The auditor may find a particular ballot by counting to the right position
 in the box.  It is assumed that the order of ballots within a box is never
 changed.
 
@@ -572,8 +572,8 @@ box.  They may be increasing in order within a box, but need not be.
 The stamps do not need to be numeric.  If stamps are used, the auditor
 knows she has the desired ballot if it has the expected stamp value.
 If no stamp value is specified, a value of ``""`` (the empty string)
-is assumed.  If both the ``Position`` field and the ``Stamp`` field are
-used, the Position field is used only as a hint as to where the ballot
+is assumed.  If both the **``Position``** field and the **``Stamp``** field are
+used, the **``Position``** field is used only as a hint as to where the ballot
 with the right stamp value is in the box.  The **``Stamp``** and the
 **``Comments``** are the only optional fields.
 
@@ -585,7 +585,7 @@ about to be described, then those ballots should all have (generated)
 ballot ids that are unique within the collection.
 
 The **``Number of ballots``** field enables compact encoding of
-batches of ballots for the manifest.
+boxes of ballots for the manifest.
 
 If the **``Number of ballots``** field should be equal to 1 if the row represents
 a single ballot.  This is perhaps the typical case.
@@ -595,7 +595,7 @@ row represents a batch of ballots of size "Number of ballots".
 Typically, the row would represent all ballots in a particular box.
 
 In this case, the fields of the row describe the *first* ballot in the
-box.  To generate the other rows, the **``Position``**, **``Stamp``**
+batch.  To generate the other rows, the **``Position``**, **``Stamp``**
 (if present), and **``Ballot id``** fields are increased by one for
 each successive newly-generated ballot
 Other fields are just copied for the newly-generated rows.
@@ -603,25 +603,25 @@ This compact format may not be used if the ballot stamps are present
 but not sequential.
 
 The auto-incrementing for position, stamp, and ballot-id increments
-just the number in the trailing digit sequence of the position, stamp, or
+just the number given in the trailing digit sequence of the position, stamp, or
 ballot-id, and preserves the length of that trailing digit sequence if
 possible (so ``"B-0001"`` increments to ``"B-0002"`` and not ``"B-2"``, but
-``"XY-9"`` increments to ``"XY-10"``.  If the given ballot id does not
+``"XY-9"`` increments to ``"XY-10"``).  If the given ballot id does not
 contain a trailing digit sequence, then a trailing digit sequence of
-``"1"`` is assumed for the first ballot of the generated set.
+``"1"`` is generated for the first ballot of the generated set.
 
 The size of the collection is just the sum of the values in the "Number of ballots" field.
 
 The **``Number of ballots``** feature is just for compactness and
 convenience; when the ballot manifest file is read in by ``multi.py``,
 it expands such rows representing multiple ballots into individual
-rows as specified.  So, the compact format is just "shorthand" for the
+rows as described above.  So, the compact format is just "shorthand" for the
 official fully-expanded one-ballot-per-row format.
 
 Here is an example.
 
 | Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Comments |
-|---            | --        | ---       | ---       | ---       | ---               |          |
+|---            | --        | ---       | ---       | ---       | ---               | ---      |
 | LOG-B13       | B         | 1         | XY04213   | B-0001    |  1                |          |
 | LOG-B13       | B         | 2         | XY04214   | B-0002    |  1                |          |
 | LOG-B13       | B         | 3         | XY04215   | B-0003    |  1                |          |
@@ -633,9 +633,12 @@ Here is an example.
 Box B has three ballots, which are individually described, one row per ballot.
 Box C also has three ballots, but the compact format is used here.  The positions
 of the three ballots are 1,2,3; the stamps are ``QE55311``, ``QE55312``, and ``QE55313``;
-and the ballot ids are ``C-0001``, ``C-0002``, and ``C-0003`` (that is, the ballot id
-here encodes the box id and the position).  Box D has 50 unstamped ballots, in positions
+and the ballot ids are ``C-0001``, ``C-0002``, and ``C-0003``. 
+(The ballot ids here just encode the box id and position; they need not do so, as
+we see for box E.)
+Box D has 50 unstamped ballots, in positions
 1--50, and ballot ids ``D-0001`` to ``D-0050``.
+Box F has a single ballot, with a comment (perhaps it was a provisional ballot).
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
