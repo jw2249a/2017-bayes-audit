@@ -935,14 +935,14 @@ Here is a sample contest audit parameters file:
 
 | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
 | ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
-| DEN-prop-1           | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
+| DEN-prop-1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
 | DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
-| DEN-mayor            | Bayes                   | 0.05       | 0.95                       | Active        | Open   |         |         |
-| LOG-mayor            | Bayes                   | 0.05       | 0.95                       | Active        | Off    |         |         |
-| US-Senate-1          | Bayes                   | 0.05       | 0.95                       | Active        | Upset  |         |         |
-| Boulder-clerk        | Bayes                   | 1.00       | 1.00                       | Active        | Open   |         |         |
-| Boulder-council      | Bayes                   | 1.00       | 1.00                       | Active        | Open   |         |         |
-| Boulder-council      | Frequentist             | 0.05       | 0.95                       | Opportunistic | Open   |         |         |
+| DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
+| LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off    |         |         |
+| US-Senate-1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
+| Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
+| Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
+| Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open   |         |         |
 
 
 Each row describes a risk measurement that will be done on the specified contest
@@ -1076,13 +1076,19 @@ Goes into directories:
 ### Setup audit
 
 Produce random audit seed.
-Produce random sampling orders from audit seed.
-These outputs go into the audit seed file and
-the sampling orders directory.
+Produce initial random audit orders from the audit seed
+and the ballot manifests.
+These go into the audit seed file and
+the audit-orders directory.
 
     3-audit
        31-setup
           311-audit-seed.csv
+       32-audit-orders
+          audit-order-DEN-A01-2017-11-20.csv
+          audit-order-DEN-A02-2017-11-20.csv
+          audit-order-LOG-B13-2017-11-20.csv
+
 
 Produce first *plan* for the audit, put this information
 into directory/file:
@@ -1181,6 +1187,9 @@ optimization may be applied here.)
 |  LOG-B13               |  90            | 30                            | 150                    |
 
 
+The sum of "audited-so-far" and "next stage increment request" should equal the
+size of the "audit-order" file.
+
 ## Command-line interface to ``multi.py``
 
 This section sketches the command-line interface to ``multi.py``.
@@ -1192,7 +1201,7 @@ Here we assume that the election data is in the directory
 | ``python --read-structure CO-2017-11``   | Reads and checks structure          |
 | ``python --read-reported CO-2017-11``    | Reads and checks reported data      |
 | ``python --read-seed CO-2017-11``        | Reads and checks audit seed         |
-| ``python --make-orders CO-2017-11``      | Produces sampling order files       |
+| ``python --make-audit orders CO-2017-11``| Produces initial audit order files  |
 | ``python --read-audited CO-2017-11``     | Reads and checks audited votes      |
 | ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
 
@@ -1200,7 +1209,7 @@ The program ``multi.py`` will be run by Audit Central for each stage.
 
 It may also be run by an audit observer, since no data is ever lost.  That is,
 inputs to each audit stage computation are still available for re-doing any
-of the audit computations.  (The audits input file will need to be used here to
+of the audit computations.  (The snapshots file may need to be used here to
 assist in obtaining the correct input files.)
 
 Because of the way ``multi.py`` works, the program can be run by Audit
