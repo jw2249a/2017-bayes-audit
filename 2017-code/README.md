@@ -322,29 +322,33 @@ of that directory might look as follows.
     3-audit
        31-setup
           311-audit-seed-2017-11-20.csv
-          312-sampling-orders
-             sampling-order-DEN-A01-2017-11-20.csv
-             sampling-order-DEN-A02-2017-11-20.csv
-             sampling-order-LOG-B13-2017-11-20.csv
-       32-audited-votes
+       32-audit-orders
+          audit-order-DEN-A01-2017-11-20.csv
+          audit-order-DEN-A02-2017-11-20.csv
+          audit-order-LOG-B13-2017-11-20.csv
+       33-audited-votes
           audited-votes-DEN-A01-2017-11-21.csv
           audited-votes-DEN-A02-2017-11-21.csv
           audited-votes-LOG-B13-2017-11-22.csv
        33-audit-stages
+          audit-stage-000
+             10-audit-parameters-global-2017-11-22.csv
+             11-audit-parameters-contest-2017-11-22.csv
+             12-audit-parameters-collection-2017-11-22.csv
+             20-audit-snapshot-2017-11-22.csv
+             30-audit-output-2017-11-22.csv
           audit-stage-001
              10-audit-parameters-global-2017-11-22.csv
              11-audit-parameters-contest-2017-11-22.csv
              12-audit-parameters-collection-2017-11-22.csv
              20-audit-snapshot-2017-11-22.csv
              30-audit-output-2017-11-22.csv
-             40-audit-plan-2017-11-22.csv
           audit-stage-002
              10-audit-parameters-global-2017-11-23.csv
              11-audit-parameters-contest-2017-11-23.csv
              12-audit-parameters-collection-2017-11-23.csv
              20-audit-snapshot-2017-11-23.csv
-             30-audit-outputs-2017-11-23.csv
-             40-audit-plan-2017-11.23.csv
+             30-audit-output-2017-11-23.csv
           audit-stage-003
              ...
  
@@ -461,8 +465,8 @@ Here are the fields of a row of a reported vote file:
 1. **Paper Ballot Collection Identifier** (pbcid)
    Typically, all rows in a vote file will have the same pbcid.
 
-2. **Source**: An indication of the source of this ballot.  Might
-   be a scanner id or other indicator.  Could just be "L" for "listing".
+2. **Scanner**: Gives an id of the device that scanned this ballot.
+   May be blank.
 
 2. **Ballot identifier** (bid)
 
@@ -501,15 +505,15 @@ each row represents a single vote of a voter in a contest.  There are three vote
 contests.
 
 
-|Collection id   | Source | Ballot id   | Contest     | Selections     | ...       |
-|---             |---     | ---         | ---         | ---            | ---       |
-|DEN-A01         | L      | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         | L      | B-231       | DEN-prop-2  |                |           |
-|DEN-A01         | L      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
-|DEN-A01         | L      | B-777       | DEN-prop-1  | No             |           |
-|DEN-A01         | L      | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         | L      | B-777       | US-Senate-1 | +Tom Cruz      |           |
-|DEN-A01         | L      | B-888       | US-Senate-1 | -Invalid       |           |
+|Collection id   | Scanner  | Ballot id   | Contest     | Selections     | ...       |
+|---             |---       | ---         | ---         | ---            | ---       |
+|DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
+|DEN-A01         |FG231     | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|DEN-A01         |FG231     | B-777       | DEN-prop-1  | No             |           |
+|DEN-A01         |FG231     | B-777       | DEN-prop-2  | Yes            |           |
+|DEN-A01         |FG231     | B-777       | US-Senate-1 | +Tom Cruz      |           |
+|DEN-A01         |FG231     | B-888       | US-Senate-1 | -Invalid       |           |
 
 
 The second row is an undervote, and the third row is an overvote.  The sixth
@@ -517,25 +521,25 @@ row has a write-in for Tom Cruz.  The last row represents a vote that
 is invalid for some unspecified reason.
 
 The reported vote file will have a name of the form
-``reported-cvrs-<bcid>.csv``, possibly
+``reported-cvrs-<pbcid>.csv``, possibly
 with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
 
 **Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
 
-|Collection id   | Source | Tally       | Contest     | Selections     | ...       |
-|---             |---     | ---         | ---         | ---            | ---       |
-|LOG-B13         | L      | 2034        | LOG-mayor   | Susan Hat      |           |
-|LOG-B13         | L      | 1156        | LOG-mayor   | Barry Su       |           |
-|LOG-B13         | L      | 987         | LOG-mayor   | Benton Liu     |           |
-|LOG-B13         | L      | 3           | LOG-mayor   | -Invalid       |           |
-|LOG-B13         | L      | 1           | LOG-mayor   | +Lizard People |           |
-|LOG-B13         | L      | 3314        | US-Senate-1 | Rhee Pub       |           |
-|LOG-B13         | L      | 542         | US-Senate-1 | Deb O'Crat     |           |
-|LOG-B13         | L      | 216         | US-Senate-1 | Val Green      |           |
-|LOG-B13         | L      | 99          | US-Senate-1 | Sarah Day      |           |
-|LOG-B13         | L      | 9           | US-Senate-1 | +Tom Cruz      |           |
-|LOG-B13         | L      | 1           | US-Senate-1 | -Invalid       |           |
+|Collection id   | Scanner  | Tally       | Contest     | Selections     | ...       |
+|---             |---       | ---         | ---         | ---            | ---       |
+|LOG-B13         |FG231     | 2034        | LOG-mayor   | Susan Hat      |           |
+|LOG-B13         |FG231     | 1156        | LOG-mayor   | Barry Su       |           |
+|LOG-B13         |FG231     | 987         | LOG-mayor   | Benton Liu     |           |
+|LOG-B13         |FG231     | 3           | LOG-mayor   | -Invalid       |           |
+|LOG-B13         |FG231     | 1           | LOG-mayor   | +Lizard People |           |
+|LOG-B13         |FG231     | 3314        | US-Senate-1 | Rhee Pub       |           |
+|LOG-B13         |FG231     | 542         | US-Senate-1 | Deb O'Crat     |           |
+|LOG-B13         |FG231     | 216         | US-Senate-1 | Val Green      |           |
+|LOG-B13         |FG231     | 99          | US-Senate-1 | Sarah Day      |           |
+|LOG-B13         |FG231     | 9           | US-Senate-1 | +Tom Cruz      |           |
+|LOG-B13         |FG231     | 1           | US-Senate-1 | -Invalid       |           |
 
 This file format for noCVRs is also used for output tally files for CVR
 collections.
@@ -640,8 +644,13 @@ Box D has 50 unstamped ballots, in positions
 1--50, and ballot ids ``D-0001`` to ``D-0050``.
 Box F has a single ballot, with a comment (perhaps it was a provisional ballot).
 
+If ballot stamps are not used, or if ballot stamps are sequential, then the
+ballot manifest might be easy to create by hand, thus removing the need to
+trust vendor software to create the ballot manifest.  The auditor will need
+to create one line of the ballot manifest file per box in the collection.
+
 A ballot manifest file has a filename of the form
-``manifest-<pbcid>.csv``, e.g. ``manifest-DEN-A01-2017-11-07.csv``
+``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13-2017-11-07.csv``
 (possibly with a version label, as exemplified).
 
 ### Reported outcomes file
@@ -723,39 +732,108 @@ The audit seed file has a filename of the form
 (This example shows a version label to record the date, but the audit
 seed should only be made once.)
 
-#### Sampling order file
+#### Audit orders and audited-votes files
 
-A **sampling order file** lists all the ballots from a collection
-in a cryptographically scrambled order depending on the audit seed.
-The sample order field
-indicates the order in which they must be examined during
-the audit.  Ballots may not be skipped during the audit.
+We envision an ongoing two-way dialogue between AC (Audit Central) and
+the various collection managers (CMs, one per collection) during the audit.
 
-Sampling is done without replacement, since each ballot occurs
-exactly once in the sampling order file.
+The AC provides a sequence of specific auditing requests: ballots to
+be pulled, and contests from those pulled ballots for which the 
+collection manager (or her delegate) should record the voter's selection(s).
+
+A CM responds with the requested information, in the order requested.
+
+For each paper ballot collection, the
+**audit order file** is an append-only list of the audit requests
+made by AC for ballots in that collection.  This list will grow
+longer as the audit proceeds.
+
+Correspondingly, for each paper ballot collection the **audited votes**
+file gives the records provided by the CM to AC for the requested records.
+This is an append-only file.
+
+We can view the two files as *transcripts* of the two-way dialogue between
+AC and the CM.  
+
+The conversation is **asynchronous**; either party may add additional
+information to its file at any time.
+
+The **``audit-orders``** file may be dynamically computed as the audit
+progress, which is why it need not be specified "all at once" before the audit
+begins.  For example, it may be determined that a particular scanner has
+a high error rate, and so later sampling may emphasize ballots scanned
+with that scanner.  All the same, the AC should provide sufficient
+"advance notice" of auditing requests that CMs can "work ahead" if they
+wish, for example by combining requests for ballots from the same box.
+
+
+#### Audit order file
+
+A **audit order file** lists a sequence of ballots requested for audit
+from a collection.
+
+The audit order file may longer as the audit progresses.  If so,
+new requests are added to the end; the file is append-only.
+
+The order of the requests is a random order determined
+cryptographically, depending the audit seed.  The order should be
+unpredictable to an adversary, which is why the audit seed should be
+determined only **after** the reported votes for all the collections
+are recorded and filed.
+
+The sample order field indicates the order in which they must be
+examined during the audit.  Ballots may not be skipped during the
+audit.
+
+When a ballot is audited, the auditor should report the voter's selection(s)
+for all contests that are open status and either active or opportunistic sampling
+mode.  Other contests should not be reported.
+
+The audit order file can be viewed as an initial segment of a permuted
+ballot manifest file.  The differences are that
+    * The ballots are given numbers giving their positions in the audit order.
+    * Each line represents a single ballot; no batching of lines is allowed.
+    * AC may determine the order dynamically, depending on what is seen during
+      the audit.  While AC could in principle and perhaps in fact just be requesting ballots that
+      form an initial segment of some fixed predetermined scrambled ballot
+      manifest file, the AC could alternatively dynamically determine how to
+      extend the audit order file as the audit progresses.
+
+Here is an example audit order file, specifying the first seven ballots to be
+audited from collection LOG-B13.
+
+|Ballot number| Collection id | Box id    | Position  | Stamp     | Ballot id |  Comments |
+|---          |---            | --        | ---       | ---       | ---       |  ---      |
+| 1           | LOG-B13       | B         | 3         | XY04213   | B-0003    |           |
+| 2           | LOG-B13       | C         | 2         | QE55312   | C-0002    |           |
+| 3           | LOG-B13       | F         | 1         | JS23334   | F-0001    | See Doc #211 |
+| 4           | LOG-B13       | D         | 7         |           | D-0007    |           |
+| 5           | LOG-B13       | B         | 1         | XY04211   | B-0001    |           |
+| 6           | LOG-B13       | D         | 39        |           | D-0039    |           |
+
+
+Sampling is done without replacement.  Each ballot in the collection
+appears at most once in the audit order file.  The audit order file
+may grow to include all ballots in the collection.
 
 To produce the sampling order, ``multi.py`` feeds the audit seed,
-followed by a comma, the collection id, another comma, and a decimal counter value, into a
-cryptographic random number function (specifically, SHA256 used in
-counter mode, starting with counter value 1).  The Fisher-Yates algorithm
-is then used to produce a random permutation of the ballots, using these random numbers.
+followed by a comma, the collection id, another comma, and a decimal
+counter value, into a cryptographic random number function
+(specifically, SHA256 used in counter mode, starting with counter
+value 1).  The Fisher-Yates algorithm is then used to produce a random
+permutation of the ballots, using these random numbers.  This reference
+random order is what is used if no dynamic determination of audit order
+is used.  Otherwise, the order used will be a subsequence or otherwise
+closely related to this random order.
 
-| Collection id | Sample order  | Ballot id | Location          | Comments |
-|---            |---            | ---       | ---               |---       |
-| LOG-B13       |  1            | B-0004    | Box 001 no 0004   |          |
-| LOG-B13       |  2            | B-0003    | Box 001 no 0003   |          |
-| LOG-B13       |  3            | B-0001    | Box 001 no 0001   |          |
-| LOG-B13       |  4            | C-0001    | Box 002 no 0001   |          |
-| LOG-B13       |  5            | B-0002    | Box 001 no 0002   |          |
+An audit order file has a filename of the form
+``audit-order-<pbcid>.csv``.  Example:
+``audit-order-DEN-A01-2017-11-20.csv`` (including a version label).
 
-A sampling order file has a filename of the form
-``sampling-order-<pbcid>.csv``.  Example:
-``sampling-order-DEN-A01-2017-11-20.csv`` (including a version label).
+The audit order file and the reported cvrs file may be used
+with an appropriate UI interface to generate the audited votes
+file. 
 
-The sampling order file and the reported cvrs file may be used
-with an appropriate UI interface to generate the sampled cvrs
-file.  (With care to handling the case that the sampled ballot does not
-seem to be of the correct ballot style.)
 
 ### Audited votes
 
@@ -1012,7 +1090,6 @@ the sampling orders directory.
     3-audit
        31-setup
           311-audit-seed.csv
-          312-sampling-orders
 
 Produce first *plan* for the audit, put this information
 into directory/file:
@@ -1161,21 +1238,21 @@ means copy the next three cells from the row nine rows earlier.
 
 Example:  The following file:
 
-|Collection id   | Source | Ballot id   | Contest     | Selections     | ...       |
-|---             |---     | ---         | ---         | ---            | ---       |
-|DEN-A01         | L      | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         | L      | B-231       | DEN-prop-2  |                |           |
-|DEN-A01         | L      | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
-|DEN-A01         | L      | B-777       | DEN-prop-1  | No             |           |
-|DEN-A01         | L      | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         | L      | B-777       | US-Senate-1 | +Tom Cruz      |           |
-|DEN-A01         | L      | B-888       | US-Senate-1 | -Invalid       |           |
+|Collection id   | Scanner  | Ballot id   | Contest     | Selections     | ...       |
+|---             |---       | ---         | ---         | ---            | ---       |
+|DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
+|DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
+|DEN-A01         |FG231     | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
+|DEN-A01         |FG231     | B-777       | DEN-prop-1  | No             |           |
+|DEN-A01         |FG231     | B-777       | DEN-prop-2  | Yes            |           |
+|DEN-A01         |FG231     | B-777       | US-Senate-1 | +Tom Cruz      |           |
+|DEN-A01         |FG231     | B-888       | US-Senate-1 | -Invalid       |           |
 
 can be compressed to the RRC CSV file:
 
 ```
-Collection id,Source,Ballot id,Contest,Selections,...
-DEN-A01,L,B-231,DEN-prop-1,Yes,
+Collection id,Scanner,Ballot id,Contest,Selections,...
+DEN-A01,FG231,B-231,DEN-prop-1,Yes,
 &3,DEN-prop-2,
 &3,US-Senate-1,Rhee Pub,Sarah Day
 &2,B-777,^3,No
