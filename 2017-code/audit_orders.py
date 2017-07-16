@@ -1,11 +1,11 @@
-# sampling_orders.py
+# audit_orders.py
 # Ronald L. Rivest
 # July 10, 2017
 # python3
 
 """
 Routine to work with multi.py program for election audits.
-Generates random sampling orders from a ballot manifest 
+Generates random audit orders from a ballot manifest 
 and an audit seed, for each paper ballot collection.
 
 The overall algorithm is the "Fisher-Yates shuffle":
@@ -56,14 +56,14 @@ def test_shuffle(seed=1234567890):
     """
     
 
-def compute_sampling_orders(e):
+def compute_audit_orders(e):
 
     for pbcid in e.pbcids:
         print("!!!", pbcid)
-        compute_sampling_order(e, pbcid)
+        compute_audit_order(e, pbcid)
 
 
-def compute_sampling_order(e, pbcid):
+def compute_audit_order(e, pbcid):
 
     pairs = zip(list(range(1, 1+len(e.bids_p[pbcid]))),
                 ebids_p[pbcid])
@@ -72,39 +72,47 @@ def compute_sampling_order(e, pbcid):
     e.shuffled_bids_p[pbcid] = [b for (i,b) in shuffled_pairs]
 
 
-def write_sampling_orders(e):
+def write_audit_orders(e):
 
     for pbcid in e.pbcids:
-        write_sampling_order(e, pbcid)
+        write_audit_order(e, pbcid)
         
 
-def write_sampling_order(e, pbcid):
+def write_audit_order(e, pbcid):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "2-reported")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "3-audit", "32-audit-orders")
     os.makedirs(dirpath, exist_ok=True)
     ds = utils.date_string()
-    filename = os.path.join(dirpath, "manifest-"+pbcid+"-"+ds+".csv")
+    filename = os.path.join(dirpath, "audit-order-"+pbcid+"-"+ds+".csv")
     with open(filename, "w") as file:
-        for fieldname in ["Collection id", "Sample order", "Original index", "Ballot id",
-                          "Location", "Comments"]:
+        for fieldname in ["Ballot order",
+                          "Collection id",
+                          "Box id",
+                          "Position",
+                          "Stamp",
+                          "Ballot id",
+                          "Comments"]:
             file.write("{},".format(fieldname))
         file.write("\n")
         for i, index in enumerate(e.shuffled_indices_p[pbcid]):
             file.write(pbcid+",")
             file.write("{},".format(i))
-            file.write("{},".format(index))
+            file.write("{},".format(pbcid))
+            file.write("{},".format(e.boxid[pbcid][bid]))
+            file.write("{},".format(e.position[pbcid][bid]))
+            file.write("{},".format(e.stamp[pbcid][bid]))
             file.write("{},".format(e.shuffled_bids_p[pbcid][i]))
-            file.write("{},".format(e.location_p[pbcid][index]))
             file.write("{},".format(e.comments_p[pbcid][index]))
 
 
-def test_sampling_orders():
+def test_audit_orders():
 
     import syn2
+
     e = syn2.SynElection()
     # TODO: need to load ballot manifests right here
-    compute_sampling_orders(e)
-    write_sampling_orders(e)
+    compute_audit_orders(e)
+    write_audit_orders(e)
     
 
 if __name__=="__main__":
@@ -112,7 +120,7 @@ if __name__=="__main__":
 
     test_shuffle()
 
-    test_sampling_orders()
+    test_audit_orders()
 
 
     

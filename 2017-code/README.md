@@ -772,7 +772,7 @@ wish, for example by combining requests for ballots from the same box.
 A **audit order file** lists a sequence of ballots requested for audit
 from a collection.
 
-The audit order file may longer as the audit progresses.  If so,
+The audit order file may become longer as the audit progresses.  If so,
 new requests are added to the end; the file is append-only.
 
 The order of the requests is a random order determined
@@ -802,7 +802,7 @@ ballot manifest file.  The differences are that
 Here is an example audit order file, specifying the first seven ballots to be
 audited from collection LOG-B13.
 
-|Ballot number| Collection id | Box id    | Position  | Stamp     | Ballot id |  Comments |
+|Ballot order | Collection id | Box id    | Position  | Stamp     | Ballot id |  Comments |
 |---          |---            | --        | ---       | ---       | ---       |  ---      |
 | 1           | LOG-B13       | B         | 3         | XY04213   | B-0003    |           |
 | 2           | LOG-B13       | C         | 2         | QE55312   | C-0002    |           |
@@ -816,7 +816,7 @@ Sampling is done without replacement.  Each ballot in the collection
 appears at most once in the audit order file.  The audit order file
 may grow to include all ballots in the collection.
 
-To produce the sampling order, ``multi.py`` feeds the audit seed,
+To produce the audit order, ``multi.py`` feeds the audit seed,
 followed by a comma, the collection id, another comma, and a decimal
 counter value, into a cryptographic random number function
 (specifically, SHA256 used in counter mode, starting with counter
