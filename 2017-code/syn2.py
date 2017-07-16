@@ -319,17 +319,27 @@ def generate_reported(se):
 
     #sum over ballot ids and pbcids to get se.ro_c
     rn_cs = dict() 
-    for contest in se.cids:
-        for pbcid in se.rel_cp[contest]:
+    for cid in se.cids:
+        for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
-                selection = se.rv_cpb[contest][pbcid][bid]
-                if contest not in rn_cs:
-                    nested_set(rn_cs, [contest, selection], 1)
+                selection = se.rv_cpb[cid][pbcid][bid]
+                if cid not in rn_cs:
+                    nested_set(rn_cs, [cid, selection], 1)
                 else:
-                    if selection not in rn_cs[contest]:
-                        nested_set(rn_cs, [contest, selection], 1)
+                    if selection not in rn_cs[cid]:
+                        nested_set(rn_cs, [cid, selection], 1)
                     else:
-                        rn_cs[contest][selection]+=1
+                        rn_cs[cid][selection]+=1
+
+    #sum over selection ids to get rn_c
+    se.rn_c = dict()
+    for cid in rn_cs:
+        for selid in rn_cs[cid]:
+            if cid not in se.rn_c:
+                se.rn_c[cid]=rn_cs[cid][selid]
+            else:
+                se.rn_c[cid]+=rn_cs[cid][selid]
+
     se.ro_c = dict()
     for contest in rn_cs:
         outcome = max(rn_cs[contest], key=rn_cs[contest].get)
@@ -347,7 +357,6 @@ def generate_reported(se):
 def generate_ballot_manifest(se):
     """ generate everything other than location """
 
-    #we have 
     n_pc = dict()
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
