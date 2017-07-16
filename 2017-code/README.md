@@ -618,7 +618,7 @@ it expands such rows representing multiple ballots into individual
 rows as described above.  So, the compact format is just "shorthand" for the
 official fully-expanded one-ballot-per-row format.
 
-Here is an example.
+Here is an example of a ballot manifest file.
 
 | Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Comments |
 |---            | --        | ---       | ---       | ---       | ---               | ---      |
