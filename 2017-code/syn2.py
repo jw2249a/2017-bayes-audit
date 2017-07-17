@@ -267,9 +267,11 @@ def generate_reported(se):
 
     print('se.bids_p:', se.bids_p)
 
-    # figure out what contest(s) are on the ballot for given bid and pbcid 
-    # figure out if contest is CVR or not 
-    # draw from selection 
+    """
+    figure out what contest(s) are on the ballot for given bid and pbcid 
+    figure out if contest is CVR or not 
+    draw from selection 
+    """
 
     """
     above we have the bids that correspond to the given paper ballot collections. what we want to do is assign 
@@ -278,7 +280,7 @@ def generate_reported(se):
     """
     se.cids_b = {}
 
-    #change rel_cp to rel_pc 
+    # change rel_cp to rel_pc 
     rel_pc = {}
     for cid in se.cids:
         pbcids = se.rel_cp[cid]
@@ -293,31 +295,31 @@ def generate_reported(se):
             bids_pi = se.bids_p[pbcid]
             available_contests = rel_pc[pbcid]
             for i in range(len(bids_pi)):
-                num_contests = random.randint(1,len(available_contests))
+                num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1))# random.randint(1,len(available_contests)) #change to int(se.SynRandomState.uniform(low, high, size))
                 contest_set = set()
                 for j in range(num_contests):
-                    contest = random.randint(0, len(available_contests)-1)
+                    contest = int(se.SynRandomState.uniform(0,len(available_contests),1)) # random.randint(0, len(available_contests)-1)
                     if contest not in contest_set:
                         contest_set.add(contest)
                         se.cids_b[bids_pi[i]] = available_contests[contest]
-        else: #not sure what to do here if cvr_type_p[pbcid] == non-CVR 
+        else: # not sure what to do here if cvr_type_p[pbcid] == non-CVR 
             pass 
 
-    #generate the selection for each contest. so basically populate rv_cpb. draw from selids_c. 
-    #also keep track of ro_c
+    # generate the selection for each contest. so basically populate rv_cpb. draw from selids_c. 
+    # also keep track of ro_c
     se.rv_cpb = dict()
     for contest in se.rel_cp:
         for pbcid in se.rel_cp[contest]:
             for bid in se.bids_p[pbcid]:
                 selids = list(se.selids_c[contest].keys())
                 if se.contest_type_c[contest] == 'plurality':
-                    selection_index = random.randint(0, len(selids)-1)
+                    selection_index = int(se.SynRandomState.uniform(0,len(selids),1)) # random.randint(0, len(selids)-1)
                     selection = selids[selection_index]
                     nested_set(se.rv_cpb, [contest, pbcid, bid], selection)
-                else: #we can handle this later when its not hardcoded 
+                else: # we can handle this later when its not hardcoded 
                     pass
 
-    #sum over ballot ids and pbcids to get se.ro_c
+    # sum over ballot ids and pbcids to get se.ro_c
     rn_cs = dict() 
     for cid in se.cids:
         for pbcid in se.rel_cp[cid]:
@@ -331,7 +333,17 @@ def generate_reported(se):
                     else:
                         rn_cs[cid][selection]+=1
 
-    #sum over selection ids to get rn_c
+    # get rn_p from se.rv_cpb
+    se.rn_p = dict()
+    for cid in se.rv_cpb:
+        for pbcid in se.rv_cpb[cid]:
+            for bid in se.rv_cpb[cid][pbcid]:
+                if pbcid not in se.rn_p:
+                    se.rn_p[pbcid]=1
+                else:
+                    se.rn_p[pbcid]+=1
+
+    # sum over selection ids to get rn_c
     se.rn_c = dict()
     for cid in rn_cs:
         for selid in rn_cs[cid]:
@@ -339,6 +351,36 @@ def generate_reported(se):
                 se.rn_c[cid]=rn_cs[cid][selid]
             else:
                 se.rn_c[cid]+=rn_cs[cid][selid]
+
+    # get rn_cpr
+    se.rn_cpr = dict()
+    for cid in se.rv_cpb:
+        for pbcid in se.rv_cpb[cid]:
+            for bid in se.rv_cpb[cid][pbcid]:
+                selid = se.rv_cpb[cid][pbcid][bid]
+                if cid in se.rn_cpr:
+                    if pbcid in se.rn_cpr[cid]:
+                        if selid in se.rn_cpr[cid][pbcid]:
+                            se.rn_cpr[cid][pbcid][selid]+=1
+                        else:
+                            nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+                    else:
+                        nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+                else:
+                    nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+
+    # sum over pbcids to get rn_cr
+    se.rn_cr = dict()
+    for cid in se.rn_cpr:
+        for pbcid in se.rn_cpr[cid]:
+            for selid in se.rn_cpr[cid][pbcid]:
+                if cid in se.rn_cr:
+                    if selid in se.rn_cr[cid]:
+                        se.rn_cr[cid][selid]+=se.rn_cpr[cid][pbcid][selid]
+                    else:
+                        nested_set(se.rn_cr, [cid,selid], se.rn_cpr[cid][pbcid][selid])
+                else:
+                    nested_set(se.rn_cr, [cid,selid], se.rn_cpr[cid][pbcid][selid])
 
     se.ro_c = dict()
     for contest in rn_cs:
@@ -361,8 +403,8 @@ def generate_ballot_manifest(se):
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
             nested_set(n_pc,[pbcid, cid],len(se.rv_cpb[cid][pbcid]))
-    #the keys aren't ordered, so we need to use an ordered dictionary or something to keep track of the "first"
-    #ballot before incrementing 
+    # the keys aren't ordered, so we need to use an ordered dictionary or something to keep track of the "first"
+    # ballot before incrementing 
     # no -- just use one line per ballot; don't worry about compression/collapsing
 
 
