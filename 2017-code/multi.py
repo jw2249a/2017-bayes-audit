@@ -206,9 +206,10 @@ class Election(object):
 
         e.votes_c = {}
         # cid->votes
-        # e.votes_c[cid] gives all votes seen for cid, reported or actual
-        # (These are the votes, not the count.  So e.votes_c is the domain
-        # for tallies of contest cid.)
+        # e.votes_c[cid] gives all the distinct votes seen for cid,
+        # reported or actual. (These are the different possible votes,
+        # not the count.  So e.votes_c[cid] is the domain for tallies of
+        # contest cid.)
 
         e.rn_cpr = {}
         # cid->pbcid->rvote->count
@@ -233,15 +234,6 @@ class Election(object):
         # cid->pbcid->bid->vote
         # vote in given contest, paper ballot collection, and ballot id
         # e.rv_cpb is like e.av, but reported votes instead of actual votes
-
-        e.synthetic_seed = 2
-        # seed for generation of synthetic random votes
-
-        e.syn_rn_cr = {}
-        # synthetic reported number cid->vote->count
-
-        e.error_rate = 0.0001
-        # error rate used in model for generating synthetic reported votes
 
         # audit
 
