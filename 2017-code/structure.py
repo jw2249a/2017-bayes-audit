@@ -247,7 +247,8 @@ def show_election_structure(e):
     utils.myprint("    {}".format(e.election_url))
     utils.myprint("Number of contests:")
     utils.myprint("    {}".format(len(e.cids)))
-    utils.myprint("Contest ids with contest type, number of winners, and write-ins mode (e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
+    utils.myprint("Contest ids with contest type, number of winners, and write-ins mode")
+    utils.myprint("(e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
     for cid in e.cids:
         utils.myprint("   {} ({}, {} winner(s), write-ins: {})"
                       .format(cid, e.contest_type_c[cid], e.winners_c[cid], e.write_ins_c[cid]))
