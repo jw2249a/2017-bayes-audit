@@ -214,10 +214,24 @@ def RandomState(seed):
     """
     Return a np.random.RandomState object, initialized
     from an arbitrarily-large non-negative integer seed.
+
+    The numpy.random.RandomState object does not take long integers
+    (more than 2**32-1) as input, although it will take as input a
+    numpy.array of int64's to initialize the RandomState, as long as
+    each element of that array is between 0 and 2**32-1, inclusive.
+    This can be problematic for our audit, as the audit seed may well
+    be a 20-digit integer.
+
+    Thus, utils.py now has the routine
+        utils.RandomState(seed)
+    which takes as input an arbitrarily large nonnegative integer seed,
+    and returns a numpy.random.RandomState object initialized via
+    an a numpy.array object
+    initialized from seed.
     """
 
-    seed_array = convert_int_to_32_bit_numpy_array(seed)
-    return np.random.RandomState(seed_array)
+    seed_as_array = convert_int_to_32_bit_numpy_array(seed)
+    return np.random.RandomState(seed_as_array)
 
 
 if __name__=="__main__":
