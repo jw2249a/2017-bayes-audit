@@ -54,7 +54,7 @@ def read_election(e, election_dirname):
     """
     
     structure_dirname = os.path.join(election_dirname, "1-structure")
-    filename = multi.greatest_name(structure_dirname, "11-election", ".csv")
+    filename = utils.greatest_name(structure_dirname, "11-election", ".csv")
     full_filename = os.path.join(structure_dirname, filename)
     rows = csv_readers.read_csv_file(full_filename)
     for row in rows:
@@ -88,7 +88,7 @@ def read_contests(e):
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname, "1-structure")
-    filename = multi.greatest_name(structure_pathname, "12-contests", ".csv")
+    filename = utils.greatest_name(structure_pathname, "12-contests", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     rows = csv_readers.read_csv_file(file_pathname, varlen=True)
     for row in rows:
@@ -124,7 +124,7 @@ def read_collections(e):
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname, "1-structure")
-    filename = multi.greatest_name(structure_pathname, "13-collections", ".csv")
+    filename = utils.greatest_name(structure_pathname, "13-collections", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     rows = csv_readers.read_csv_file(file_pathname, varlen=True)
     for row in rows:
