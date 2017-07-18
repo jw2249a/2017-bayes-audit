@@ -101,7 +101,7 @@ def read_contests(e):
         
         e.winners_c[cid] = int(row["Winners"])
         
-        e.write_ins_c = row["Write-ins"].lower()
+        e.write_ins_c[cid] = row["Write-ins"].lower()
 
         e.selids_c[cid] = {}
         for selid in row["Selections"]:
@@ -247,9 +247,10 @@ def show_election_structure(e):
     utils.myprint("    {}".format(e.election_url))
     utils.myprint("Number of contests:")
     utils.myprint("    {}".format(len(e.cids)))
-    utils.myprint("Contest ids (e.cids):")
+    utils.myprint("Contest ids with contest type, number of winners, and write-ins mode (e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
     for cid in e.cids:
-        utils.myprint("   ", cid)
+        utils.myprint("   {} ({}, {} winner(s), write-ins: {})"
+                      .format(cid, e.contest_type_c[cid], e.winners_c[cid], e.write_ins_c[cid]))
     utils.myprint("Number of paper ballot collections:")
     utils.myprint("    {}".format(len(e.pbcids)))
     utils.myprint("Paper ballot collection ids (e.pbcids):")
