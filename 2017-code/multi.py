@@ -188,7 +188,7 @@ class Election(object):
         # pbcid->bid->position (an int)
         # from ballot manifest "Position" field
         
-        e.stamp.pb = {}
+        e.stamp_pb = {}
         # pbcid->bid->stampt (a string)
         # from ballot manifest "Stamp" field
         
@@ -337,8 +337,7 @@ def parse_args():
                         Human-readable name of the election.""",
                         default="TestElection")
     parser.add_argument("election_dirname", help="""
-                        The name of the election.  Same as the name of the 
-                        subdirectory within the elections root directory.""")
+                        The name for this election of the subdirectory within the elections root directory.""")
     parser.add_argument("--elections_root", help="""The directory where the subdirectory for the
                         election is to be found.  Defaults to "./elections".""",
                         default="./elections")
@@ -353,7 +352,7 @@ def parse_args():
     parser.add_argument("--read_seed", action="store_true", help="""
                         Read audit seed.""")
     parser.add_argument("--make_orders", action="store_true", help="""
-                        Make sampling orders files.""")
+                        Make audit orders files.""")
     parser.add_argument("--read_audited", action="store_true", help="""
                         Read and check audited votes.""")
     parser.add_argument("--stage",
