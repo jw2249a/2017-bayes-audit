@@ -230,8 +230,11 @@ def RandomState(seed):
     initialized from seed.
     """
 
-    seed_as_array = convert_int_to_32_bit_numpy_array(seed)
-    return np.random.RandomState(seed_as_array)
+    if seed != None:
+        seed_as_array = convert_int_to_32_bit_numpy_array(seed)
+        return np.random.RandomState(seed_as_array)
+    else:
+        return np.random.RandomState(seed)
 
 
 if __name__=="__main__":
