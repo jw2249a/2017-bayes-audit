@@ -239,8 +239,8 @@ def set_audit_seed(e, new_audit_seed):
 
     auditRandomState = utils.RandomState(e.audit_seed)
     # if seed is None (which happens if no command line value is given),
-    # utils.RandomState uses clock or other variable
-    # process-state parameters (via np.random.RandomState)
+    # utils.RandomState uses clock or other variable process-state
+    # parameters (via np.random.RandomState)
 
 
 def get_audit_parameters(e, args):
@@ -294,6 +294,9 @@ def show_audit_parameters(e):
 
     utils.myprint("====== Audit parameters ======")
 
+    utils.myprint("e.audit_seed (seed for audit pseudorandom number generation)")
+    utils.myprint("    {}".format(e.audit_seed))
+
     utils.myprint("e.contest_status_tc (initial audit status for each contest):")
     for cid in e.cids:
         utils.myprint("    {}:{}".format(cid, e.contest_status_tc["0"][cid]))
@@ -315,9 +318,6 @@ def show_audit_parameters(e):
 
     utils.myprint("e.pseudocount (hyperparameter for prior distribution,")
     utils.myprint("    {}".format(e.pseudocount))
-
-    utils.myprint("e.audit_seed (seed for audit pseudorandom number generation)")
-    utils.myprint("    {}".format(e.audit_seed))
 
 
 def initialize_audit(e):
