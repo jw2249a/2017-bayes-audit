@@ -85,6 +85,42 @@ def mywarning(msg):
 
 
 ##############################################################################
+# Input/output at the file-handling level
+
+def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
+    """ 
+    Return the filename (or, optionally, directory name) in the given directory 
+    that begins and ends with strings startswith and endswith, respectively.
+    If there ts more than one such file, return the greatest (lexicographically)
+    such filename.  Raise an error if there are no such files.
+    The portion between the prefix startswith and the suffix endswith is called
+    the version label in the documentation.
+    If switch "dir_wanted" is True, then return greatest directory name, not filename.
+    Example:  greatest_name(".", "foo", ".csv")
+    will return "foo-11-09.csv" from a directory containing files
+    with names  "foo-11-09.csv", "foo-11-08.csv", and "zeb-12-12.csv".
+    """
+
+    selected_filename = ""
+    for filename in os.listdir(dirpath):
+        full_filename = os.path.join(dirpath,filename)
+        if (dir_wanted == False and os.path.isfile(full_filename) or \
+            dir_wanted == True and not os.path.isfile(full_filename)) and\
+           filename.startswith(startswith) and \
+           filename.endswith(endswith) and \
+           filename > selected_filename:
+            selected_filename = filename
+    if selected_filename == "":
+        if dir_wanted == False:
+            utils.myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
+                          .format(dirpath, startswith, endswith))
+        else:
+            utils.myerror ("No directories in `{}` have a name starting with `{}` and ending with `{}`."
+                           .format(dirpath, startswith, endswith))
+    return selected_filename
+
+
+##############################################################################
 ## using an id as a counter (for ballot manifest expansion)
 
 
