@@ -250,7 +250,7 @@ def show_election_structure(e):
     utils.myprint("Contest ids with contest type, number of winners, and write-ins mode")
     utils.myprint("(e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
     for cid in e.cids:
-        utils.myprint("   {} ({}, {} winner(s), write-ins: {})"
+        utils.myprint("    {} ({}, {} winner(s), write-ins: {})"
                       .format(cid, e.contest_type_c[cid], e.winners_c[cid], e.write_ins_c[cid]))
     utils.myprint("Valid selection ids for each cid (e.selids_c):")
     for cid in e.cids:
@@ -262,7 +262,7 @@ def show_election_structure(e):
     utils.myprint("    {}".format(len(e.pbcids)))
     utils.myprint("Paper ballot collection ids (e.pbcids), CVR types (e.cvr_type_p), and managers (e.manager_p):")
     for pbcid in sorted(e.pbcids):
-        utils.myprint("   {} ({}, Manager:{})"
+        utils.myprint("    {} ({}, Manager:{})"
                       .format(pbcid, e.cvr_type_p[pbcid], e.manager_p[pbcid]))
     utils.myprint("Possible pbcids for each cid (e.rel_cp):")
     for cid in e.cids:
