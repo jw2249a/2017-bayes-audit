@@ -344,7 +344,7 @@ def parse_args():
                         default="./elections")
     parser.add_argument("--audit_seed",
                         help="""Seed for the random number generator used for
-                        auditing (32-bit value). (If omitted, uses clock.)""")
+                        auditing (arbitrary nonnegative integer). (If omitted, uses clock.)""")
     ## v2:
     parser.add_argument("--read_structure", action="store_true", help="""
                         Read and check election structure.""")
