@@ -96,6 +96,7 @@ class Election(object):
         # Note: we use nested dictionaries extensively.
         # variables may be named e.de_wxyz
         # where w, x, y, z give argument type:
+
         # c = contest id (cid)
         # p = paper ballot collection id (pbcid)
         # r = reported vote (rv)
@@ -103,6 +104,7 @@ class Election(object):
         # b = ballot id (bid)
         # t = audit stage number
         # m = risk measurement id (mid) from audit_parameters_contest
+
         # and where de may be something like:
         # rn = reported number (from initial scan)
         # sn = sample number (from given sample stage)
@@ -234,31 +236,40 @@ class Election(object):
         # vote in given contest, paper ballot collection, and ballot id
         # e.rv_cpb is like e.av, but reported votes instead of actual votes
 
-        # audit
+        ## audit
 
         e.audit_seed = None
         # seed for pseudo-random number generation for audit
 
-        e.shuffled_indices_p = []
-        e.shuffled_bids_p = []
-        # sampling order for bids of each pbcid 
+        e.mids = []
+        # list of measurement ids (typically one/contest being audited)
 
-        e.risk_limit_c = {}
-        # cid->reals
-        # risk limit for each contest
+        e.cid_m = {}
+        # The contest being measured in a given measurement.
+
+        e.risk_method_m = {}
+        # mid->{"Bayes", "Frequentist"}
+        # The risk-measurement method used for a given measurement.
+        # Right now, the options are "Bayes" and "Frequentist", but this may change.
+
+        e.risk_measurement_parameters_m = {}
+        # additional parameters that may be needed by the risk measurement method
+        # These are are represented as a *tuple* for each measurement.
+
+        e.risk_limit_m = {}
+        # mid->reals
+        # risk limit for each measurement (from [0,1])
+
+        e.risk_upset_m = {}
+        # mid->reals
+        # risk upset threshold for each measurement (from [0,1])
+        
+        e.sampling_mode_m = {}
+        # mid->{"Active", "Opportunistic"}
 
         e.audit_rate_p = {}
         # pbcid->int
         # number of ballots that can be audited per stage in a pcb
-
-        e.stage = "0"
-        # current audit stage number (in progress) or last stage completed
-
-        e.last_stage = "-1"
-        # previous stage (just one less, in string form)
-
-        e.max_stages = 20
-        # maximum number of stages allowed in audit
 
         e.pseudocount_base = 0.5
         # base-level pseudocount (hyperparameter)
@@ -271,35 +282,42 @@ class Election(object):
         # This higher value reflects prior knowledge that
         # the scanners are expected to be quite accurate.
 
-        e.recount_threshold = 0.95
-        # if e.risk[e.stage][cid] exceeds 0.95, then full recount called for
-        # cid
-
         e.n_trials = 100000
         # number of trials used to estimate risk in compute_contest_risk
 
-        # stage-dependent items
+        e.shuffled_indices_p = []
+        e.shuffled_bids_p = []
+        # sampling order for bids of each pbcid 
+
+        ###  stage-related items
+
+        e.stage = "0"
+        # current audit stage number (in progress) or last stage completed
+        # note that stage is a string representing an integer.
+
+        e.last_stage = "-1"
+        # previous stage (just one less, in string form)
+
+        e.max_stages = 20
+        # maximum number of stages allowed in audit
+
         # stage number input is stage when computed
         # stage is denoted t here
+
+        e.status_tm = {}
+        # mid->{"Open", "Passed", "Upset", "Off"}
+        # status for a measurement for a given stage
 
         e.plan_tp = {}
         # stage->pbcid->reals
         # sample size wanted after next draw
 
-        e.risk_tc = {}
-        # stage->cid->reals
-        # risk = probability that e.ro_c[cid] is wrong
-
-        e.contest_status_tc = {}
-        # stage->cid-> one of the following:
-        #     "Auditing",
-        #     "Just Watching",
-        #     "Risk Limit Reached",
-        #     "Full Recount Needed"
-        # initially must be "Auditing" or "Just Watching"
+        e.risk_tm = {}
+        # stage->measurement->reals
+        # risk = probability that e.ro_c[e.cid[mid]] is wrong
 
         e.election_status_t = {}
-        # stage->list of contest statuses, at most once each
+        # stage->list of measurement statuses, at most once each
 
         # sample info
 

@@ -111,9 +111,10 @@ def show_sample_counts(e):
 ##############################################################################
 # Risk measurement
 
-def compute_contest_risk(e, cid, st):
+def compute_risk(e, mid, st):
     """ 
-    Compute Bayesian risk (chance that reported outcome is wrong for cid).
+    Compute Bayesian risk (chance that reported outcome is wrong 
+    for e.cid_m[mid]).
     We take st here as argument rather than e.sn_tcpra so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later, when optimizing
@@ -129,6 +130,7 @@ def compute_contest_risk(e, cid, st):
     in a noCVR paper ballot collection.
     """
 
+    cid = e.cid_m[mid]
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
         test_tally = {vote: 0 for vote in e.rn_cr[cid]}
@@ -155,13 +157,13 @@ def compute_contest_risk(e, cid, st):
                         test_tally[a] += dirichlet_dict[a] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
-    e.risk_tc[e.stage][cid] = wrong_outcome_count / e.n_trials
+    e.risk_tm[e.stage][mid] = wrong_outcome_count / e.n_trials
 
 
-def compute_contest_risks(e, st):
+def compute_risks(e, st):
 
-    for cid in e.cids:
-        compute_contest_risk(e, cid, st)
+    for mid in e.mids:
+        compute_risk(e, mid, st)
 
 
 ##############################################################################
@@ -294,16 +296,14 @@ def show_audit_parameters(e):
 
     utils.myprint("====== Audit parameters ======")
 
-    utils.myprint("e.audit_seed (seed for audit pseudorandom number generation)")
+    utils.myprint("Seed for audit pseudorandom number generation (e.audit_seed):")
     utils.myprint("    {}".format(e.audit_seed))
 
-    utils.myprint("e.contest_status_tc (initial audit status for each contest):")
-    for cid in e.cids:
-        utils.myprint("    {}:{}".format(cid, e.contest_status_tc["0"][cid]))
-
-    utils.myprint("e.risk_limit_c (risk limit per contest):")
-    for cid in e.cids:
-        utils.myprint("    {}:{}".format(cid, e.risk_limit_c[cid]))
+    utils.myprint("Risk Measurement ids (e.mids) with contest, method, risk limit, and risk upset threshold:")
+    for mid in e.mids:
+        utils.myprint("    {}: ({}, {}, {}, {})"
+                      .format(e.cid_m[mid], e.risk_method_m[mid], e.risk_limit_m[mid],
+                              e.risk_upset_m[mid], e.sampling_mode_m[mid]))
 
     utils.myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
     for pbcid in sorted(e.pbcids):
@@ -316,8 +316,12 @@ def show_audit_parameters(e):
             "in compute_contest_risk):")
     utils.myprint("    {}".format(e.n_trials))
 
-    utils.myprint("e.pseudocount (hyperparameter for prior distribution,")
-    utils.myprint("    {}".format(e.pseudocount))
+    utils.myprint("Dirichlet hyperparameter for base case or non-matching reported/actual votes")
+    utils.myprint("(e.pseudocount_base):")
+    utils.myprint("    {}".format(e.pseudocount_base))
+    utils.myprint("Dirichlet hyperparameter for matching reported/actual votes")
+    utils.myprint("(e.pseudocount_match):")
+    utils.myprint("    {}".format(e.pseudocount_match))
 
 
 def initialize_audit(e):
@@ -346,13 +350,13 @@ def audit_stage(e, stage):
 
     e.last_stage = "{}".format(stage - 1)   # json keys must be strings
     e.stage = "{}".format(stage)
-    e.risk_tc[e.stage] = {}
-    e.contest_status_tc[e.stage] = {}
+    e.risk_tm[e.stage] = {}
+    e.status_tm[e.stage] = {}
     e.sn_tp[e.stage] = {}
     e.sn_tcpra[e.stage] = {}
 
     draw_sample(e)
-    compute_contest_risks(e, e.sn_tcpra)
+    compute_risks(e, e.sn_tcpra)
     compute_contest_and_election_statuses(e)
 
     show_audit_stage_header(e)
