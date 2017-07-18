@@ -148,6 +148,8 @@ We have:
     6. **``-NotExpected``** The ballot style indicates that the ballot
        *should* *not* contain this contest, but the ballot hasn't been
        further examined yet. (Requires a ballot style on the ballot.)
+    7. **``-NoBallot``: The ballot doesn't exist.  Perhaps it only exists
+       in electronic form.  (Suggested by Neal McBurnett)
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
