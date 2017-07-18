@@ -307,6 +307,7 @@ of that directory might look as follows.
        11-election-2017-09-08.csv
        12-contests-2017-09-08.csv
        13-collections-2017-09-08.csv
+       14-contest-groups-2017-09-08.csv
 
     2-election
        21-reported-votes
@@ -450,6 +451,9 @@ compactness.
 A contest group name may be used as shorthand for a set of alternative contests in other
 input files.  For example, one may specify a risk limit of five percent for all (FEDERAL)
 contests.
+
+A contest group has a file name of the form
+``14-contest-groups-2017-09-08.csv`` (shown with version label).
 
 
 ### Collections file
