@@ -305,7 +305,7 @@ class Election(object):
         # stage is denoted t here
 
         e.status_tm = {}
-        # mid->{"Open", "Passed", "Upset", "Off"}
+        # mid->{"Open", "Passed", "Upset", "Exhasuted", "Off"}
         # status for a measurement for a given stage
 
         e.plan_tp = {}

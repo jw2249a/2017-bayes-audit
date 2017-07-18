@@ -1019,12 +1019,14 @@ for other tests, since a pulled ballot may have the votes for several
 contests recorded.
 
 The seventh column specifes the **status** of the test, which should be
-one of ``Open``, ``Passed``, ``Upset``, or ``Off``.  The status
+one of ``Open``, ``Passed``, ``Upset``, ``Exhausted``, or ``Off``.  The status
 describes the status of this test, from the last stage risk
 measurements.  This is the only column that we expect to change from
 stage to stage of the audit.  Normally all tests start with an
 ``Open`` status, and the audit proceeds to sample for the still-open
-active tests until they are all ``Passed`` or ``Upset``.  The ``Off``
+active tests until they are all ``Passed`` or ``Upset``.  
+The ``Exhausted`` status means that all relevant ballots have been audited.
+The ``Off``
 status is for administrative use, to designate and turn off tests that
 aren't being exercised in the current audit; a test that is ``Off``
 isn't measured and remains off.  For example, when running an audit in

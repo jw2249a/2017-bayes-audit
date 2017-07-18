@@ -1,6 +1,6 @@
 # audit.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# July 8, 2017
+# July 18, 2017
 # python3
 
 """
@@ -12,12 +12,13 @@ import numpy as np
 
 import utils
 
+
 ##############################################################################
 # Random number generation
 ##############################################################################
 
-# see numpy.random.RandomState documentation
-# Random states used in the program:
+# see numpy.random.RandomState documentation and utils.RandomState
+# Random states used in this program:
 # auditRandomState        -- controls random sampling and other audit aspects
 
 # Gamma distribution
@@ -170,40 +171,27 @@ def compute_risks(e, st):
 # Compute status of each contest and of election
 
 
-def compute_contest_and_election_statuses(e):
+def compute_measurement_and_election_statuses(e):
     """ 
-    compute status of each contest and of election, from 
-    already-computed contest risks.
+    Compute status of each measurement and of election, from 
+    already-computed measurement risks.
     """
 
-    for cid in e.cids:
-        # The following test could be for !="Just Watching" or for =="Auditing"
-        # It may be better to have it so that once a contest has met its
-        # risk limit once, it no longer goes back to "Auditing" status, even
-        # if its risk drifts back up to be larger than its risk limit.
-        # Mathematically, this is OK, although it could conceivably look
-        # strange to an observer or an election official to have a contest
-        # whose status is "Risk Limit Reached" but whose current risk is
-        # more than the risk limit.  If this test compares to "Just Watching",
-        # then a contest of status "Risk Limit Reached" could have its status
-        # set back to "Auditing" if the risk then rises too much...  Which is better UI?
-        # Note that a contest which has reached its risk limit could be set back to
-        # Auditing because of any one of its pbc's, even if some of them aren't being
-        # audited for a stage.
-        e.contest_status_tc[e.stage][cid] = e.contest_status_tc[e.last_stage][cid]
-        if e.contest_status_tc[e.stage][cid] != "Just Watching":
+    for mid in e.mids:
+        # Measurement transition from Open to any of Exhausted, Passed, or Upset,
+        # but not vice versa.
+        e.status_tm[e.stage][mid] = e.status_tm[e.last_stage][mid]
+        if e.status_tm[e.stage][mid] == "Open":
             if all([e.rn_p[pbcid] == e.sn_tp[e.stage][pbcid] for pbcid in e.rel_cp[cid]]):
-                e.contest_status_tc[e.stage][cid] = "All Relevant Ballots Sampled"
-            elif e.risk_tc[e.stage][cid] < e.risk_limit_c[cid]:
-                e.contest_status_tc[e.stage][cid] = "Risk Limit Reached"
-            elif e.risk_tc[e.stage][cid] > e.recount_threshold:
-                e.contest_status_tc[e.stage][cid] = "Full Recount Needed"
-            else:
-                e.contest_status_tc[e.stage][cid] = "Auditing"
+                e.status_tm[e.stage][mid] = "Exhausted"
+            elif e.risk_tm[e.stage][mid] < e.risk_limit_m[mid]:
+                e.status_tm[e.stage][mid] = "Passed"
+            elif e.risk_tm[e.stage][mid] > e.risk_upset_m[mid]:
+                e.status_tm[e.stage][mid] = "Upset"
 
     e.election_status_t[e.stage] = \
-        sorted(list(set([e.contest_status_tc[e.stage][cid]
-                         for cid in e.cids])))
+        sorted(list(set([e.status_tm[e.stage][mid]
+                         for mid in e.mids])))
 
 
 def show_risks_and_statuses(e):
@@ -211,11 +199,16 @@ def show_risks_and_statuses(e):
     Show election and contest statuses for current stage. 
     """
 
-    utils.myprint("    Risk (that reported outcome is wrong) and contest status per cid:")
-    for cid in e.cids:
-        utils.myprint("     ", cid, e.risk_tc[e.stage][cid],
-                "(limit {})".format(e.risk_limit_c[cid]),
-                e.contest_status_tc[e.stage][cid])
+    utils.myprint("    Risk (that reported outcome is wrong) and measurement status per mid:")
+    for mid in e.mids:
+        utils.myprint("     ",
+                      mid,
+                      e.cid_m[mid],
+                      e.risk_method_m[mid],
+                      e.sampling_mode_m[mid],
+                      e.risk_tm[e.stage][mid],
+                      "(limits {},{})".format(e.risk_limit_m[mid], e.risk_upset_m[mid]),
+                      e.status_tm[e.stage][mid])
     utils.myprint("    Election status:", e.election_status_t[e.stage])
 
 
@@ -348,8 +341,11 @@ def show_audit_stage_header(e):
 
 def audit_stage(e, stage):
 
-    e.last_stage = "{}".format(stage - 1)   # json keys must be strings
+    # we represent stage number with a string, as json requires
+    # keys to be strings.  We aren't using json now, but we might again later.
+    e.last_stage = "{}".format(stage - 1)
     e.stage = "{}".format(stage)
+
     e.risk_tm[e.stage] = {}
     e.status_tm[e.stage] = {}
     e.sn_tp[e.stage] = {}
@@ -365,8 +361,12 @@ def audit_stage(e, stage):
 
 
 def stop_audit(e):
+    """Return True if we should stop audit (some measurement is Open and Active)."""
 
-    return "Auditing" not in e.election_status_t[e.stage]
+    for m in e.mids:
+        if e.status_m[mid]=="Open" and e.sampling_mode=="Active":
+            return False
+    return True
 
 
 def audit(e, args):
@@ -390,12 +390,14 @@ def show_audit_summary(e):
     utils.myprint("=============")
     utils.myprint("Audit completed!")
 
-    utils.myprint("All contests have a status in the following list:",
+    utils.myprint("All measurements have a status in the following list:",
             e.election_status_t[e.stage])
-    if "Auditing" not in e.election_status_t[e.stage]:
-        utils.myprint("No contest still has `Auditing' status.")
-    if "Full Recount Needed" in e.election_status_t[e.stage]:
-        utils.myprint("At least one contest needs a full recount.")
+    if all([e.sampling_mode_m[mid]!="Active" or e.status_m[mid]!="Open"
+            for mid in e.mids]):
+        utils.myprint("No `Active' measurement still has `Open' status.")
+    if ("Active, "Upset") in \
+       [(e.sampling_mode_m[mid], e.status_m[mid]) for mid in e.mids]:
+    utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
     if int(e.stage) == e.max_stages:
         utils.myprint("Maximum number of audit stages ({}) reached."
                 .format(e.max_stages))
