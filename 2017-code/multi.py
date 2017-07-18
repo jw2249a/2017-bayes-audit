@@ -359,7 +359,7 @@ def parse_args():
     parser.add_argument("--stage",
                         help="""Run stage STAGE of the audit (may specify "ALL").""")
     args = parser.parse_args()
-    print("Command line arguments:", args)
+    # print("Command line arguments:", args)
     return args
 
 
