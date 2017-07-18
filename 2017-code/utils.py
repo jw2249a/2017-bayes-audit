@@ -9,6 +9,7 @@ Various utilities.
 """
 
 import datetime
+import numpy as np
 import os
 import sys
 
@@ -69,7 +70,7 @@ def myerror(msg):
     """ Print error message and halt immediately """
 
     print("FATAL ERROR:", msg)
-    raise Exception
+    quit()
 
 
 warnings_given = 0
@@ -87,6 +88,7 @@ def mywarning(msg):
 
 ##############################################################################
 # Input/output at the file-handling level
+##############################################################################
 
 def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
     """ 
@@ -122,7 +124,8 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
 
 
 ##############################################################################
-## using an id as a counter (for ballot manifest expansion)
+## Using an id as a counter (for ballot manifest expansion)
+##############################################################################
 
 
 def count_on(start, num):
@@ -175,8 +178,50 @@ def test_count_on():
     y 1 ==> ['y']
     """
 
+# test_count_on
+
+
+##############################################################################
+## Convert to array of 32-bit values
+##
+
+def convert_int_to_32_bit_numpy_array(v):
+    """
+    Convert value v, which should be an arbitrarily large python integer
+    (or convertible to one) to a numpy array of 32-bit values, 
+    since this format is needed to initialize a numpy.random.RandomState 
+    object.  More precisely, the result is a numpy array of type int64, 
+    but each value is between 0 and 2**32-1, inclusive.
+
+    Example: input 2**64 + 5 yields np.array([5, 0, 1], dtype=int)
+    """
+
+    try:
+        v = int(v)
+        if v<0:
+            raise ValueError
+    except ValueError:
+        myerror("{} is not a nonnegative integer, or convertible to one.".format(v))
+    v_parts = []
+    radix = 2**32
+    while v>0:
+        v_parts.append(v % radix)
+        v = v // radix
+    # note: v_parts will be empty list if v==0, that is OK
+    return np.array(v_parts, dtype=int)
+        
+def RandomState(seed):
+    """
+    Return a np.random.RandomState object, initialized
+    from an arbitrarily-large non-negative integer seed.
+    """
+
+    seed_array = convert_int_to_32_bit_numpy_array(seed)
+    return np.random.RandomState(seed_array)
+
+
 if __name__=="__main__":
-    test_count_on()
+    pass
 
 
     

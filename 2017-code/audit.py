@@ -7,6 +7,11 @@
 Routines to work with multi.py on post-election audits.
 """
 
+
+import numpy as np
+
+import utils
+
 ##############################################################################
 # Random number generation
 ##############################################################################
@@ -215,21 +220,37 @@ def show_risks_and_statuses(e):
 ##############################################################################
 # Audit parameters
 
-def get_audit_seed(e, args):
+
+def set_audit_seed(e, new_audit_seed):
+    """ 
+    Set e.audit_seed to new value (but only if not already set). 
+
+    The idea is that the command line may set the audit seed to a non-None
+    value first, in which case it is "sticky" and thus overrides any 
+    setting that might be in the audit seed file.
+
+    This routine also sets the global auditRandomState.
+    """
 
     global auditRandomState
 
-    e.audit_seed = args.audit_seed
+    e.audit_seed = new_audit_seed
     # audit_seed might be None if no command-line argument given
 
-    auditRandomState = np.random.RandomState(e.audit_seed)
+    auditRandomState = utils.RandomState(e.audit_seed)
+    # if seed is None (which happens if no command line value is given),
+    # utils.RandomState uses clock or other variable
+    # process-state parameters (via np.random.RandomState)
 
 
 def get_audit_parameters(e, args):
 
-    load_part_from_json(e, "audit_parameters.js")
-    # command line can override .js file CHECK THIS
-    get_audit_seed(e, args)
+    # this should NOT overwrite e.audit_seed if it was non-None
+    # because it was already set from the command line
+
+    # now obsolete:
+    # load_part_from_json(e, "audit_parameters.js")
+
     check_audit_parameters(e)
 
 

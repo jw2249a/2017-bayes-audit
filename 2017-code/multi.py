@@ -32,14 +32,12 @@ import numpy as np
 import os
 import sys
 
-import outcomes
-import snapshot
-
-import structure
-import reported
 import audit
+import outcomes
 import planner
-# import unused
+import reported
+import snapshot
+import structure
 import utils
 
 ##############################################################################
@@ -333,11 +331,14 @@ def parse_args():
             collections.""")
 
     #v1 and v2:
+    # Mandatory argument is dirname
+    parser.add_argument("election_dirname", help="""
+                        The name for this election of the subdirectory within the elections root directory.""")
+    # All others are optional
+    # First group sets parameters: election_name, elections_root, audit_seed
     parser.add_argument("--election_name", help="""
                         Human-readable name of the election.""",
                         default="TestElection")
-    parser.add_argument("election_dirname", help="""
-                        The name for this election of the subdirectory within the elections root directory.""")
     parser.add_argument("--elections_root", help="""The directory where the subdirectory for the
                         election is to be found.  Defaults to "./elections".""",
                         default="./elections")
@@ -367,6 +368,7 @@ def process_args(e, args):
     e.election_dirname = args.election_dirname
     e.election_name = args.election_name
     ELECTIONS_ROOT = args.elections_root
+    audit.set_audit_seed(e, args.audit_seed)
 
     if args.read_structure:
         # print("read_structure")
