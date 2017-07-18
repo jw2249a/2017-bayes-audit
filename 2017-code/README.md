@@ -970,22 +970,22 @@ is perhaps most useful for research purposes, but is noted here.)
 
 Here is a sample contest audit parameters file:
 
-| Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
-| ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
-| DEN-prop-1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
-| DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
-| DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
-| LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off    |         |         |
-| US-Senate-1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
-| Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
-| Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
-| Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open   |         |         |
+| Measurement id | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
+|---             | ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
+| 1              | DEN-prop-1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
+| 2              | DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
+| 3              | DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
+| 4              | LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off    |         |         |
+| 5              | US-Senate-1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
+| 6              | Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
+| 7              | Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
+| 8              | Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open   |         |         |
 
 
 Each row describes a risk measurement that will be done on the specified contest
-(given in the first column) at the end of each stage.  
+(given in the second column) at the end of each stage.  
 
-The second column specifies the risk measurement method.  The example
+The third column specifies the risk measurement method.  The example
 shows using ``Bayes`` and ``Frequentist`` as risk measurement methods.
 Each such method invokes a specific software module for measuring the
 risk, given the reported outcome and the tally of votes in the sample
@@ -995,21 +995,21 @@ parameters, as specified in the later columns of the row.
 The measured risk will be a value between 0.00 and 1.00, inclusive;
 larger values correspond to more risk.
 
-The third column specifies the **risk limit** for that measurement.  If the
+The fourth column specifies the **risk limit** for that measurement.  If the
 measured risk is at most the specified risk limit, then that measurement **passes**.
 When all risk measurements pass, the audit may stop.
 
 If the risk limit is 1.00, then the measurement is still made, but
 the test always passes.  
 
-The fourth column specifies the **risk upset threshold**.  If the measured
+The fifth column specifies the **risk upset threshold**.  If the measured
 risk reaches or exceeds the risk upset threshold, then test **signals an upset**
 for that contest, and the auditing program may cease
 to sample more ballots in order to measure the risk of this contest, since it is
 apparent that the reported outcome is incorrect and a full hand count should be
 performed.
 
-The fifth column specifies the **sampling mode** for that test, which should
+The sixth column specifies the **sampling mode** for that test, which should
 be one of ``Active`` or ``Opportunistic``.  If the test specifies active
 sampling, then requests will be made to collection managers to draw samples
 that will shed light on the risk measurement and test.  Otherwise, if
@@ -1018,7 +1018,7 @@ sample data will be obtained only by "piggybacking" on active sampling done
 for other tests, since a pulled ballot may have the votes for several
 contests recorded.
 
-The sixth column specifes the **status** of the test, which should be
+The seventh column specifes the **status** of the test, which should be
 one of ``Open``, ``Passed``, ``Upset``, or ``Off``.  The status
 describes the status of this test, from the last stage risk
 measurements.  This is the only column that we expect to change from
@@ -1033,7 +1033,7 @@ specified as ``Open``; others are turned ``Off``.
 
 The audit may stop when no active tests remain open.
 
-Columns 7 and later specify additional parameters that might be needed for the
+Columns eight and later specify additional parameters that might be needed for the
 specified risk measurement method.  (None shown here, but something like
 a gamma value for the frequentist method might be a possible example.)
 

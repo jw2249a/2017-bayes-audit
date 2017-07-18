@@ -98,10 +98,11 @@ class Election(object):
         # where w, x, y, z give argument type:
         # c = contest id (cid)
         # p = paper ballot collection id (pbcid)
-        # r = reported vote
-        # a = actual vote
+        # r = reported vote (rv)
+        # a = actual vote (av)
         # b = ballot id (bid)
         # t = audit stage number
+        # m = risk measurement id (mid) from audit_parameters_contest
         # and where de may be something like:
         # rn = reported number (from initial scan)
         # sn = sample number (from given sample stage)
@@ -176,7 +177,7 @@ class Election(object):
         # list of ballot ids (bids) for each pcbid
         # from ballot manifest "Ballot id" column (as expanded for batches)
         # order is preserved from ballot manifest file, so no need for
-        # "index" field, and no need for "Number of ballots" (always 1 now).
+        # "Number of ballots" field (always implicitly 1 now).
 
         e.boxid_pb = {}
         # pbcid->bid->boxid
