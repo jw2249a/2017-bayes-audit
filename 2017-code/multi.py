@@ -180,13 +180,25 @@ class Election(object):
         # order is preserved from ballot manifest file, so no need for
         # "index" field, and no need for "Number of ballots" (always 1 now).
 
-        e.location_pb = {}
-        # pbcid->bid->location
-        # from ballot manifest "Location" column
+        e.boxid_pb = {}
+        # pbcid->bid->boxid
+        # from ballot manifest "Box id" field
 
+        e.position_pb = {}
+        # pbcid->bid->position (an int)
+        # from ballot manifest "Position" field
+        
+        e.stamp.pb = {}
+        # pbcid->bid->stampt (a string)
+        # from ballot manifest "Stamp" field
+        
+        # Note that the "Number of ballots" field of a ballot manifest
+        # is not captured here; we assume that any rows in an input
+        # manifest with "Number of ballots">1 is expanded into multiple rows first.
+        
         e.comments_pb = {}
         # pbcid->bid->comments (string)
-        # from ballot manifest "Comments" column
+        # from ballot manifest "Comments" field
 
         e.rn_p = {}
         # pbcid -> count
