@@ -419,6 +419,39 @@ Additional contest types may be supported as needed.
 This is a CSV file, with the name ``12-contests.csv`` (possibly with a version
 label, as in ``12-contests-2017-09-08.csv``).
 
+### Contest groups file
+
+The **contest groups file** is *entirely optional*, but may be helpful in making
+the collections file more compact, and in making the audit more efficient.
+
+A **contest group** is a set of contests. 
+
+For clarity, the name of a contest group is always written in caps and
+surrounded in parentheses, as in "**(FEDERAL)**" of "**(STATEWIDE)**".
+
+Although ``multi.py`` does not directly support the abstraction of
+a "ballot style" (a set of contests that may occur on a ballot), the
+notion of "contest groups" fulfill most of the needs of the ballot
+style notion.  Moreover, if ballot styles are added at some later
+time to ``multi.py``, then ballot styles are easily defined in terms
+of contest groups.
+
+The use of contest groups may provide clarity, as it provides organization
+for the set of contests.  In many places, one may specify a contest
+group name instead of having to list all of its contests.  This provides
+compactness.
+
+| Contest group | Group(s)         | ...           | ...             | ...        | ...         |
+| ---           | ---              | ---           | ---             | ---        | ---         |
+| (FEDERAL)     | U.S. President   | U.S Senate-1  | U.S. Senate  -2 |            |             |
+| (STATEWIDE)   | CO-prop-A        | CO-prop-B     | CO-prop-C       |            |             |
+| (JEFFERSON)   | Jeffco-prop-A    | Jeffco-prop-B | Jeff-co-Judge   | Jeffco-council |         |
+
+A contest group name may be used as shorthand for a set of alternative contests in other
+input files.  For example, one may specify a risk limit of five percent for all (FEDERAL)
+contests.
+
+
 ### Collections file
 
 A **collections file** is needed to specify the various
