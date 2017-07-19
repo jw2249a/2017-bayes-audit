@@ -397,7 +397,7 @@ def generate_reported(se):
 
 
 def generate_ballot_manifest(se):
-    """ generate everything other than location """
+    """ generate everything other than location -- but what structure should we put this in? """
 
     n_pc = dict()
     for cid in se.rv_cpb:

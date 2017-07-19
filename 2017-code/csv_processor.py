@@ -117,7 +117,8 @@ def populate_collections(filename):
 def populate_contests(filename):
     selid_c = dict() 
     cids = set()
-    rows_ordered = csv_readers.read_csv_file(filename)
+    rows_ordered = csv_readers.read_csv_file(filename, varlen=True)
+    print('csv_readers returned:', rows_ordered)
     with open(filename, 'r', encoding="utf8") as f:
         reader = csv.reader(f, delimiter = '|')
         for (i,row) in enumerate(reader):
