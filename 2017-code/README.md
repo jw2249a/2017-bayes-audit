@@ -149,7 +149,7 @@ We have:
        *should* *not* contain this contest, but the ballot hasn't been
        further examined yet. (Requires a ballot style on the ballot.)
     7. **``-NoBallot``: The ballot doesn't exist.  Perhaps it only exists
-       in electronic form.  (Suggested by Neal McBurnett)
+       in electronic form.  (Suggested by Neal McBurnett, as NoVVPR)
 
 * **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
