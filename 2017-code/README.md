@@ -1026,7 +1026,7 @@ describes the status of this test, from the last stage risk
 measurements.  This is the only column that we expect to change from
 stage to stage of the audit.  Normally all tests start with an
 ``Open`` status, and the audit proceeds to sample for the still-open
-active tests until they are all ``Passed`` or ``Upset``.  
+``Active`` tests until they are all ``Passed`` or ``Upset``.  
 The ``Exhausted`` status means that all relevant ballots have been audited.
 The ``Off``
 status is for administrative use, to designate and turn off tests that
@@ -1035,7 +1035,7 @@ isn't measured and remains off.  For example, when running an audit in
 a county only on local contests, only the local contests may be
 specified as ``Open``; others are turned ``Off``.
 
-The audit may stop when no active tests remain open.
+The audit may stop when no ``Active`` tests remain ``Open``.
 
 Columns eight and later specify additional parameters that might be needed for the
 specified risk measurement method.  (None shown here, but something like
@@ -1098,16 +1098,16 @@ observer).
 
 ### Pre-election
 
-Defines election structure, global parameters, contests, and collections.
-Goes into directory:
+Define election structure, global parameters, contests, and collections.
+Put this information into directory:
 
     1-structure
 
 ### Election
 
-Gathers cast vote records, organizes paper ballots into collections,
-and produces ballot manifests.
-Goes into directories:
+Gather cast vote records, organize paper ballots into collections,
+and produce ballot manifests.
+Put this inforation into directories:
 
     2-election
       21-reported-votes
@@ -1116,10 +1116,10 @@ Goes into directories:
 
 ### Setup audit
 
-Produce random audit seed.
+Produce random audit seed with a public ceremony.
 Produce initial random audit orders from the audit seed
 and the ballot manifests.
-These go into the audit seed file and
+Put these into the audit seed file and
 the audit-orders directory.
 
     3-audit
@@ -1131,8 +1131,8 @@ the audit-orders directory.
           audit-order-LOG-B13-2017-11-20.csv
 
 
-Produce first *plan* for the audit, put this information
-into directory/file:
+Produce first *plan* for the audit, and put this information
+into the stage "000" directory in the audit-plan file.
 
     3-audit
       33-audit-stages
@@ -1141,14 +1141,19 @@ into directory/file:
 
 ### Start audit
 
-Collection managers start sampling ballots, and putting
-the resulting information into directory
+If you are a collection manager,
+start auditing the  ballots specified in the audit plan
+for your collection, and put
+the resulting information into the directory:
 
     3-audit
        32-audited-votes
 
-This is **asynchronous**: collection managers can update
-their audited votes file whenever they are ready to do so.
+From a collection managers point of view, the process
+is **asynchronous** with the operations of Audit Central.
+A collection manager can update
+her audited votes file whenever she is ready to do so.
+
 These updates do **not** need to be synchronized on a
 per-stage basis.  (Note again that each updated audited-votes
 file contains *all* of the audited votes from the collection;
@@ -1157,14 +1162,12 @@ methods, the uploads may need to be synchronized.)
 
 ### Audit stages
 
-Audit Central determines when a new audit stage is ready to start.
-A new ``stage-nnn`` subdirectory is created, and the audit
-computations begin, based on all available sampling data
-(from ``32-audited-votes``) at the time the stage begins.
+Audit Central determines when a new audit stage starts.
 
-We assume that a stage is represented by a three-digit integer,
-starting at "000" for the initialization information stage (no ballots
-sampled yet), followed by "001", "002", ...
+A new ``stage-nnn`` subdirectory is created, where ``nnn`` is
+the stage number as a three-digit decimal,
+and the audit computations begin, based on all available sampling data
+(from ``32-audited-votes``) at the time the stage begins.
 
 #### Per-stage audit files
 
@@ -1259,9 +1262,9 @@ parameters should to be adjusted to only those audit contests local to the colle
 by setting the risk limits to all other contests to 1.00.
 
 
-## Appendix
+## Appendix (Possible Future Work)
 
-### Compression (notes for future work)
+### Compression
 
 As the reported votes files are certain to be the largest files used by ``multi.py``,
 some form of compression may be useful.
