@@ -15,6 +15,15 @@ different specification.  It is in the process of becoming code that
 matches this design document.  But don't expect it to match what is
 described here.  At least not yet.**
 
+## Table of contents
+
+* [Election and audit](#election-and-audit)
+* [Scanning of cast paper ballots](#scanning-of-cast-paper-ballots)
+* [Auditing](#auditing)
+* [Implementation notes: identifiers, votes, file names, and directory structure](#implementation-notes-identifiers-votes-file0names-and-directory-structure)
+
+MORE TBD
+
 ## Election and audit
 
 We assume the following:
