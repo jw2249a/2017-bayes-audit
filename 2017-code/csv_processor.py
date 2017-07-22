@@ -115,10 +115,9 @@ def populate_collections(filename):
 #is e.selid_c all possible selids for each contestid or is it for specifically reported and actual. 
 #not from the contests file?
 def populate_contests(filename):
+
     selid_c = dict() 
     cids = set()
-    rows_ordered = csv_readers.read_csv_file(filename, varlen=True)
-    print('csv_readers returned:', rows_ordered)
     with open(filename, 'r', encoding="utf8") as f:
         reader = csv.reader(f, delimiter = '|')
         for (i,row) in enumerate(reader):
@@ -128,6 +127,7 @@ def populate_contests(filename):
                 if filtered_ids[0] not in selid_c:
                     selid_c[filtered_ids[0]] = filtered_ids[4:]
     return (selid_c, cids)
+    
 
 #list of tuples for each contest
 def all_votes_c(reported_file, audited_file):

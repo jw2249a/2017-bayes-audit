@@ -337,7 +337,7 @@ def generate_reported(se):
             bids_pi = se.bids_p[pbcid]
             available_contests = rel_pc[pbcid]
             for i in range(len(bids_pi)):
-                num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1))# random.randint(1,len(available_contests)) #change to int(se.SynRandomState.uniform(low, high, size))
+                num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1)) # random.randint(1,len(available_contests)) #change to int(se.SynRandomState.uniform(low, high, size))
                 contest_set = set()
                 for j in range(num_contests):
                     contest = int(se.SynRandomState.uniform(0,len(available_contests),1)) # random.randint(0, len(available_contests)-1)
