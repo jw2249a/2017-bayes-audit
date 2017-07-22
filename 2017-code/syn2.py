@@ -233,17 +233,15 @@ def write_12_contests_csv(se):
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "12-contests.csv")
     with open(filename, "w") as file:
-        for fieldname in ["Contest id", "Contest type", "Winners",
-                          "Write-ins", "Selections"]:
-            file.write("{},".format(fieldname))
+        fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins", "Selections"]
+        file.write(",".join(fieldnames))
         file.write("\n")
         for cid in se.cids:
             file.write(cid+",")
             file.write("{},".format(se.contest_type_c[cid].title()))
             file.write("{},".format(se.winners_c[cid]))
             file.write("{},".format(se.write_ins_c[cid].title()))
-            for selid in se.selids_c[cid]:
-                file.write("{},".format(selid))
+            file.write(",".join(se.selids_c[cid]))
             file.write("\n")
         
 def write_13_collections_csv(se):
@@ -252,16 +250,15 @@ def write_13_collections_csv(se):
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "13-collections.csv")
     with open(filename, "w") as file:
-        for fieldname in ["Collection id", "Manager", "CVR type", "Contests"]:
-            file.write("{},".format(fieldname))
+        fieldnames = ["Collection id", "Manager", "CVR type", "Contests"]
+        file.write(",".join(fieldnames))
         file.write("\n")
         for pbcid in se.pbcids:
             file.write("{},".format(pbcid))
             file.write("{},".format(se.manager_p[pbcid]))
             file.write("{},".format(se.cvr_type_p[pbcid]))
-            for cid in se.cids:
-                if pbcid in se.rel_cp[cid]:
-                    file.write("{},".format(cid))
+            cids = [cid for cid in se.cids if pbcid in se.rel_cp[cid]]
+            file.write(",".join(cids))
             file.write("\n")
 
 ##############################################################################
