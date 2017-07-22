@@ -21,8 +21,49 @@ described here.  At least not yet.**
 * [Scanning of cast paper ballots](#scanning-of-cast-paper-ballots)
 * [Auditing](#auditing)
 * [Implementation notes: identifiers, votes, file names, and directory structure](#implementation-notes-identifiers-votes-file0names-and-directory-structure)
+  * [Identifiers](#identifiers)
+  * [Votes](#votes)
+  * [File formats](#file-formats)
+  * [File names](#file-names)
+  * [Directory structure](#directory-structure)
+* [(Pre-election) Election definition.](#pre-election-election-definition)
+  * [Election file](#election-file)
+  * [Contests file](#contests-file)
+  * [Contest groups file](#contest-groups-file)
+  * [Collections file](#collections-file)
+* [Election data (CVRs, ballot manifests, and reported outcomes)](#election-data-cvrs-ballot-manifests-and-reported-outcomes)
+  * [Reported Vote file (CVRs)](#reported-vote-file-cvrs)
+  * [Ballot manifest file](#ballot-manifest-file)
+  * [Reported outcomes file](#reported-outcomes-file)
+* [Audit](#audit)
+  * [Audit setup](#audit-setup)
+    * [Audit seed file](#audit-seed-file)
+    * [Audit orders and audited-votes files](#audit-orders-and-audited-votes-files)
+    * [Audit order file](#audit-order-file)
+  * [Audited votes[(#audited-votes)
+    * [Sample vote file (actual vote file)(#sample-vote-file-actual-vote-file)
+  * [Audit stages](#audit-stages)
+    * [Audit parameters files](#audit-parameters-files)
+      * [Global audit parameters](#global-audit-parameters)
+      * [Contest audit parameters](#contest-audit-parameters)
+      * [Collection audit parameters](#collection-audit-parameters)
+    * [Output file formats (per stage](#output-file-formats-per-stage)
+* [Audit workflow](#audit-workflow)
+  * [Pre-election](#pre-election)
+  * [Election](#election)
+  * [Setup audit](#setup-audit)
+  * [Start audit](#start-audit)
+  * [Audit stages](#audit-stages)
+    * [Per-stage audit files](#per-stage-audit-files)
+      * [Audit parameters files](#audit-parameters-files)
+      * [Audit snapshot file](#audit-snapshot-file)
+      * [Audit output file(s)](#audit-output-file-s)
+      * [Audit plan file](#audit-plan-file)
+* [Command-line interface to ``multi.py``](#command-line-interface-to-multi-py)
+* [Appendix (Possible future work)](#appendix-possible-future-work)
+  * [Compression](#compression)
 
-MORE TBD
+
 
 ## Election and audit
 
@@ -762,7 +803,6 @@ and then from the audit seed a "**sampling order**" for each collection,
 listing the ballots of that collection in a scrambled order.
 
 #### Audit seed file
-
 The **audit seed file** contains the audit seed used to control the random
 sampling of the audit.
 
