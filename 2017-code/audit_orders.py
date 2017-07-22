@@ -85,14 +85,14 @@ def write_audit_order(e, pbcid):
     ds = utils.date_string()
     filename = os.path.join(dirpath, "audit-order-"+pbcid+"-"+ds+".csv")
     with open(filename, "w") as file:
-        for fieldname in ["Ballot order",
-                          "Collection id",
-                          "Box id",
-                          "Position",
-                          "Stamp",
-                          "Ballot id",
-                          "Comments"]:
-            file.write("{},".format(fieldname))
+        fieldnames = ["Ballot order",
+                      "Collection id",
+                      "Box id",
+                      "Position",
+                      "Stamp",
+                      "Ballot id",
+                      "Comments"]
+        file.write(",".join(fieldnames))
         file.write("\n")
         for i, index in enumerate(e.shuffled_indices_p[pbcid]):
             file.write(pbcid+",")
