@@ -244,6 +244,48 @@ def write_13_collections_csv(se):
                     file.write("{},".format(cid))
             file.write("\n")
 
+def write_14_reported_csv(se):
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "2-election")
+    os.makedirs(dirpath, exist_ok=True)
+    for pbcid in se.pbcids:
+        # handle cvr pbcids
+        if se.cvr_type_p[pbcid]=="CVR": 
+            filename = os.path.join(dirpath, "reported-cvrs-" + pbcid+".csv")
+            with open(filename, "w") as file:
+                for fieldname in ["Collection id", "Scanner", "Ballot id", "Contest", "Selections"]:
+                    file.write("{},".format(fieldname))
+                file.write("\n")
+                for cid in se.rv_cpb:
+                    if pbcid in se.rel_cp[cid]:
+                        for bid in se.rv_cpb[cid][pbcid]:
+                            selid = se.rv_cpb[cid][pbcid][bid]
+                            if se.cvr_type_p[pbcid] == "CVR":
+                                file.write("{},".format(pbcid))
+                                file.write("{},".format("scanner_1"))
+                                file.write("{},".format(bid))
+                                file.write("{},".format(cid))
+                                file.write("{},".format(selid))
+                            file.write("\n")
+                            # if selid has more than one "vote" 
+                            """
+                                for vote in list(selid):
+                                    file.write("{},".format(vote))
+                            """
+        # handle non-cvr pbcids
+        else:
+            pass
+    """
+    go through the pbcids here .. we want the files to be in the form:
+
+      reported-cvrs-DEN-A01-2017-11-07.csv
+      reported-cvrs-DEN-A02-2017-11-07.csv
+      reported-cvrs-LOG-B13-2017-11-07.csv
+    """
+
+
+def write_15_ballot_manifest(se):
+    pass 
+
 ##############################################################################
 ## generate reported data
 
@@ -316,8 +358,10 @@ def generate_reported(se):
                     selection_index = int(se.SynRandomState.uniform(0,len(selids),1)) # random.randint(0, len(selids)-1)
                     selection = selids[selection_index]
                     nested_set(se.rv_cpb, [contest, pbcid, bid], selection)
+
                 else: # we can handle this later when its not hardcoded 
                     pass
+                    
 
     # sum over ballot ids and pbcids to get se.ro_c
     rn_cs = dict() 
@@ -466,6 +510,7 @@ def test():
     write_11_election_csv(se)
     write_12_contests_csv(se)
     write_13_collections_csv(se)
+    write_14_reported_csv(se)
 
 if __name__=="__main__":
     test()
