@@ -392,12 +392,12 @@ def show_audit_summary(e):
 
     utils.myprint("All measurements have a status in the following list:",
             e.election_status_t[e.stage])
-    if all([e.sampling_mode_m[mid]!="Active" or e.status_m[mid]!="Open"
+    if all([e.sampling_mode_m[mid]!="Active" or e.status_m[mid]!="Open" \
             for mid in e.mids]):
         utils.myprint("No `Active' measurement still has `Open' status.")
-    if ("Active, "Upset") in \
+    if ("Active", "Upset") in \
        [(e.sampling_mode_m[mid], e.status_m[mid]) for mid in e.mids]:
-    utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
+        utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
     if int(e.stage) == e.max_stages:
         utils.myprint("Maximum number of audit stages ({}) reached."
                 .format(e.max_stages))
