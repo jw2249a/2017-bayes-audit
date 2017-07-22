@@ -274,13 +274,7 @@ def write_14_reported_csv(se):
         # handle non-cvr pbcids
         else:
             pass
-    """
-    go through the pbcids here .. we want the files to be in the form:
-
-      reported-cvrs-DEN-A01-2017-11-07.csv
-      reported-cvrs-DEN-A02-2017-11-07.csv
-      reported-cvrs-LOG-B13-2017-11-07.csv
-    """
+    
 
 
 def write_15_ballot_manifest(se):
