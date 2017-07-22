@@ -1,6 +1,6 @@
 # snapshot.py
 # Ronald L. Rivest
-# July 7, 2017
+# July 22, 2017
 # python3
 
 """
@@ -11,6 +11,7 @@ computed with SHA256.  In addition to producing a snapshot,
 it is also possible to verify that a snapshot is correct
 (i.e. that the given files have the correct hashes; other
 files may exist that aren't checked).
+(Similar to old "tripwire" program.)
 """
 
 
@@ -66,9 +67,9 @@ def hash_speed():
         About 0.4 Gb/sec on a macbook pro.
     """
 
-    print("Measuring SHA256 hash speed on 4GB of data...")
-    s = b" "*(2**20)
-    for k in [32]:
+    print("Measuring SHA256 hash speed on 256MB of data...")
+    s = b" "*(2**20)              # 1MB
+    for k in [28]:
         t0 = time.time()
         h = hashlib.sha256()
         for _ in range(2**(k-20)):
