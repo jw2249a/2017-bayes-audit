@@ -274,7 +274,27 @@ def write_14_reported_csv(se):
         # handle non-cvr pbcids
         else:
             pass
-    
+
+def write_33_audited_csv(se):
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "3-audit")
+    os.makedirs(dirpath, exist_ok=True)
+    for cid in se.av_cpb:
+        for pbcid in se.av_cpb[cid]:
+            filename = os.path.join(dirpath, "audited-votes-" + pbcid+".csv")
+            with open(filename, "w") as file:
+                for fieldname in ["Collection id", "Ballot id", "Contest", "Selections"]:
+                    file.write("{},".format(fieldname))
+                file.write("\n")
+                for cid in se.av_cpb:
+                    for pbcid_inner in se.av_cpb[cid]:
+                        if pbcid_inner == pbcid:
+                            for bid in se.av_cpb[cid][pbcid]:
+                                selid = se.av_cpb[cid][pbcid][bid]
+                                file.write("{},".format(pbcid))
+                                file.write("{},".format(bid))
+                                file.write("{},".format(cid))
+                                file.write("{},".format(selid))
+                                file.write("\n")
 
 
 def write_15_ballot_manifest(se):
@@ -505,6 +525,7 @@ def test():
     write_12_contests_csv(se)
     write_13_collections_csv(se)
     write_14_reported_csv(se)
+    write_33_audited_csv(se)
 
 if __name__=="__main__":
     test()
