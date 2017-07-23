@@ -348,26 +348,28 @@ def generate_reported(se):
                 selids = list(se.selids_c[cid])
 
                 if se.contest_type_c[cid] == 'plurality':
+                    # vote is a tuple of length 1 here
                     selection = se.SynRandomState.choice(selids)
-                    nested_set(se.rv_cpb, [cid, pbcid, bid], selection)
+                    vote = (selection,)
+                    nested_set(se.rv_cpb, [cid, pbcid, bid], vote)
 
                 else: # we can handle this later when its not hardcoded 
                     pass
                     
 
     # sum over ballot ids and pbcids to get se.ro_c
-    rn_cs = dict() 
+    rn_cv = dict() 
     for cid in se.cids:
         for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
-                selection = se.rv_cpb[cid][pbcid][bid]
-                if cid not in rn_cs:
-                    nested_set(rn_cs, [cid, selection], 1)
+                vote = se.rv_cpb[cid][pbcid][bid]
+                if cid not in rn_cv:
+                    nested_set(rn_cv, [cid, vote], 1)
                 else:
-                    if selection not in rn_cs[cid]:
-                        nested_set(rn_cs, [cid, selection], 1)
+                    if vote not in rn_cv[cid]:
+                        nested_set(rn_cv, [cid, vote], 1)
                     else:
-                        rn_cs[cid][selection]+=1
+                        rn_cv[cid][vote]+=1
 
     # get rn_p from se.rv_cpb
     se.rn_p = dict()
@@ -380,48 +382,48 @@ def generate_reported(se):
                     se.rn_p[pbcid]+=1
 
     # sum over selection ids to get rn_c
-    se.rn_c = dict()
-    for cid in rn_cs:
-        for selid in rn_cs[cid]:
+    se.rn_c = {}
+    for cid in rn_cv:
+        for vote in rn_cv[cid]:
             if cid not in se.rn_c:
-                se.rn_c[cid]=rn_cs[cid][selid]
+                se.rn_c[cid]=rn_cv[cid][vote]
             else:
-                se.rn_c[cid]+=rn_cs[cid][selid]
+                se.rn_c[cid]+=rn_cv[cid][vote]
 
     # get rn_cpr
     se.rn_cpr = dict()
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
-                selid = se.rv_cpb[cid][pbcid][bid]
+                vote = se.rv_cpb[cid][pbcid][bid]
                 if cid in se.rn_cpr:
                     if pbcid in se.rn_cpr[cid]:
-                        if selid in se.rn_cpr[cid][pbcid]:
-                            se.rn_cpr[cid][pbcid][selid]+=1
+                        if vote in se.rn_cpr[cid][pbcid]:
+                            se.rn_cpr[cid][pbcid][vote]+=1
                         else:
-                            nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+                            nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
                     else:
-                        nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+                        nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
                 else:
-                    nested_set(se.rn_cpr,[cid,pbcid,selid], 1)
+                    nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
 
     # sum over pbcids to get rn_cr
     se.rn_cr = dict()
     for cid in se.rn_cpr:
         for pbcid in se.rn_cpr[cid]:
-            for selid in se.rn_cpr[cid][pbcid]:
+            for vote in se.rn_cpr[cid][pbcid]:
                 if cid in se.rn_cr:
-                    if selid in se.rn_cr[cid]:
-                        se.rn_cr[cid][selid]+=se.rn_cpr[cid][pbcid][selid]
+                    if vote in se.rn_cr[cid]:
+                        se.rn_cr[cid][vote]+=se.rn_cpr[cid][pbcid][vote]
                     else:
-                        nested_set(se.rn_cr, [cid,selid], se.rn_cpr[cid][pbcid][selid])
+                        nested_set(se.rn_cr, [cid, vote], se.rn_cpr[cid][pbcid][vote])
                 else:
-                    nested_set(se.rn_cr, [cid,selid], se.rn_cpr[cid][pbcid][selid])
+                    nested_set(se.rn_cr, [cid, vote], se.rn_cpr[cid][pbcid][vote])
 
     se.ro_c = dict()
-    for contest in rn_cs:
-        outcome = max(rn_cs[contest], key=rn_cs[contest].get)
-        se.ro_c[contest] = outcome
+    for cid in rn_cv:
+        outcome = max(rn_cv[cid], key=rn_cv[cid].get)
+        se.ro_c[cid] = outcome
 
     # dropoff
     assert 0 < se.dropoff <= 1
