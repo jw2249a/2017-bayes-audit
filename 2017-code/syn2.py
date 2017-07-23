@@ -183,7 +183,9 @@ def generate_collections(se):
         se.manager_p[pbcid] = "Nobody"
 
     # number of pbcids with no CVR
-    assert isinstance(se.n_pbcids_nocvr, int) and 0 <= se.n_pbcids_nocvr <= se.n_pbcids
+    assert isinstance(se.n_pbcids_nocvr, int) and \
+        0 <= se.n_pbcids_nocvr <= se.n_pbcids
+
     # identify which pbcids have types CVR or noCVR
     se.cvr_type_p = {}
     while len(se.cvr_type_p) < se.n_pbcids_nocvr:
@@ -193,7 +195,7 @@ def generate_collections(se):
             se.cvr_type_p[pbcid] = "CVR"
     
     # determine range of pbcids for each cid
-    # (always a range of consecutive pbcids)
+    # (always a range of consecutive pbcids, looking at them as integers)
     m = se.min_pbcids_per_cid
     M = se.max_pbcids_per_cid
     assert m >= 1
@@ -218,11 +220,13 @@ def write_structure_csvs(se):
     write_13_collections_csv(se)
     write_14_contest_groups_csv(se)
 
+
 def write_11_election_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "11_election.csv")
+
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
@@ -230,11 +234,13 @@ def write_11_election_csv(se):
         file.write("Election date,"+se.election_date+"\n")
         file.write("Election URL,"+se.election_url+"\n")
 
+
 def write_12_contests_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "12_contests.csv")
+
     with open(filename, "w") as file:
         fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins", "Selections"]
         file.write(",".join(fieldnames))
@@ -247,11 +253,13 @@ def write_12_contests_csv(se):
             file.write(",".join(se.selids_c[cid]))
             file.write("\n")
         
+
 def write_13_collections_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "13_collections.csv")
+
     with open(filename, "w") as file:
         fieldnames = ["Collection id", "Manager", "CVR type", "Contests"]
         file.write(",".join(fieldnames))
@@ -273,8 +281,6 @@ def write_14_contest_groups_csv(se):
 ##############################################################################
 ## election
 
-##############################################################################
-## generate reported data
 
 def generate_reported(se):
 
@@ -286,6 +292,7 @@ def generate_reported(se):
                                              se.max_n_bids_per_pbcid)
 
     # generate list of ballot ids for each pbcid
+    # note that these are only unique within a pbcid, not globally
     se.n_bids = 0
     se.bids_p = {}
     for pbcid in se.pbcids:
@@ -436,7 +443,8 @@ def generate_reported(se):
 
 def generate_ballot_manifest(se):
     """ 
-    Generate everything other than location -- but what structure should we put this in? 
+    Generate everything other than location 
+    -- but what structure should we put this in? 
     """
 
     n_pc = dict()
@@ -456,9 +464,12 @@ def write_reported(se):
 
 
 def write_21_reported_csv(se):
+
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
                            "2-election", "21-reported-votes")
     os.makedirs(dirpath, exist_ok=True)
+
+    scanner = "scanner-1"
     for pbcid in se.pbcids:
         # handle cvr pbcids
         if se.cvr_type_p[pbcid]=="CVR": 
@@ -471,19 +482,14 @@ def write_21_reported_csv(se):
                 for cid in se.rv_cpb:
                     if pbcid in se.rel_cp[cid]:
                         for bid in se.rv_cpb[cid][pbcid]:
-                            selid = se.rv_cpb[cid][pbcid][bid]
+                            vote = se.rv_cpb[cid][pbcid][bid]
                             if se.cvr_type_p[pbcid] == "CVR":
                                 file.write("{},".format(pbcid))
-                                file.write("{},".format("scanner_1"))
+                                file.write("{},".format(scanner))
                                 file.write("{},".format(bid))
                                 file.write("{},".format(cid))
-                                file.write("{},".format(selid))
+                                file.write(",".join(vote))
                             file.write("\n")
-                            # if selid has more than one "vote" 
-                            """
-                                for vote in list(selid):
-                                    file.write("{},".format(vote))
-                            """
         # handle noCVR pbcids
         else:
             pass
