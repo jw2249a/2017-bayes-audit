@@ -10,18 +10,14 @@ formats, and put the results into the Election data structure.
 
 """
 All CSV files have a single header line, giving the column (field) names.
-
 For most file formats, a data row must have length no longer than the header row,
 and missing values are represented as "".
-
 For "varlen" files (files with variable row lengths), it is a little bit 
 different: the last header may correspond to 0, 1, 2, or more valuesin a data row.
 So the data row may be shorter (by one), equal to, or longer than the header row.
 In any case, the values for the last field are *always* compiled into a tuple
 (possibly an empty tuple).
-
 The reader returns a list of dictionaries, one per row.
-
 Example (regular csv file):
     A,B,C
     1,2,3
@@ -30,7 +26,6 @@ becomes:
     [ {'A':'1', 'B':'2', 'C':'3'},
       {'A':'4', 'B':'5', 'C':''} 
     ]
-
 Example: (varlen csv file)
     A,B,C
     1,2,3
@@ -125,6 +120,3 @@ if __name__=="__main__":
     for row in read_csv_file(filename, varlen=True):
         print([(fn, row[fn]) for fn in sorted(row)])
     
-
-
-
