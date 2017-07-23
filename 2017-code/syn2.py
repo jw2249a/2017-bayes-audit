@@ -443,14 +443,13 @@ def generate_reported(se):
 
 def generate_ballot_manifest(se):
     """ 
-    Generate everything other than location 
-    -- but what structure should we put this in? 
+    
     """
 
     n_pc = dict()
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
-            nested_set(n_pc,[pbcid, cid],len(se.rv_cpb[cid][pbcid]))
+            nested_set(n_pc, [pbcid, cid], len(se.rv_cpb[cid][pbcid]))
     # the keys aren't ordered, so we need to use an ordered dictionary or
     # something to keep track of the "first" ballot before incrementing 
     # no -- just use one line per ballot; don't worry about compression/collapsing
@@ -497,6 +496,23 @@ def write_21_reported_csv(se):
 
 def write_22_ballot_manifests(se):
                            
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
+                           "2-election", "22-ballot-manifests")
+    os.makedirs(dirpath, exist_ok=True)
+
+    for pbcid in se.pbcids:
+        filename = os.path.join(dirpath, "manifest"+pbcid+".csv")
+
+        with open(filename, "w") as file:
+            fieldnames = ["Collection id", "Box id", "Position",
+                          "Stamp", "Ballot id", "Number of ballots",
+                          "Comments"]
+            file.write(",".join(fieldnames))
+            file.write("\n")
+            for boxid in []:
+                pass # TBD  (remember that each line has number of ballots equal to 1)
+                     # in generated file
+
     pass 
 
 
