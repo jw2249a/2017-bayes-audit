@@ -473,23 +473,23 @@ def write_21_reported_csv(se):
     for pbcid in se.pbcids:
         # handle cvr pbcids
         if se.cvr_type_p[pbcid]=="CVR": 
-            filename = os.path.join(dirpath, "reported-cvrs-" + pbcid+".csv")
+            filename = os.path.join(dirpath,
+                                    "reported-cvrs-" + pbcid+".csv")
             with open(filename, "w") as file:
                 fieldnames = ["Collection id", "Scanner", "Ballot id",
                               "Contest", "Selections"]
                 file.write(",".join(fieldnames))
                 file.write("\n")
-                for cid in se.rv_cpb:
-                    if pbcid in se.rel_cp[cid]:
-                        for bid in se.rv_cpb[cid][pbcid]:
+                for bid in se.bids_p[pbcid]:
+                    for cid in se.cids:
+                        if pbcid in se.rel_cp[cid]:
                             vote = se.rv_cpb[cid][pbcid][bid]
-                            if se.cvr_type_p[pbcid] == "CVR":
-                                file.write("{},".format(pbcid))
-                                file.write("{},".format(scanner))
-                                file.write("{},".format(bid))
-                                file.write("{},".format(cid))
-                                file.write(",".join(vote))
-                            file.write("\n")
+                            file.write("{},".format(pbcid))
+                            file.write("{},".format(scanner))
+                            file.write("{},".format(bid))
+                            file.write("{},".format(cid))
+                            file.write(",".join(vote))
+                        file.write("\n")
         # handle noCVR pbcids
         else:
             pass
