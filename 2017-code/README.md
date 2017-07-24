@@ -279,7 +279,7 @@ During an audit, data may be augmented or improved somehow.  We
 use a file naming scheme that doesn't overwrite older data.
 
 We support the principles of "**transparency**" and
-"**repoducibility**": the information relied upon by the audit, and
+"**reproducibility**": the information relied upon by the audit, and
 the information produced by the audit, should be identifiable,
 readable by the public, and usable to confirm the audit computations.
 To support this principle, information is never changed in-place;
