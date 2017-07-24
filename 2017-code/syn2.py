@@ -607,11 +607,11 @@ def write_33_audited_votes(se):
                     for pbcid_inner in se.av_cpb[cid]:
                         if pbcid_inner == pbcid:
                             for bid in se.av_cpb[cid][pbcid]:
-                                selid = se.av_cpb[cid][pbcid][bid]
+                                vote = se.av_cpb[cid][pbcid][bid]
                                 file.write("{},".format(pbcid))
                                 file.write("{},".format(bid))
                                 file.write("{},".format(cid))
-                                file.write("{},".format(selid))
+                                file.write("{}".format(vote))
                                 file.write("\n")
 
 
