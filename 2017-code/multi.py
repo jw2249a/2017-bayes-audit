@@ -174,7 +174,7 @@ class Election(object):
 
         # election data (manifests, reported votes, and reported outcomes)
 
-        e.bids_p = []
+        e.bids_p = {}
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
         # from ballot manifest "Ballot id" column (as expanded for batches)
