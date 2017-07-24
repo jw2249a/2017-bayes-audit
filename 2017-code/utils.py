@@ -107,7 +107,6 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
     selected_filename = ""
     for filename in os.listdir(dirpath):
         full_filename = os.path.join(dirpath,filename)
-        print(dirpath, startswith, endswith, dir_wanted, filename, full_filename)
         if (dir_wanted == False and os.path.isfile(full_filename) or \
             dir_wanted == True and not os.path.isfile(full_filename)) and \
            filename.startswith(startswith) and \
