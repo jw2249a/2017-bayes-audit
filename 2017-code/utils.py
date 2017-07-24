@@ -107,19 +107,20 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
     selected_filename = ""
     for filename in os.listdir(dirpath):
         full_filename = os.path.join(dirpath,filename)
+        print(dirpath, startswith, endswith, dir_wanted, filename, full_filename)
         if (dir_wanted == False and os.path.isfile(full_filename) or \
-            dir_wanted == True and not os.path.isfile(full_filename)) and\
+            dir_wanted == True and not os.path.isfile(full_filename)) and \
            filename.startswith(startswith) and \
            filename.endswith(endswith) and \
            filename > selected_filename:
             selected_filename = filename
     if selected_filename == "":
         if dir_wanted == False:
-            utils.myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
-                          .format(dirpath, startswith, endswith))
+            myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
+                    .format(dirpath, startswith, endswith))
         else:
-            utils.myerror ("No directories in `{}` have a name starting with `{}` and ending with `{}`."
-                           .format(dirpath, startswith, endswith))
+            myerror ("No directories in `{}` have a name starting with `{}` and ending with `{}`."
+                     .format(dirpath, startswith, endswith))
     return selected_filename
 
 
@@ -210,6 +211,7 @@ def convert_int_to_32_bit_numpy_array(v):
     # note: v_parts will be empty list if v==0, that is OK
     return np.array(v_parts, dtype=int)
         
+
 def RandomState(seed):
     """
     Return a np.random.RandomState object, initialized
