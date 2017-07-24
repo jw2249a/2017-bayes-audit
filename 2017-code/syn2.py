@@ -482,7 +482,7 @@ def write_21_reported_csv(se):
                            "2-election", "21-reported-votes")
     os.makedirs(dirpath, exist_ok=True)
 
-    scanner = "scanner-1"
+    scanner = "scanner1"
     for pbcid in se.pbcids:
         # handle cvr pbcids
         if se.cvr_type_p[pbcid]=="CVR": 
@@ -502,7 +502,7 @@ def write_21_reported_csv(se):
                             file.write("{},".format(bid))
                             file.write("{},".format(cid))
                             file.write(",".join(vote))
-                        file.write("\n")
+                            file.write("\n")
         # handle noCVR pbcids
         else:
             pass
