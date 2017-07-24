@@ -335,7 +335,6 @@ def generate_reported(se):
             for i in range(len(bids_pi)):
                 num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1))
                 # random.randint(1,len(available_contests))
-                # change to int(se.SynRandomState.uniform(low, high, size))
                 contest_set = set()
                 for j in range(num_contests):
                     contest = int(se.SynRandomState.uniform(0,len(available_contests),1))
@@ -461,7 +460,6 @@ def generate_ballot_manifest(se):
     # se.number_of_ballots_pb not used, since they are all 1.
     # se.comments_pb = {}
     for pbcid in se.pbcids:
-        print(pbcid, se.bids_p[pbcid])
         for i, bid in enumerate(se.bids_p[pbcid]):
             nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
             nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
