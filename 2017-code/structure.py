@@ -255,9 +255,7 @@ def show_election_structure(e):
     utils.myprint("Valid selection ids for each cid (e.selids_c):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
-        for selid in sorted(e.selids_c[cid]):
-            utils.myprint(selid, end=', ')
-        utils.myprint()
+        utils.myprint(", ".join(sorted(e.selids_c[cid])))
     utils.myprint("Number of paper ballot collections:")
     utils.myprint("    {}".format(len(e.pbcids)))
     utils.myprint("Paper ballot collection ids (e.pbcids), CVR types (e.cvr_type_p), and managers (e.manager_p):")
@@ -267,9 +265,7 @@ def show_election_structure(e):
     utils.myprint("Possible pbcids for each cid (e.rel_cp):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
-        for pbcid in sorted(e.rel_cp[cid]):
-            utils.myprint(pbcid, end=', ')
-        utils.myprint()
+        utils.myprint(", ".join(sorted(e.rel_cp[cid])))
 
 
 if __name__=="__main__":
