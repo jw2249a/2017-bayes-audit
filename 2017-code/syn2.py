@@ -442,9 +442,6 @@ def generate_reported(se):
 
 
 def generate_ballot_manifest(se):
-    """ 
-    
-    """
 
     n_pc = dict()
     for cid in se.rv_cpb:
@@ -502,7 +499,6 @@ def write_22_ballot_manifests(se):
 
     for pbcid in se.pbcids:
         filename = os.path.join(dirpath, "manifest"+pbcid+".csv")
-
         with open(filename, "w") as file:
             fieldnames = ["Collection id", "Box id", "Position",
                           "Stamp", "Ballot id", "Number of ballots",
