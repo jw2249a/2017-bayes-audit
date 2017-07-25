@@ -12,6 +12,9 @@ Also known as "social choice functions".
 # TBD: Tie-breaking, etc.
 
 
+import utils
+
+
 def compute_tally(vec):
     """
     Here vec is an iterable of hashable elements.
@@ -38,7 +41,7 @@ def plurality(e, cid, tally):
     for vote in tally:
         if tally[vote] > max_cnt and \
            len(vote) == 1 and \
-           not is_error_selid(vote[0]):
+           not utils.is_error_selid(vote[0]):
             max_cnt = tally[vote]
             max_selid = vote[0]
     assert "No winner allowed in plurality contest.", tally

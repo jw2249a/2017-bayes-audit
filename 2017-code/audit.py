@@ -10,6 +10,7 @@ Routines to work with multi.py on post-election audits.
 
 import numpy as np
 
+import outcomes
 import utils
 
 

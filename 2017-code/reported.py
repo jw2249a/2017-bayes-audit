@@ -84,16 +84,6 @@ import utils
 ##############################################################################
 
 
-def is_writein(selid):
-
-    return len(selid) > 0 and selid[0] == "+"
-
-
-def is_error_selid(selid):
-
-    return len(selid) > 0 and selid[0] == "-"
-
-
 def get_election_data(e):
 
     # next line needs to be replaced!
@@ -121,7 +111,7 @@ def finish_election_data(e):
                 r = e.rv_cpb[cid][pbcid][bid]
                 e.votes_c[r] = True
                 for selid in r:
-                    if is_writein(selid) or is_error_selid(selid):
+                    if utils.is_writein(selid) or utils.is_error_selid(selid):
                         e.selids_c[cid][selid] = True
 
     # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
@@ -209,7 +199,7 @@ def check_election_data(e):
             utils.mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
         for vote in e.rn_cr[cid]:
             for selid in vote:
-                if (not is_writein(selid) and not is_error_selid(selid)) \
+                if (not utils.is_writein(selid) and not utils.is_error_selid(selid)) \
                    and not selid in e.selids_c[cid]:
                     utils.mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
                               .format(cid, selid, cid))
@@ -311,15 +301,6 @@ def show_election_data(e):
         for vote in sorted(e.rn_cr[cid]):
             utils.myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
         utils.myprint()
-
-    utils.myprint("e.av_cpb (first five or so actual votes cast for each cid and pbcid):")
-    for cid in e.cids:
-        for pbcid in sorted(e.rel_cp[cid]):
-            utils.myprint("    {}.{}:".format(cid, pbcid), end='')
-            for j in range(min(5, len(e.bids_p[pbcid]))):
-                bid = e.bids_p[pbcid][j]
-                utils.myprint(e.av_cpb[cid][pbcid][bid], end=' ')
-            utils.myprint()
 
     utils.myprint("e.ro_c (reported outcome for each cid):")
     for cid in e.cids:

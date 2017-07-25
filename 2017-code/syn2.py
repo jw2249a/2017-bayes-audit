@@ -39,9 +39,10 @@ import numpy as np
 import os
 
 import multi
+import outcomes
+import random 
 import structure
 import utils
-import random 
 
 class SynElection(multi.Election):
 
@@ -319,6 +320,7 @@ def generate_reported(se):
     se.cids_b = {}
 
     # change rel_cp to rel_pc 
+    # only used below in computation of se.cids_b
     rel_pc = {}
     for cid in se.cids:
         pbcids = se.rel_cp[cid]
@@ -328,6 +330,8 @@ def generate_reported(se):
             else:
                 rel_pc[pbcid].append(cid)
 
+    # se.cids_b
+    # FIX: this code seems to assume that ballot ids are globally unique! ??
     for pbcid in se.pbcids:
         if se.cvr_type_p[pbcid] == 'CVR':
             bids_pi = se.bids_p[pbcid]
@@ -347,13 +351,12 @@ def generate_reported(se):
             pass 
 
     # Generate the selection for each contest (populate rv_cpb).
-    # Draw from selids_c. 
-    # Also keep track of ro_c.
-    se.rv_cpb = dict()
-    for cid in se.rel_cp:
+    # Draw from selids_c[cid] for each cid.
+    se.rv_cpb = {}
+    for cid in se.cids:
+        selids = list(se.selids_c[cid])
         for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
-                selids = list(se.selids_c[cid])
 
                 if se.contest_type_c[cid] == 'plurality':
                     # vote is a tuple of length 1 here
@@ -362,6 +365,7 @@ def generate_reported(se):
                     nested_set(se.rv_cpb, [cid, pbcid, bid], vote)
 
                 else: # we can handle this later when its not hardcoded 
+                    # need to distinguish preferential voting, etc...
                     pass
                     
 
@@ -400,7 +404,7 @@ def generate_reported(se):
 
     # get rn_cpr
     se.rn_cpr = dict()
-    for cid in se.rv_cpb:
+    for cid in se.cids:
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
                 vote = se.rv_cpb[cid][pbcid][bid]
@@ -417,7 +421,7 @@ def generate_reported(se):
 
     # sum over pbcids to get rn_cr
     se.rn_cr = dict()
-    for cid in se.rn_cpr:
+    for cid in se.cids:
         for pbcid in se.rn_cpr[cid]:
             for vote in se.rn_cpr[cid][pbcid]:
                 if cid in se.rn_cr:
@@ -432,6 +436,8 @@ def generate_reported(se):
     for cid in rn_cv:
         outcome = max(rn_cv[cid], key=rn_cv[cid].get)
         se.ro_c[cid] = outcome
+        tally = rn_cv[cid]
+        se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
 
     # dropoff
     assert 0 < se.dropoff <= 1
