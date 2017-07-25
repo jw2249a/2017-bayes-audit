@@ -348,10 +348,10 @@ def generate_reported(se):
             for bid in se.bids_p[pbcid]:
 
                 if se.contest_type_c[cid] == 'plurality':
-                    # vote is a tuple of length 1 here
+                    # rvote is a tuple of length 1 here
                     selection = se.SynRandomState.choice(selids)
-                    vote = (selection,)
-                    nested_set(se.rv_cpb, [cid, pbcid, bid], vote)
+                    rvote = (selection,)
+                    nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
 
                 else: # we can handle this later when its not hardcoded 
                     # need to distinguish preferential voting, etc...
@@ -363,14 +363,14 @@ def generate_reported(se):
     for cid in se.cids:
         for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
-                vote = se.rv_cpb[cid][pbcid][bid]
+                rvote = se.rv_cpb[cid][pbcid][bid]
                 if cid not in rn_cv:
-                    nested_set(rn_cv, [cid, vote], 1)
+                    nested_set(rn_cv, [cid, rvote], 1)
                 else:
-                    if vote not in rn_cv[cid]:
-                        nested_set(rn_cv, [cid, vote], 1)
+                    if rvote not in rn_cv[cid]:
+                        nested_set(rn_cv, [cid, rvote], 1)
                     else:
-                        rn_cv[cid][vote]+=1
+                        rn_cv[cid][rvote]+=1
 
     # get rn_p from se.rv_cpb
     se.rn_p = dict()
@@ -385,41 +385,41 @@ def generate_reported(se):
     # sum over selection ids to get rn_c
     se.rn_c = {}
     for cid in rn_cv:
-        for vote in rn_cv[cid]:
+        for rvote in rn_cv[cid]:
             if cid not in se.rn_c:
-                se.rn_c[cid]=rn_cv[cid][vote]
+                se.rn_c[cid]=rn_cv[cid][rvote]
             else:
-                se.rn_c[cid]+=rn_cv[cid][vote]
+                se.rn_c[cid]+=rn_cv[cid][rvote]
 
     # get rn_cpr
     se.rn_cpr = dict()
     for cid in se.cids:
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
-                vote = se.rv_cpb[cid][pbcid][bid]
+                rvote = se.rv_cpb[cid][pbcid][bid]
                 if cid in se.rn_cpr:
                     if pbcid in se.rn_cpr[cid]:
-                        if vote in se.rn_cpr[cid][pbcid]:
-                            se.rn_cpr[cid][pbcid][vote]+=1
+                        if rvote in se.rn_cpr[cid][pbcid]:
+                            se.rn_cpr[cid][pbcid][rvote]+=1
                         else:
-                            nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
+                            nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
                     else:
-                        nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
+                        nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
                 else:
-                    nested_set(se.rn_cpr,[cid,pbcid,vote], 1)
+                    nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
 
     # sum over pbcids to get rn_cr
     se.rn_cr = dict()
     for cid in se.cids:
         for pbcid in se.rn_cpr[cid]:
-            for vote in se.rn_cpr[cid][pbcid]:
+            for rvote in se.rn_cpr[cid][pbcid]:
                 if cid in se.rn_cr:
-                    if vote in se.rn_cr[cid]:
-                        se.rn_cr[cid][vote]+=se.rn_cpr[cid][pbcid][vote]
+                    if rvote in se.rn_cr[cid]:
+                        se.rn_cr[cid][rvote] += se.rn_cpr[cid][pbcid][rvote]
                     else:
-                        nested_set(se.rn_cr, [cid, vote], se.rn_cpr[cid][pbcid][vote])
+                        nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
                 else:
-                    nested_set(se.rn_cr, [cid, vote], se.rn_cpr[cid][pbcid][vote])
+                    nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
 
     se.ro_c = dict()
     for cid in rn_cv:
