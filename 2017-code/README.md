@@ -186,8 +186,9 @@ We have:
   Other potentially useful selection ids include
     1. **``-Unknown``**: Nothing is known about the ballot. It might
        not even contain the desired contest.
-    2. **``-Absent``**: The contest is missing from the ballot. Perhaps
-       the wrong ballot was pulled.
+    2. **``-NoSuchContest``**: The contest is missing from the ballot. Perhaps
+       the wrong ballot was pulled, or the contest doesn't appear on every
+       ballot in the paper ballot collection.
     3. **``-NoRecord``**: The ballot contains the desired contest, but
        the voter's selection was not recorded.  Perhaps useful if the
        desired contest is no longer being audited.

@@ -73,9 +73,12 @@ class Election(object):
         selid  a selection id (e.g. "Yes" or "JohnSmith"). A string.
                If it begins with a "+", it denotes a write-in (e.g. "+BobJones")
                If it begins with a "-", it denotes an error (e.g. "-Invalid" or
-               "-Absent" or "-noCVR").  Errors for overvotes and undervotes
+               "-NoSuchContest" or "-noCVR").  Errors for overvotes and undervotes
                are indicated in another way.  Each selid naively corresponds to
-               one bubble filled in on an optical scan ballot.
+               one bubble filled in on an optical scan ballot.  If a ballot doesn't
+               contain a contest, its reported vote (from the scanner) and its
+               actual vote (from the audit) will be (-NoSuchContest).  (See the
+               next paragraph about votes.)
 
         vote   a tuple of selids, e.g. ("AliceJones", "BobSmith", "+LizardPeople").
                An empty vote (e.g. () ) is an undervote (for plurality).
