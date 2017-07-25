@@ -317,25 +317,14 @@ def generate_reported(se):
     ids based on what contests are in the given pbcids as well as assign 
     selections based on the possible selections for each contest.
     """
-    se.cids_b = {}
-
-    # change rel_cp to rel_pc 
-    # only used below in computation of se.cids_b
-    rel_pc = {}
-    for cid in se.cids:
-        pbcids = se.rel_cp[cid]
-        for pbcid in pbcids:
-            if pbcid not in rel_pc:
-                rel_pc[pbcid]=[cid]
-            else:
-                rel_pc[pbcid].append(cid)
 
     # se.cids_b
     # FIX: this code seems to assume that ballot ids are globally unique! ??
+    se.cids_b = {}
     for pbcid in se.pbcids:
         if se.cvr_type_p[pbcid] == 'CVR':
             bids_pi = se.bids_p[pbcid]
-            available_contests = rel_pc[pbcid]
+            available_contests = [c for c in se.cids if pbcid in se.rel_cp[c]]
             for i in range(len(bids_pi)):
                 num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1))
                 # random.randint(1,len(available_contests))
@@ -347,7 +336,7 @@ def generate_reported(se):
                         contest_set.add(contest)
                         se.cids_b[bids_pi[i]] = available_contests[contest]
         else:
-            # not sure what to do here if cvr_type_p[pbcid] == noCVR 
+            # not sure what to do here if cvr_type_p[pbcid] == "noCVR"
             pass 
 
     # Generate the selection for each contest (populate rv_cpb).
