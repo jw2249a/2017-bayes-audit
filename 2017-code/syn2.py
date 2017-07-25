@@ -320,39 +320,33 @@ def generate_reported(se):
 
     # se.cids_b
     # FIX: this code seems to assume that ballot ids are globally unique! ??
+    # Why do we need cids_b ??
     se.cids_b = {}
     for pbcid in se.pbcids:
         if se.cvr_type_p[pbcid] == 'CVR':
-            bids_pi = se.bids_p[pbcid]
             available_contests = [c for c in se.cids if pbcid in se.rel_cp[c]]
-            for i in range(len(bids_pi)):
-                num_contests =  int(se.SynRandomState.uniform(1,len(available_contests)+1,1))
-                # random.randint(1,len(available_contests))
-                contest_set = set()
-                for j in range(num_contests):
-                    contest = int(se.SynRandomState.uniform(0,len(available_contests),1))
-                    # random.randint(0, len(available_contests)-1)
-                    if contest not in contest_set:
-                        contest_set.add(contest)
-                        se.cids_b[bids_pi[i]] = available_contests[contest]
+            for bid in se.bids_p[pbcid]:
+                num_contests =  se.SynRandomState.randint(1,len(available_contests))
+                while len(se.cids_b[bid]) < min(num_contests, len(available_contests)):
+                    cid = se.SynRandomState.choice(available_contests)
+                    if cid not in se.cids_b[bid]:
+                        se.cids_b[bid].append(cid)
         else:
             # not sure what to do here if cvr_type_p[pbcid] == "noCVR"
             pass 
 
-    # Generate the selection for each contest (populate rv_cpb).
+    # Generate the reported selection for each contest and ballot (populate rv_cpb).
     # Draw from selids_c[cid] for each cid.
     se.rv_cpb = {}
     for cid in se.cids:
         selids = list(se.selids_c[cid])
         for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
-
                 if se.contest_type_c[cid] == 'plurality':
                     # rvote is a tuple of length 1 here
                     selection = se.SynRandomState.choice(selids)
                     rvote = (selection,)
                     nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
-
                 else: # we can handle this later when its not hardcoded 
                     # need to distinguish preferential voting, etc...
                     pass
@@ -581,6 +575,7 @@ def generate_actual(se):
                         selids = list(se.selids_c[cid].keys())
                     selection = se.SynRandomState.choice(selids)
                     nested_set(se.av_cpb, [cid, pbcid, bid], selection)
+
 
 def write_audit(se):
 
