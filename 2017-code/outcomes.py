@@ -14,7 +14,7 @@ An outcome is always a *tuple* of ids, even if there is only one winner.
 # TBD: Tie-breaking, etc.
 
 
-import utils
+import ids
 
 
 def compute_tally(vec):
@@ -43,7 +43,7 @@ def plurality(e, cid, tally):
     for vote in tally:
         if tally[vote] > max_cnt and \
            len(vote) == 1 and \
-           not utils.is_error_selid(vote[0]):
+           not ids.is_error_selid(vote[0]):
             max_cnt = tally[vote]
             max_selid = vote[0]
     assert "No winner allowed in plurality contest.", tally

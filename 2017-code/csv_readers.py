@@ -40,24 +40,8 @@ becomes:
 
 import csv
 
+import ids
 import utils
-
-def clean_id(id):
-    """ 
-    Return id with initial and final whitespace removed, and
-    with any internal whitespace sequences replaced by a single
-    blank.  Also, all nonprintable characters are removed.
-    """
-
-    id = id.strip()
-    new_id = ""
-    for c in id:
-        if c.isspace():
-            c = " "
-        if (c != " " or (len(new_id)>0 and new_id[-1] != " ")) \
-           and c.isprintable():
-            new_id += c
-    return new_id
 
 
 def read_csv_file(filename, varlen=False):
@@ -66,7 +50,7 @@ def read_csv_file(filename, varlen=False):
         reader = csv.DictReader(file)
         rows = [row for row in reader]
         # take care of case last fieldname is followed by a comma
-        while len(reader.fieldnames)>0 and clean_id(reader.fieldnames[-1])=='':
+        while len(reader.fieldnames)>0 and ids.clean_id(reader.fieldnames[-1])=='':
             reader.fieldnames.pop()
             for row in rows:
                 row[None] = [row['']]+row.get(None,[])
@@ -76,7 +60,7 @@ def read_csv_file(filename, varlen=False):
                 utils.mywarning("Too many values in row:"+str(row))
                 del row[None]
             for fieldname in reader.fieldnames:
-                clean_fieldname = clean_id(fieldname)
+                clean_fieldname = ids.clean_id(fieldname)
                 if clean_fieldname != fieldname:
                     if clean_fieldname in row:
                         utils.mywarning("field name given twice:", clean_fieldname)
@@ -86,17 +70,17 @@ def read_csv_file(filename, varlen=False):
                 if row[fieldname] == None:
                     row[fieldname] = ""
                 if isinstance(row[fieldname], str):
-                    row[fieldname] = clean_id(row[fieldname])
+                    row[fieldname] = ids.clean_id(row[fieldname])
             if varlen:
-                lastfieldname = clean_id(reader.fieldnames[-1])
+                lastfieldname = ids.clean_id(reader.fieldnames[-1])
                 if row[lastfieldname] == None:
                     value = ()
                 elif None not in row:
                     value = (row[lastfieldname],)
                 else:
-                    while len(row[None])>0 and clean_id(row[None][-1])=='':
+                    while len(row[None])>0 and ids.clean_id(row[None][-1])=='':
                         row[None].pop()
-                    value = [row[lastfieldname]] + [clean_id(id) for id in row[None]]
+                    value = [row[lastfieldname]] + [ids.clean_id(id) for id in row[None]]
                     value = tuple(value)
                     # Note: the previous line does *not* sort the ids into
                     # order.  This will be needed if these ids represent selids in a

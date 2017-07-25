@@ -238,21 +238,6 @@ def RandomState(seed):
         return np.random.RandomState(seed)
 
 
-##############################################################################
-## id-related routines
-
-def is_writein(selid):
-
-    return len(selid) > 0 and selid[0] == "+"
-
-
-def is_error_selid(selid):
-
-    return len(selid) > 0 and selid[0] == "-"
-
-
-
-
 if __name__=="__main__":
     pass
 

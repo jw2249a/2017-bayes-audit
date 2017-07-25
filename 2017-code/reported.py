@@ -78,6 +78,7 @@ Boulder-council , Dave Diddle, Ben Borg   , Sue Mee   , Jill Snead
 
 
 import multi
+import ids
 import utils
 
 
@@ -113,7 +114,7 @@ def finish_election_data(e):
                 r = e.rv_cpb[cid][pbcid][bid]
                 e.votes_c[r] = True
                 for selid in r:
-                    if utils.is_writein(selid) or utils.is_error_selid(selid):
+                    if ids.is_writein(selid) or ids.is_error_selid(selid):
                         e.selids_c[cid][selid] = True
 
     # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
@@ -201,7 +202,7 @@ def check_election_data(e):
             utils.mywarning("e.rn_cr key cid `{}` is not in e.cids".format(cid))
         for vote in e.rn_cr[cid]:
             for selid in vote:
-                if (not utils.is_writein(selid) and not utils.is_error_selid(selid)) \
+                if (not ids.is_writein(selid) and not ids.is_error_selid(selid)) \
                    and not selid in e.selids_c[cid]:
                     utils.mywarning("e.rn_cr[{}] key `{}` is not in e.selids_c[{}]"
                               .format(cid, selid, cid))
