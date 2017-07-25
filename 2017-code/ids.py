@@ -35,6 +35,18 @@ def clean_id(id):
     return new_id
 
 
+def filename_safe(id):
+    """
+    Remove all characters other than letters, digits, hyphen, underscore, and plus.
+    """
+
+    ans = []
+    for c in id:
+        if c.isalnum() or c in "+-_./":
+            ans.append(c)
+    return "".join(ans)
+
+    
 ##############################################################################
 ## selid-specifc routines
 

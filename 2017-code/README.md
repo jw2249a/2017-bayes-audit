@@ -225,10 +225,11 @@ removing any initial or final whitespace characters, and converting
 any internal subsequence of two or more whitespace characters to a
 single blank.
 
-When an identifier (usually a collection identifier) is used as part
-of a filename, all characters in the identifier other than
+When an identifier (usually a paper ballot collection identifier)
+is used as part of a filename, all characters in the identifier
+other than
 
-    A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_) period(.)
+    A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_)
 
 are removed.
 

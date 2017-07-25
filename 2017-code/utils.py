@@ -238,27 +238,6 @@ def RandomState(seed):
         return np.random.RandomState(seed)
 
 
-##############################################################################
-
-
-def filename_safe(filename):
-    """ Remove characters from proposed filename that can't appear in a filename.
-
-    When an identifier (usually a collection identifier) is used as part
-    of a filename, all characters in the identifier other than
-        A-Z   a-z   0-9  plus (+) hyphen(-) underscore(_) period(.)
-    are removed.  OK to return empty string.
-
-    Safe filenames have only the above characters in them, or "/".
-    """
-
-    ans = []
-    for c in filename:
-        if c.isalnum() or c in "+-_./":
-            ans.append(c)
-    return "".join(ans)
-
-
 if __name__=="__main__":
     pass
 

@@ -11,8 +11,9 @@ Command-line parser and dispatch
 import argparse
 
 
-import audit
 import multi
+import ids
+import audit
 import reported
 import structure
 
@@ -61,9 +62,12 @@ def parse_args():
 
 def process_args(e, args):
 
-    e.election_dirname = args.election_dirname
+    e.election_dirname = ids.filename_safe(args.election_dirname)
+
     e.election_name = args.election_name
+
     ELECTIONS_ROOT = args.elections_root
+
     audit.set_audit_seed(e, args.audit_seed)
 
     if args.read_structure:
