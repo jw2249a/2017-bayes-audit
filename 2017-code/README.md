@@ -128,6 +128,7 @@ We assume that the election has the following components:
 
 [Back to TOC](#table-of-contents)
 
+
 ## Scanning of cast paper ballots
 
 We assume that all the paper ballots in each collection have been **scanned** by
@@ -156,6 +157,8 @@ Some elections have so many contests that the ballot is comprised of
 two or more separate "cards".  We do not deal with this complexity; we
 assume in such multi-card cases that the cards for a single ballot are
 always kept together. (Obviously a false assumption in practice.)
+
+[Back to TOC](#table-of-contents)
 
 ## Auditing
 
@@ -195,6 +198,8 @@ We assume the existence of an **Audit Coordinator** who coordinates
 the audit in collaboration with the collection managers (the
 Coordinator might be from the Secretary of State's office).
 
+[Back to TOC](#table-of-contents)
+
 ## Implementation notes: identifiers, votes, file names, and directory structure
 
 This section describes some low-level but essential details regarding
@@ -204,6 +209,8 @@ use of CSV file formats,
 how transparency and reproducibility
 are supported by the use of file names that include version labels, and
 how ``multi.py`` structures information in a directory.
+
+[Back to TOC](#table-of-contents)
 
 ### Identifiers
 
@@ -274,6 +281,8 @@ other than
 
 are removed.
 
+[Back to TOC](#table-of-contents)
+
 ### Votes
 
 A **vote** is what is indicated by a voter on a paper ballot for a
@@ -309,12 +318,16 @@ is hashable.  But the intent is to represent a set, not a sequence.
 To that end, the default order of a vote is with the selids
 sorted into increasing order (as strings).
 
+[Back to TOC](#table-of-contents)
+
 ### File formats
 
 ``Multi.py`` uses CSV (comma-separated values) format for files;
 a single header row specifies the column labels, and each subsequent line of
 the file specifies one spreadsheet row.  A compressed format is
 suggested in the Appendix below.
+
+[Back to TOC](#table-of-contents)
 
 ### File names
 
@@ -386,6 +399,8 @@ a new file with a later date is just added to the directory.
 The earlier file may be deleted, if desired.
 
 
+[Back to TOC](#table-of-contents)
+
 ###  Directory structure
 
 The information for an election is kept in a single directory
@@ -448,6 +463,8 @@ of that directory might look as follows.
           audit-stage-003
              ...
  
+[Back to TOC](#table-of-contents)
+
 ## (Pre-election) Election definition.
 
 The election definition phase answers the questions:
@@ -469,6 +486,8 @@ an "**election file**", a "**contests file**", and a
 election-definition files are produced from similar files used
 for the election itself.
 
+[Back to TOC](#table-of-contents)
+
 ### Election file
 
 An **election file** gives some high-level attributes of the election.
@@ -488,6 +507,8 @@ as "./elections".
 
 This is a CSV file, with the name ``11-election.csv`` (possibly with a version
 label, as in ``11-election-2017-09-08.csv``).
+
+[Back to TOC](#table-of-contents)
 
 ### Contests file
 
@@ -514,6 +535,8 @@ Additional contest types may be supported as needed.
 
 This is a CSV file, with the name ``12-contests.csv`` (possibly with a version
 label, as in ``12-contests-2017-09-08.csv``).
+
+[Back to TOC](#table-of-contents)
 
 ### Contest groups file
 
@@ -550,6 +573,8 @@ contests.
 A contest group has a file name of the form
 ``14-contest-groups-2017-09-08.csv`` (shown with version label).
 
+[Back to TOC](#table-of-contents)
+
 
 ### Collections file
 
@@ -573,6 +598,8 @@ co-occur on a ballot.  If a collection may hold ballots of several different
 styles, then the collections file shows every contest that may appear on
 any allowed ballot in the collection.
 
+[Back to TOC](#table-of-contents)
+
 ## Election data (CVRs, ballot manifests, and reported outcomes)
 
 When the election is run, paper ballots are cast and scanned.  The
@@ -582,6 +609,8 @@ A "**ballot manifest**" is produced for each paper ballot collection,
 describing the collection and enabling random sampling from that
 collection. A "**reported outcomes**" file lists the reported
 outcome for each contest.
+
+[Back to TOC](#table-of-contents)
 
 ### Reported Vote file (CVRs)
 
@@ -675,6 +704,8 @@ column is replaced by a "Tally" column:
 
 This file format for noCVRs is also used for output tally files for CVR
 collections.
+
+[Back to TOC](#table-of-contents)
 
 
 ### Ballot manifest file
@@ -785,6 +816,8 @@ A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13-2017-11-07.csv``
 (possibly with a version label, as exemplified).
 
+[Back to TOC](#table-of-contents)
+
 ### Reported outcomes file
 
 A "**reported outcomes file**" gives the reported outcome for every
@@ -811,6 +844,8 @@ it here.
 A reported outcomes file has a filename of the form
 ``23-reported-outcomes.csv``, e.g. ``23-reported-outcomes-2017-11-07.csv``
 (possibly with a version label, as exemplified).
+
+[Back to TOC](#table-of-contents)
 
 ## Audit
 
@@ -839,6 +874,8 @@ then provides guidance to the collection mangers (in the form of a
 if desired, to give faster evaluation of the audit progress. But the audited
 votes data should nonetheless be uploaded to Audit Central.)
 
+[Back to TOC](#table-of-contents)
+
 ### Audit setup
 
 The audit setup determines the "**audit seed**", a long random number,
@@ -862,6 +899,8 @@ The audit seed file has a filename of the form
 ``311-audit-seed-2017-11-20.csv`` or the like.
 (This example shows a version label to record the date, but the audit
 seed should only be made once.)
+
+[Back to TOC](#table-of-contents)
 
 #### Audit orders and audited-votes files
 
@@ -897,6 +936,8 @@ with that scanner.  All the same, the AC should provide sufficient
 "advance notice" of auditing requests that CMs can "work ahead" if they
 wish, for example by combining requests for ballots from the same box.
 
+
+[Back to TOC](#table-of-contents)
 
 #### Audit order file
 
@@ -972,6 +1013,8 @@ with an appropriate UI interface to generate the audited votes
 file. 
 
 
+[Back to TOC](#table-of-contents)
+
 ### Audited votes
 
 #### Sample vote file (actual vote file)
@@ -1006,7 +1049,11 @@ examined ballots.
 For example, the file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
 ``audited-votes-DEN-A01-2017-11-21.csv``.
 
+[Back to TOC](#table-of-contents)
+
 ### Audit stages
+
+[Back to TOC](#table-of-contents)
 
 #### Audit parameters files
 
@@ -1019,6 +1066,8 @@ be updated from stage to stage.  Typically, however, they will not
 change, and the audit parameters for one stage will just be a
 copy of the audit parameters from the previous stage.
 
+[Back to TOC](#table-of-contents)
+
 ##### Global audit parameters
 
 The **global audit parameters file** is simple.
@@ -1030,6 +1079,8 @@ The **global audit parameters file** is simple.
 The filename is of the form
 ``10-audit-parameters-global-2017-11-22.csv``
 (showing a year-month-day version label).
+
+[Back to TOC](#table-of-contents)
 
 ##### Contest audit parameters
 
@@ -1148,6 +1199,8 @@ The filename for a contest audit parameters file is of the form
 ``11-audit-parameters-contest-2017-11-22.csv``
 (showing a year-month-day version label).
 
+[Back to TOC](#table-of-contents)
+
 ##### Collection audit parameters
 
 A **collection audit parameters file** gives audit parameters that
@@ -1167,6 +1220,8 @@ The filename for a collection audit parameters file is of the form
 ``12-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
 
+[Back to TOC](#table-of-contents)
+
 #### Output file formats (per stage)
 
 The outputs include a file ``20-audit-snapshot.csv`` that gives the SHA256
@@ -1182,11 +1237,15 @@ plan (broken down by collection) for the next stage.
 
 (More details to be determined.)
 
+[Back to TOC](#table-of-contents)
+
 ## Audit workflow
 
 This section describes the audit workflow, from the point of
 view of the audit participants (AC coordinator, collection manager,
 observer).
+
+[Back to TOC](#table-of-contents)
 
 ### Pre-election
 
@@ -1194,6 +1253,8 @@ Define election structure, global parameters, contests, and collections.
 Put this information into directory:
 
     1-structure
+
+[Back to TOC](#table-of-contents)
 
 ### Election
 
@@ -1205,6 +1266,8 @@ Put this inforation into directories:
       21-reported-votes
       22-ballot-manifests
       23-reported-outcomes
+
+[Back to TOC](#table-of-contents)
 
 ### Setup audit
 
@@ -1231,6 +1294,8 @@ into the stage "000" directory in the audit-plan file.
          audit-stage-000
              40-audit-plan.csv
 
+[Back to TOC](#table-of-contents)
+
 ### Start audit
 
 If you are a collection manager,
@@ -1252,6 +1317,8 @@ file contains *all* of the audited votes from the collection;
 they are cumulative.) (For non-Bayesian risk measurement
 methods, the uploads may need to be synchronized.)
 
+[Back to TOC](#table-of-contents)
+
 ### Audit stages
 
 Audit Central determines when a new audit stage starts.
@@ -1261,7 +1328,11 @@ the stage number as a three-digit decimal,
 and the audit computations begin, based on all available sampling data
 (from ``32-audited-votes``) at the time the stage begins.
 
+[Back to TOC](#table-of-contents)
+
 #### Per-stage audit files
+
+[Back to TOC](#table-of-contents)
 
 ##### Audit parameters files
 
@@ -1271,6 +1342,8 @@ Central to reflect pending deadlines, additional resources now available,
 etc.
 
 Formats are as specified above.
+
+[Back to TOC](#table-of-contents)
 
 ##### Audit snapshot file
 
@@ -1298,6 +1371,8 @@ with later version labels have been added to the directory structure.)
 | ``12-audit-parameters-collection-2017-11-22.csv`` | ``3f79bb7b435b05321651daefd374cdc681dc06faa65e374e38337b88ca046dea`` |
 
 
+[Back to TOC](#table-of-contents)
+
 ##### Audit output file(s)
 
 The **audit outputs** file(s) give the measured risks.
@@ -1307,6 +1382,8 @@ have now reached their risk limits, so that certain collection
 managers may be told that their work is completed.
 
 Format: TBD
+
+[Back to TOC](#table-of-contents)
 
 ##### Audit plan file
 
@@ -1325,6 +1402,8 @@ optimization may be applied here.)
 
 The sum of "audited-so-far" and "next stage increment request" should equal the
 size of the "audit-order" file.
+
+[Back to TOC](#table-of-contents)
 
 ## Command-line interface to ``multi.py``
 
@@ -1354,7 +1433,11 @@ parameters should to be adjusted to only those audit contests local to the colle
 by setting the risk limits to all other contests to 1.00.
 
 
+[Back to TOC](#table-of-contents)
+
 ## Appendix (Possible Future Work)
+
+[Back to TOC](#table-of-contents)
 
 ### Compression
 
@@ -1398,6 +1481,8 @@ DEN-A01,FG231,B-231,DEN-prop-1,Yes,
 &3,^2,+Tom Cruz
 &2,B-888,^,-Invalid
 ```
+
+[Back to TOC](#table-of-contents)
 
 
 
