@@ -148,7 +148,7 @@ def generate_contests(se):
     # check number of contests
     assert isinstance(se.n_cids, int) and se.n_cids >= 1
     # make cid for each contest
-    se.cids = ["c{}".format(i+1) for i in range(se.n_cids)]
+    se.cids = ["con{}".format(i+1) for i in range(se.n_cids)]
 
     # generate contest types as plurality and number winners = 1
     # no write-ins
@@ -172,14 +172,14 @@ def generate_contests(se):
                                              se.min_n_selids_per_cid,
                                              se.max_n_selids_per_cid)
 
-        se.selids_c[cid] = {"s{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
+        se.selids_c[cid] = {"sel{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
 
 
 def generate_collections(se):
 
     # generate list of pbcids
     assert isinstance(se.n_pbcids, int) and se.n_pbcids >= 1
-    se.pbcids = ["p{}".format(i) for i in range(1, se.n_pbcids+1)]
+    se.pbcids = ["pbc{}".format(i) for i in range(1, se.n_pbcids+1)]
 
     # add managers
     for pbcid in se.pbcids:
@@ -302,7 +302,7 @@ def generate_reported(se):
         se.bids_p[pbcid] = []
         for i in range(se.n_bids_p[pbcid]):
             se.n_bids += 1
-            bid = "b{}".format(se.n_bids)
+            bid = "bal{}".format(se.n_bids)
             se.bids_p[pbcid].append(bid)
 
     """
@@ -469,7 +469,7 @@ def generate_ballot_manifest(se):
         for i, bid in enumerate(se.bids_p[pbcid]):
             nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
             nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
-            nested_set(se.stamp_pb, [pbcid, bid], "{:06d}".format((i+1)*17))
+            nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
             nested_set(se.comments_pb, [pbcid, bid], "")
 
 
