@@ -225,10 +225,14 @@ We have:
 * **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"``)
   A selection identifier is called a ``"selid"`` in the code.
   Roughly speaking, there should be one selection identifier for each
-  optical scan bubble.  If bubble are arranged in a matrix, as
-  they might be for preferential voting, score voting, or 3-2-1
-  voting, then the selid might have the form "rowid:colid", as
-  in "Smith:1" or "Jones:Excellent".
+  optical scan bubble.  If bubble are arranged in a matrix, for
+  preferential voting, then the selid should have the form
+  ``"rank-candidate"``, as in ``"1-Jones"`` or ``"2-Smith"`` (for the
+  first and second candidates preferred by the voter).
+  Fore score voting or 3-2-1 voting, the selid should have the
+  form ``"score-candidate"``, as in ``"17-Smith"`` or ``"Excellent-Jones"``.
+  In other cases of bubbles arranged in a matrix, the
+  selid should have the form ``"rowid-columnid"``.
   A **write-in** selection has a selection id beginning with a plus
   sign (example: ``"+BobWhite"``).
   Other potentially useful selection ids include
