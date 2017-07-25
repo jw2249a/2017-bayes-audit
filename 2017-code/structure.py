@@ -9,7 +9,7 @@ CSV files containing information about the "structure"
 of an election:
    11-election-2017-09-08.csv
    12-contests-2017-09-08.csv
-   13-collections-2017-09-08.csv
+   14-collections-2017-09-08.csv
 with structures represented by csv files of the form:
 
 11-election.csv:
@@ -29,7 +29,7 @@ US-Senate-1     , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  
 Boulder-clerk   , IRV          , 1         , Arbitrary , Rock Ohn   , Peh Bull  , Roll Stone
 Boulder-council , Plurality    , 4         , No        , Dave Diddle, Ben Borg  , Sue Mee    , Fan Tacy    , Jill Snead
 
-13-collections.csv
+14-collections.csv
 Collection id , Manager          , CVR type  , Contests 
 DEN-A01       , abe@co.gov       , CVR       , DEN-prop-1 , DEN-prop-2 , US-Senate-1
 DEN-A02       , bob@co.gov       , CVR       , DEN-prop-1 , DEN-prop-2 , US-Senate-1
@@ -119,12 +119,12 @@ def test_read_contests(e):
 
 def read_collections(e):
     """
-    Read file 13-collections.csv, put results into Election e.
+    Read file 14-collections.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname, "1-structure")
-    filename = utils.greatest_name(structure_pathname, "13-collections", ".csv")
+    filename = utils.greatest_name(structure_pathname, "14-collections", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     rows = csv_readers.read_csv_file(file_pathname, varlen=True)
     for row in rows:

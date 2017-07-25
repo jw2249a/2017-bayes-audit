@@ -420,8 +420,8 @@ of that directory might look as follows.
     1-structure
        11-election-2017-09-08.csv
        12-contests-2017-09-08.csv
-       13-collections-2017-09-08.csv
-       14-contest-groups-2017-09-08.csv
+       13-contest-groups-2017-09-08.csv
+       14-collections-2017-09-08.csv
 
     2-election
        21-reported-votes
@@ -593,8 +593,8 @@ and a list of contests that may appear on ballots in that collection.
 | DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
 | LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
 
-This is a CSV file, with the name ``13-collections.csv`` (possibly with a version
-label, as in ``13-collections-09-08.csv``).
+This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
+label, as in ``14-collections-09-08.csv``).
 
 Note that this representation doesn't represent the common notion of
 a "ballot style," where a style can viewed as a set of contests that
@@ -1367,7 +1367,7 @@ with later version labels have been added to the directory structure.)
 |---                         |---                  |
 | ``11-election-2017-09-08.csv``           | ``ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb`` |
 | ``12-contests-2017-09-08.csv``           | ``3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d`` |
-| ``13-collections-2017-09-08.csv``        | ``2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6`` |
+| ``14-collections-2017-09-08.csv``        | ``2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6`` |
 | ...                                  | ...                                                              |
 | ``audited-votes-LOG-B13-2017-11-22.csv`` | ``18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4`` |
 | ``23-reported-outcomes-2017-11-07.csv`` | ``252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111`` |

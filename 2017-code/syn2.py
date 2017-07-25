@@ -221,8 +221,8 @@ def write_structure_csvs(se):
 
     write_11_election_csv(se)
     write_12_contests_csv(se)
-    write_13_collections_csv(se)
-    write_14_contest_groups_csv(se)
+    write_13_contest_groups_csv(se)
+    write_14_collections_csv(se)
 
 
 def write_11_election_csv(se):
@@ -258,11 +258,17 @@ def write_12_contests_csv(se):
             file.write("\n")
         
 
-def write_13_collections_csv(se):
+def write_13_contest_groups_csv(se):
+    """ Experimental feature not yet implemented """
+
+    pass
+
+
+def write_14_collections_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "13-collections.csv")
+    filename = os.path.join(dirpath, "14-collections.csv")
 
     with open(filename, "w") as file:
         fieldnames = ["Collection id", "Manager", "CVR type", "Contests"]
@@ -276,10 +282,6 @@ def write_13_collections_csv(se):
             file.write(",".join(cids))
             file.write("\n")
 
-def write_14_contest_groups_csv(se):
-    """ Experimental feature not yet implemented """
-
-    pass
 
 
 ##############################################################################
