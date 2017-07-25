@@ -169,13 +169,13 @@ class Election(object):
         e.gids = []
         # list of contest group ids (gids)
 
-        e.cgids_g = []
+        e.cgids_g = {}
         # gid->[cgids]
         # e.cgids_g[gid] list of contest and/or group ids that
         # define contest group gid.
 
         e.cids_g = {}
-        # gid->[cids]
+        # gid-> set of cids
         # e.cids_g[gid] is list of cids for given gid.
         # This is the expanded-out version of e.cgids_g[gid],
         # so all contest groups are replaced by their contest sets.

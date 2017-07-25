@@ -28,10 +28,10 @@ def expand_contest_group_defs(e):
     e.cids_g = {}
 
     for gid in e.gids:
-        expand_dfs(gid)
+        expand_dfs(e, gid)
 
 
-def expand_dfs(gid):
+def expand_dfs(e, gid):
     """
     Expand contest group definitions.
     
@@ -47,7 +47,30 @@ def expand_dfs(gid):
         if cgid in e.cids:
             e.cids_g[gid].add(cgid)
         else:
-            expand_dfs(cgid)
+            expand_dfs(e, cgid)
             for cid in e.cids_g[cgid]:
-                e.cids_g[gid].add(cgid)
+                e.cids_g[gid].add(cid)
     
+
+def test_expand():
+
+    e = multi.Election()
+    e.gids = [1, 2, 3, 4, 5, 6, 7]
+    e.cids = [11, 22, 33, 44, 55, 66, 77]
+    e.cgids_g[1] = [11, 2]
+    e.cgids_g[2] = [22, 3, 4]
+    e.cgids_g[3] = [33]
+    e.cgids_g[4] = [44, 5]
+    e.cgids_g[5] = [55, 4]
+    e.cgids_g[6] = [66, 1, 7]
+    e.cgids_g[7] = [77, 3]
+
+    expand_contest_group_defs(e)
+
+    for gid in e.gids:
+        print(gid, e.cids_g[gid])
+
+if __name__ == "__main__":
+
+    test_expand()
+
