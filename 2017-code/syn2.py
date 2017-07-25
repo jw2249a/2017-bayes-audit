@@ -324,9 +324,13 @@ def generate_reported(se):
     se.cids_b = {}
     for pbcid in se.pbcids:
         if se.cvr_type_p[pbcid] == 'CVR':
-            available_cids = [c for c in se.cids if pbcid in se.rel_cp[c]]
+            available_cids = [c for c in se.cids \
+                              if pbcid in se.rel_cp[c]]
             for bid in se.bids_p[pbcid]:
-                num_contests =  se.SynRandomState.randint(1,len(available_cids))
+                L = list(range(1, 1+len(available_cids)))
+                num_contests =  se.SynRandomState.choice(L)
+                if bid not in se.cids_b:
+                    se.cids_b[bid] = []
                 while len(se.cids_b[bid]) < min(num_contests, len(available_cids)):
                     cid = se.SynRandomState.choice(available_cids)
                     if cid not in se.cids_b[bid]:
