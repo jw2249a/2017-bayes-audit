@@ -1,6 +1,6 @@
 # reported.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# July 8, 2017
+# July 24, 2017
 # python3
 
 """
@@ -76,8 +76,10 @@ Boulder-council , Dave Diddle, Ben Borg   , Sue Mee   , Jill Snead
 
 """
 
+
 import multi
 import utils
+
 
 ##############################################################################
 # Election data I/O and validation (stuff that depends on cast votes)
@@ -282,7 +284,7 @@ def show_election_data(e):
 
     utils.myprint("====== Reported election data ======")
 
-    utils.myprint("e.rn_cpr (total reported votes for each vote by cid and pbcid):")
+    utils.myprint("Total reported votes for each vote by cid and pbcid (e.rn_cpr):")
     for cid in e.cids:
         for pbcid in sorted(e.rel_cp[cid]):
             utils.myprint("    {}.{}: ".format(cid, pbcid), end='')
@@ -291,18 +293,18 @@ def show_election_data(e):
                     vote, e.rn_cpr[cid][pbcid][vote]), end='')
             utils.myprint()
 
-    utils.myprint("e.rn_c (total votes cast for each cid):")
+    utils.myprint("Total votes cast for each cid (e.rn_c):")
     for cid in e.cids:
         utils.myprint("    {}: {}".format(cid, e.rn_c[cid]))
 
-    utils.myprint("e.rn_cr (total cast for each vote for each cid):")
+    utils.myprint("Total cast for each vote for each cid (e.rn_cr):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
         for vote in sorted(e.rn_cr[cid]):
             utils.myprint("{}:{} ".format(vote, e.rn_cr[cid][vote]), end='')
         utils.myprint()
 
-    utils.myprint("e.ro_c (reported outcome for each cid):")
+    utils.myprint("Reported outcome for each cid (e.ro_c):")
     for cid in e.cids:
         utils.myprint("    {}:{}".format(cid, e.ro_c[cid]))
 
