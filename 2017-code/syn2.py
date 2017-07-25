@@ -324,11 +324,11 @@ def generate_reported(se):
     se.cids_b = {}
     for pbcid in se.pbcids:
         if se.cvr_type_p[pbcid] == 'CVR':
-            available_contests = [c for c in se.cids if pbcid in se.rel_cp[c]]
+            available_cids = [c for c in se.cids if pbcid in se.rel_cp[c]]
             for bid in se.bids_p[pbcid]:
-                num_contests =  se.SynRandomState.randint(1,len(available_contests))
-                while len(se.cids_b[bid]) < min(num_contests, len(available_contests)):
-                    cid = se.SynRandomState.choice(available_contests)
+                num_contests =  se.SynRandomState.randint(1,len(available_cids))
+                while len(se.cids_b[bid]) < min(num_contests, len(available_cids)):
+                    cid = se.SynRandomState.choice(available_cids)
                     if cid not in se.cids_b[bid]:
                         se.cids_b[bid].append(cid)
         else:
@@ -343,7 +343,6 @@ def generate_reported(se):
         for pbcid in se.rel_cp[cid]:
             for bid in se.bids_p[pbcid]:
                 if se.contest_type_c[cid] == 'plurality':
-                    # rvote is a tuple of length 1 here
                     selection = se.SynRandomState.choice(selids)
                     rvote = (selection,)
                     nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
