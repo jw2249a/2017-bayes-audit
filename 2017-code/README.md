@@ -64,7 +64,8 @@ here.  At least not yet.**
   * [Compression](#compression)
 
 
-## Overview
+## Overview 
+[Back to TOC](#table-of-contents)
 
 The system described here is a collection of Python 3 modules
 to support post-election audits, especially "risk-limiting" audits
