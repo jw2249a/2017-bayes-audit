@@ -65,7 +65,6 @@ here.  At least not yet.**
 
 
 ## Overview 
-[Back to TOC](#table-of-contents)
 
 The system described here is a collection of Python 3 modules
 to support post-election audits, especially "risk-limiting" audits
@@ -101,6 +100,8 @@ Some of the planned experiments include:
 * comparing different approaches for choosing Bayesian priors,
 * comparing frequentist and Bayesian risk-limiting audit methods, and
 * testing the scalability of the Bayesian approach.
+
+[Back to TOC](#table-of-contents)
 
 
 ## Election and audit
