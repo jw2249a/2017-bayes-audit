@@ -66,9 +66,12 @@ class Election(object):
 
         cid    a contest id (e.g. "Den-Mayor")
 
+        gid    a contest group id (e.g. "FEDERAL")
+
         pbcid  a paper-ballot collection id (e.g. "Den-P24")
 
         bid    a ballot id (e.g. "Den-12-234")
+               This should be unique within a pbc.
 
         selid  a selection id (e.g. "Yes" or "JohnSmith"). A string.
                If it begins with a "+", it denotes a write-in (e.g. "+BobJones")
@@ -87,6 +90,8 @@ class Election(object):
                ("AliceJones", "BobSmith", "+LizardPeople") indicates that Alice
                is the voter's first choice, Bob the second, etc.               
 
+       
+
     It is recommended (but not required) that ids not contain anything but
              A-Z   a-z   0-9  -   _   .   +
     and perhaps whitespace.
@@ -101,6 +106,7 @@ class Election(object):
         # where w, x, y, z give argument type:
 
         # c = contest id (cid)
+        # g = contest group id (gid)
         # p = paper ballot collection id (pbcid)
         # r = reported vote (rv)
         # a = actual vote (av)
@@ -159,6 +165,20 @@ class Election(object):
         # note that e.selids_c is used for both reported selections
         # (from votes in e.rv) and for actual selections (from votes in e.av)
         # it also increases when new selids starting with "+" or "-" are seen.
+
+        e.gids = []
+        # list of contest group ids (gids)
+
+        e.cgids_g = []
+        # gid->[cgids]
+        # e.cgids_g[gid] list of contest and/or group ids that
+        # define contest group gid.
+
+        e.cids_g = {}
+        # gid->[cids]
+        # e.cids_g[gid] is list of cids for given gid.
+        # This is the expanded-out version of e.cgids_g[gid],
+        # so all contest groups are replaced by their contest sets.
 
         e.pbcids = []
         # list of paper ballot collection ids (pbcids)
