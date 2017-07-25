@@ -8,15 +8,15 @@ The software is designed to be helpful for auditing elections such as
 the November 2017 Colorado election, which has hundreds of contests
 spread across 64 counties.
 
-**This README file is a *design document*, not a description of
-what the code does now.  The code here is still very fragmentary,
-alsmot entirely non-functional, and built according to a rather
-different specification.  It is in the process of becoming code that
-matches this design document.  But don't expect it to match what is
-described here.  At least not yet.**
+**This README file is a *design document*, not a description of what
+the code does now.  The code here is still in progress  and not
+yet functional.  It is in the process of becoming code that matches
+this design document.  But don't expect it to match what is described
+here.  At least not yet.**
 
 ## Table of contents
 
+* [Overview](#overview)
 * [Election and audit](#election-and-audit)
 * [Scanning of cast paper ballots](#scanning-of-cast-paper-ballots)
 * [Auditing](#auditing)
@@ -63,6 +63,43 @@ described here.  At least not yet.**
 * [Appendix (Possible future work)](#appendix-possible-future-work)
   * [Compression](#compression)
 
+
+## Overview
+
+The system described here is a collection of Python 3 modules
+to support post-election audits, especially "risk-limiting" audits
+of both the Bayesian and frequentist style.
+
+On the one hand, this is an experimental platform designed to
+facilitate research into post-election audits.  It is an "election
+lab" (a term suggested by Philip Stark) that can be easily extended
+or configured to run experiments.
+
+On the other hand, we hope that the code will be robust, usable, and
+scalable enough that it can be adapted or ported for use in real
+post-election audits.
+
+The code emphasizes the case (as in Colorado 2017) where there is
+an Audit Central (run by the Secretary of State) coordinating audits
+all across a state, where the paper ballots are in collections managed
+by county-level election officials.  For contests that span several
+counties, the audit needs to guide the relevant county-level election
+officials regarding the random sampling of ballots from their collections,
+to aggregate the resulting audit data, and to compute whether the desired
+risk limits have been met.
+
+The current design is "file-based": CSV (comma-separated values) format
+files are used as the main interface data structure for all data, as
+it is both human and machine readable, and commonly used in the election
+community.
+
+The code has the capability of generating large and complex "synthetic"
+data sets for testing and experimental purposes.
+
+Some of the planned experiments include:
+* comparing different approaches for choosing Bayesian priors,
+* comparing frequentist and Bayesian risk-limiting audit methods, and
+* testing the scalability of the Bayesian approach.
 
 
 ## Election and audit
