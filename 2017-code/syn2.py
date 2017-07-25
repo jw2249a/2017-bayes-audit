@@ -229,6 +229,7 @@ def write_11_election_csv(se):
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "11-election.csv")
+    filename = utils.filename_safe(filename)
 
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
@@ -243,6 +244,7 @@ def write_12_contests_csv(se):
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "12-contests.csv")
+    filename = utils.filename_safe(filename)
 
     with open(filename, "w") as file:
         fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins", "Selections"]
@@ -262,6 +264,7 @@ def write_13_collections_csv(se):
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "13-collections.csv")
+    filename = utils.filename_safe(filename)
 
     with open(filename, "w") as file:
         fieldnames = ["Collection id", "Manager", "CVR type", "Contests"]
@@ -478,6 +481,7 @@ def write_21_reported_csv(se):
         if se.cvr_type_p[pbcid]=="CVR": 
             filename = os.path.join(dirpath,
                                     "reported-cvrs-" + pbcid+".csv")
+            filename = utils.filename_safe(filename)
             with open(filename, "w") as file:
                 fieldnames = ["Collection id", "Scanner", "Ballot id",
                               "Contest", "Selections"]
@@ -506,6 +510,7 @@ def write_22_ballot_manifests(se):
 
     for pbcid in se.pbcids:
         filename = os.path.join(dirpath, "manifest-"+pbcid+".csv")
+        filename = utils.filename_safe(filename)
         with open(filename, "w") as file:
             fieldnames = ["Collection id", "Box id", "Position",
                           "Stamp", "Ballot id", "Number of ballots",
@@ -530,6 +535,7 @@ def write_23_reported_outcomes(se):
                            "2-election")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "23-reported-outcomes.csv")
+    filename = utils.filename_safe(filename)
 
     with open(filename, "w") as file:
         fieldnames = ["Contest id", "Winner(s)"]
@@ -603,6 +609,7 @@ def write_33_audited_votes(se):
     for cid in se.av_cpb:
         for pbcid in se.av_cpb[cid]:
             filename = os.path.join(dirpath, "audited-votes-" + pbcid+".csv")
+            filename = utils.filename_safe(filename)
             with open(filename, "w") as file:
                 fieldnames = ["Collection id", "Ballot id", "Contest", "Selections"]
                 file.write(",".join(fieldnames))

@@ -20,6 +20,7 @@ the program:
 import hashlib
 
 import multi
+import utils
 
 
 def sha256(hash_input):
@@ -84,6 +85,7 @@ def write_audit_order(e, pbcid):
     os.makedirs(dirpath, exist_ok=True)
     ds = utils.date_string()
     filename = os.path.join(dirpath, "audit-order-"+pbcid+"-"+ds+".csv")
+    filename = utils.filename_safe(filename)
     with open(filename, "w") as file:
         fieldnames = ["Ballot order",
                       "Collection id",

@@ -46,6 +46,8 @@ import utils
 
 def read_csv_file(filename, varlen=False):
 
+    filename = utils.filename_safe(filename)
+    print(filename)
     with open(filename) as file:
         reader = csv.DictReader(file)
         rows = [row for row in reader]

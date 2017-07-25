@@ -38,6 +38,7 @@ def clean_id(id):
 ##############################################################################
 ## selid-specifc routines
 
+
 def is_writein(selid):
 
     return len(selid) > 0 and selid[0] == "+"
