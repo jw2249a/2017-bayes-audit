@@ -480,7 +480,7 @@ the collections file more compact, and in making the audit more efficient.
 A **contest group** is a set of contests. 
 
 For clarity, the name of a contest group is always written in caps and
-surrounded in parentheses, as in "**(FEDERAL)**" of "**(STATEWIDE)**".
+surrounded in parentheses, as in "**(FEDERAL)**" or "**(STATEWIDE)**".
 
 Although ``multi.py`` does not directly support the abstraction of
 a "ballot style" (a set of contests that may occur on a ballot), the
