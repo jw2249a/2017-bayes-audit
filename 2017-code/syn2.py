@@ -529,7 +529,20 @@ def write_22_ballot_manifests(se):
 
 def write_23_reported_outcomes(se):
 
-    pass
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
+                           "2-election")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath, "23-reported-outcomes.csv")
+
+    with open(filename, "w") as file:
+        fieldnames = ["Contest id", "Winner(s)"]
+        file.write(",".join(fieldnames))
+        file.write("\n")
+        for cid in se.cids:
+            file.write("{},".format(cid))
+            file.write(",".join(se.ro_c[cid]))
+            file.write("\n")
+
 
 ##############################################################################
 ## audit

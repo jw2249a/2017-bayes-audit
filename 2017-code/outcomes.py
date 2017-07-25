@@ -7,6 +7,8 @@
 Tally and outcome computations.
 Code to compute an election outcome, given a sequence of votes and a contest type.
 Also known as "social choice functions".
+
+An outcome is always a *tuple* of ids, even if there is only one winner.
 """
 
 # TBD: Tie-breaking, etc.
@@ -45,7 +47,7 @@ def plurality(e, cid, tally):
             max_cnt = tally[vote]
             max_selid = vote[0]
     assert "No winner allowed in plurality contest.", tally
-    return max_selid
+    return (max_selid,)
 
 
 
