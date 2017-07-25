@@ -126,6 +126,8 @@ We assume that the election has the following components:
 3. ("_Post-election_") Audit.
 4. ("_Certification_") Certification.
 
+[Back to TOC](#table-of-contents)
+
 ## Scanning of cast paper ballots
 
 We assume that all the paper ballots in each collection have been **scanned** by
