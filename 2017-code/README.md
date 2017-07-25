@@ -544,13 +544,14 @@ label, as in ``12-contests-2017-09-08.csv``).
 
 ### Contest groups file
 
-The **contest groups file** is *entirely optional*, but may be helpful in making
+The **contest groups file** is optional, but may be helpful in making
 the collections file more compact, and in making the audit more efficient.
 
 A **contest group** is a set of contests. 
 
-For clarity, the name of a contest group is always written in caps and
-surrounded in parentheses, as in "**(FEDERAL)**" or "**(STATEWIDE)**".
+A contest group id should not be the same as any contest id.
+For clarity here, we always write a contest group id in caps,
+as in "**FEDERAL**" or "**STATEWIDE**".
 
 Although ``multi.py`` does not directly support the abstraction of
 a "ballot style" (a set of contests that may occur on a ballot), the
@@ -564,15 +565,22 @@ for the set of contests.  In many places, one may specify a contest
 group name instead of having to list all of its contests.  This provides
 compactness.
 
-| Contest group | Group(s)         | ...           | ...             | ...        | ...         |
-| ---           | ---              | ---           | ---             | ---        | ---         |
-| (FEDERAL)     | U.S. President   | U.S Senate-1  | U.S. Senate  -2 |            |             |
-| (STATEWIDE)   | CO-prop-A        | CO-prop-B     | CO-prop-C       |            |             |
-| (JEFFERSON)   | Jeffco-prop-A    | Jeffco-prop-B | Jeff-co-Judge   | Jeffco-council |         |
+A contest group is defined by listing the contests it contains and/or the
+other groups it includes.
 
-A contest group name may be used as shorthand for a set of alternative contests in other
-input files.  For example, one may specify a risk limit of five percent for all (FEDERAL)
-contests.
+| Contest group id | Contest or group id(s)          | ...           | ...             | ...        | ...         |
+| ---              | ---              | ---           | ---             | ---        | ---         |
+| FEDERAL          | U.S. President   | U.S Senate-1  | U.S. Senate  -2 |            |             |
+| STATEWIDE        | CO-prop-A        | CO-prop-B     | CO-prop-C       |            |             |
+| JEFFERSON        | Jeffco-prop-A    | Jeffco-prop-B | Jeffco-Judge   | Jeffco-council |         |
+| JEFFERSON-2      | JEFFERSON        | Jeffco-water-bill    |                |                |         |
+
+In this example, JEFFERSON-2 includes all of the contests in group
+JEFFERSON, plus the contest ``Jeffco-water-bill``.
+
+In other input files, a contest group name
+may be used as shorthand for a set of alternative contests.
+For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
 A contest group has a file name of the form
 ``14-contest-groups-2017-09-08.csv`` (shown with version label).
