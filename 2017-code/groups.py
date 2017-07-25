@@ -55,8 +55,11 @@ def expand_dfs(e, gid):
 def test_expand():
 
     e = multi.Election()
+
     e.gids = [1, 2, 3, 4, 5, 6, 7]
+
     e.cids = [11, 22, 33, 44, 55, 66, 77]
+
     e.cgids_g[1] = [11, 2]
     e.cgids_g[2] = [22, 3, 4]
     e.cgids_g[3] = [33]
@@ -65,10 +68,17 @@ def test_expand():
     e.cgids_g[6] = [66, 1, 7]
     e.cgids_g[7] = [77, 3]
 
+    print("Input:")
+    print("  cids:", e.cids)
+    print("  gids:", e.gids)
+    for gid in e.gids:
+        print("    {}->{}".format(gid, e.cgids_g[gid]))
+
     expand_contest_group_defs(e)
 
+    print("Output:")
     for gid in e.gids:
-        print(gid, e.cids_g[gid])
+        print("    {}->{}".format(gid, e.cids_g[gid]))
 
 if __name__ == "__main__":
 
