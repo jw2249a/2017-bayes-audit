@@ -25,4 +25,29 @@ def expand_contest_group_defs(e):
     This is a simple reachability computation in a directed graph.
     """
 
+    e.cids_g = {}
+
+    for gid in e.gids:
+        expand_dfs(gid)
+
+
+def expand_dfs(gid):
+    """
+    Expand contest group definitions.
+    
+    This works even if the graph contains cycles.
+    """
+
+    if gid in e.cids_g:
+        return
+
+    e.cids_g[gid] = set()
+
+    for cgid in e.cgids_g[gid]:
+        if cgid in e.cids:
+            e.cids_g[gid].add(cgid)
+        else:
+            expand_dfs(cgid)
+            for cid in e.cids_g[cgid]:
+                e.cids_g[gid].add(cgid)
     
