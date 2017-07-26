@@ -157,7 +157,7 @@ def read_collections(e):
     file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Collection id", "Manager", "CVR type",
                   "Required Contests", "Possible Contests"]
-    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
     for row in rows:
 
         pbcid = row["Collection id"]
@@ -192,6 +192,13 @@ def finish_election_structure(e):
     noCVRvote = ("-noCVR",)
 
     for pbcid in e.pbcids:
+        e.possible_cid_p[pbcid] = {}
+        e.required_cid_p[pbcid] = {}
+    for cid in e.cids:
+        e.possible_pbcid_c[cid] = {}
+        e.required_pbcid_c[cid] = {}
+
+    for pbcid in e.pbcids:
         req_gid = e.required_gid_p[pbcid]
         poss_gid = e.possible_gid_p[pbcid]
         for cid in e.cids:
@@ -210,7 +217,7 @@ def finish_election_structure(e):
             e.votes_c[cid][(selid,)] = True
     for pbcid in e.pbcids:
         if e.cvr_type_p[pbcid] == "noCVR":
-            for cid in e.required_possible[pbcid]:
+            for cid in e.required_cid_p[pbcid]:
                 e.votes_c[cid][noCVRvote] = True            
 
 
@@ -306,10 +313,10 @@ def show_election_structure(e):
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {} ({}, Manager:{})"
                       .format(pbcid, e.cvr_type_p[pbcid], e.manager_p[pbcid]))
-    utils.myprint("Possible pbcids for each cid (e.rel_cp):")
+    utils.myprint("Possible pbcids for each cid (e.possible_pbcid_c):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
-        utils.myprint(", ".join(sorted(e.rel_cp[cid])))
+        utils.myprint(", ".join(sorted(e.possible_pbcid_c[cid])))
 
 
 def test():
