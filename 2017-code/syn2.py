@@ -130,8 +130,8 @@ def generate_election_structure(se=default_SynElection):
     """
     se has SynElection for the parameters noted above;
     add to se values that would be otherwise read in,
-    e.g. via structure.py (read_election, read_contests,
-    read_collections)
+    e.g. via structure.py (read_election_structure, read_contests,
+    read_contest_groups, read_collections)
     """
 
     # reset SynRandomState from seed

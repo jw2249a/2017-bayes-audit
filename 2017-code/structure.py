@@ -46,7 +46,7 @@ import csv_readers
 import utils
 
 
-def read_election(e, election_dirname):
+def read_election_structure(e, election_dirname):
     """ 
     Read file 1-structure/11-election.csv, put results into Election e.
     election_dirname is the name of the directory for the election 
@@ -77,10 +77,10 @@ def read_election(e, election_dirname):
         utils.myerror("Too many errors; terminating.")
 
 
-def test_read_election(e):        
+def test_read_election_structure(e):        
 
-    print("test_read_election")
-    read_election(e, "ex1")
+    print("test_read_election_structure")
+    read_election_structure(e, "ex1")
 
 
 def read_contests(e):
@@ -117,7 +117,7 @@ def read_contests(e):
 def test_read_contests(e):
 
     print("test_read_contests")
-    read_election(e, "ex1/")
+    read_election_structure(e, "ex1/")
     read_contests(e)
 
 
@@ -182,7 +182,7 @@ def test_read_collections(e):
 def get_election_structure(e):
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    read_election(e, election_pathname)
+    read_election_structure(e, election_pathname)
     read_contests(e)
     read_contest_groups(e)
     read_collections(e)
@@ -305,7 +305,7 @@ def show_election_structure(e):
 def test():
     
     e = multi.Election()
-    test_read_election(e)
+    test_read_election_structure(e)
     test_read_contests(e)
     test_read_contest_groups(e)
     test_read_collections(e)    
