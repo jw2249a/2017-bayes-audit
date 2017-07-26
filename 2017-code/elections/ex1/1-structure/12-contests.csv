@@ -1,8 +1,11 @@
 Contest id      , Contest type , Winners   ,Write-ins  , Selections 
-DEN-prop-1      , Plurality    , 1         , No        , Yes        , No  
-DEN-prop-2      , Plurality    , 1         , No        , Yes        , No   
-DEN-mayor       , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
-LOG-mayor       , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
-US-Senate-1     , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
-Boulder-clerk   , IRV          , 1         , Arbitrary , Rock Ohn   , Peh Bull  , Roll Stone 
-Boulder-council , Plurality    , 4         , No        , Dave Diddle, Ben Borg  , Sue Mee    , Fan Tacy    , Jill Snead
+Denver Prop 1   , Plurality    , 1         , No        , Yes        , No  
+Denver prop 2   , Plurality    , 1         , No        , Yes        , No   
+Denver mayor    , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
+Denver clerk    , Plurality    , 1         , No        , Yet Again  , New Guy
+Logan mayor     , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
+Logan water     , Plurality    , 1         , No        , Yes        , No
+U.S. President  , Plurality    , 1         , Arbitrary , Don Brown  , Larry Pew
+U.S. Senate 1   , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
+U.S. Senate 2   , Plurality    , 1         , Qualified , Term Three , Old Guy   , +Hot Stuff
+CO Prop A       , Plurality    , 1         , No        , Yes        , No

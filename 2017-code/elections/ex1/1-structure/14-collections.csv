@@ -1,5 +1,5 @@
 Collection id , Manager          , CVR type  , Required Contests, Possible Contests
 DEN-A01       , abe@co.gov       , CVR       , DENVER,            DENVER
 DEN-A02       , bob@co.gov       , CVR       , DENVER,            DENVER
-LOG-B13       , carol@co.gov     , noCVR     , LOGANREC,          LOGANPOSS
+LOG-B13       , carol@co.gov     , noCVR     , LOGAN REQ,         LOGAN POSS
 

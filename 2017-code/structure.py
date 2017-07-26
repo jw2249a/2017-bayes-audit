@@ -192,13 +192,18 @@ def finish_election_structure(e):
     noCVRvote = ("-noCVR",)
 
     for pbcid in e.pbcids:
+        req_gid = e.required_gid_p[pbcid]
+        poss_gid = e.possible_gid_p[pbcid]
         for cid in e.cids:
-            if cid in e.cids_g[e.required_gid_p[pbcid]]:
-                e.required_cid_p[pbcid][cid] = "True"
-                e.required_pbcid_c[cid][pbcid] = "True
-            if cid in e.cids_g[e.possible_gid_p[pbcid]]:
-                e.required_cid_p[pbcid][cid] = "True"
-                e.required_pbcid_c[cid][pbcid] = "True
+            # "" req_gid means nothing is required.
+            if req_gid!="" and cid in e.cids_g[req_gid]:
+                utils.nested_set(e.required_cid_p, [pbcid, cid], "True")
+                utils.nested_set(e.required_pbcid_c, [cid, pbcid], "True")
+            # enforce that possible contests includes all contests
+            # "" poss_gid means everything is possible
+            if poss_gid=="" or cid in e.cids_g[poss_gid] or cid in e.cids_g[req_gid]:
+                utils.nested_set(e.possible_cid_p, [pbcid, cid], "True")
+                utils.nested_set(e.possible_pbcid_c, [cid, pbcid], "True")
     for cid in e.cids:
         e.votes_c[cid] = {}
         for selid in e.selids_c[cid]:
