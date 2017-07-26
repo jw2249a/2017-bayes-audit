@@ -577,7 +577,7 @@ in which the contests are present on a ballot.
 | STATEWIDE        | CO-prop-A        | CO-prop-B            | CO-prop-C      |                |         |
 | JEFFERSON        | Jeffco-prop-A    | Jeffco-prop-B        | Jeffco-Judge   | Jeffco-council |         |
 | JEFFERSON-2      | JEFFERSON        | Jeffco-water         |                |                |         |
-| DENVER           | Denver-mayor     | Denver-cleark        |                |                |         |
+| DENVER           | Denver-mayor     | Denver-clerk         |                |                |         |
 | LOGANREQ         | FEDERAL          | Logan-mayor          |                |                |         | 
 | LOGANPOSS        | LOGANREC         | Logan-water          |                |                |         |
 
