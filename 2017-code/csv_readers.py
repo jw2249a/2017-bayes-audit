@@ -44,7 +44,10 @@ import ids
 import utils
 
 
-def read_csv_file(filename, varlen=False):
+def read_csv_file(filename, fieldnames=None, varlen=False):
+    """
+    Read CSV file and expected fieldnames; varlen if variable-length rows.
+    """
 
     print(filename)
     with open(filename) as file:
@@ -90,6 +93,12 @@ def read_csv_file(filename, varlen=False):
                 if value == ("",):
                     value = ()
                 row[lastfieldname] = value
+        if fieldnames!=None:
+            fieldnames_expected = [ids.clean_id(id) for id in fieldnames]
+            fieldnames_present = [ids.clean_id(id) for id in reader.fieldnames]
+            if fieldnames_expected!=fieldnames_present:
+                utils.myerror("File {} has fieldnames {} instead of expected {}."
+                              .format(filename, fieldnames_present, fieldnames_expected))
         return rows
 
 
