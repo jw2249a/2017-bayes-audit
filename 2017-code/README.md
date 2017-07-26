@@ -523,13 +523,17 @@ must be pre-qualified), and the officially allowed selections.
 
 | Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |             |            |
 | ---             | ---          | ---       |---        | ---        | ---       |---         |---          |---         |
-| DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
-| DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
-| DEN-mayor       | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost  |            |
-| LOG-mayor       | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu |             |            |
-| US-Senate-1     | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Tom Cruz  |
-| Boulder-clerk   | IRV          | 1         | Arbitrary | Rock Ohn   | Peh Bull  | Roll Stone |             |            |
-| Boulder-council | Plurality    | 4         | No        | Dave Diddle| Ben Borg  | Sue Mee    | Fan Tacy    | Jill Snead |
+| Denver Prop 1   | Plurality    | 1         | No        | Yes        | No  
+| Denver Prop 2   | Plurality    | 1         | No        | Yes        | No   
+| Denver Mayor    | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost 
+| Denver Clerk    | Plurality    | 1         | No        | Yet Again  | New Guy
+| Logan Mayor     | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu 
+| Logan Water     | Plurality    | 1         | No        | Yes        | No
+| U.S. President  | Plurality    | 1         | Arbitrary | Don Brown  | Larry Pew
+| U.S. Senate 1   | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Tom Cruz 
+| U.S. Senate 2   | Plurality    | 1         | Qualified | Term Three | Old Guy   | +Hot Stuff
+| CO Prop A       | Plurality    | 1         | No        | Yes        | No
+
 
 If the contest only allows pre-qualified write-ins, then those pre-qualified
 write-in names (with preceding "+" signs) are given on the contest row, but
@@ -573,13 +577,13 @@ in which the contests are present on a ballot.
 
 | Contest group id | Contest or group id(s)  |               |                |                |         | 
 | ---              | ---              | ---                  | ---            | ---            | ---     |
-| FEDERAL          | U.S. President   | U.S Senate-1         | U.S. Senate-2  |                |         |
-| STATEWIDE        | CO-prop-A        | CO-prop-B            | CO-prop-C      |                |         |
-| JEFFERSON        | Jeffco-prop-A    | Jeffco-prop-B        | Jeffco-Judge   | Jeffco-council |         |
-| JEFFERSON-2      | JEFFERSON        | Jeffco-water         |                |                |         |
-| DENVER           | Denver-mayor     | Denver-clerk         |                |                |         |
-| LOGANREQ         | FEDERAL          | Logan-mayor          |                |                |         | 
-| LOGANPOSS        | LOGANREC         | Logan-water          |                |                |         |
+| FEDERAL          |U.S. President   |U.S. Senate 1        |U.S. Senate 2
+| STATE            |CO Prop A
+| FED STATE        |FEDERAL          |STATE
+| DENVER LOCAL     |Denver Mayor     |Denver Clerk| Denver Prop 1| Denver Prop 2
+| DENVER           |FED STATE        |DENVER LOCAL
+| LOGAN REQ        |FED STATE        |Logan Mayor 
+| LOGAN POSS       |Logan Water
 
 In this example, JEFFERSON-2 includes all of the contests in group
 JEFFERSON, plus the contest ``Jeffco-water-bill``.
@@ -608,9 +612,10 @@ on ballots in that collection.
 
 | Collection id | Manager          | CVR type  | Required Contests  | Possible Contests |
 | ---           | ---              | ---       | ---        | ---        |
-| DEN-A01       | abe@co.gov       | CVR       | DENVER     | DENVER     |
-| DEN-A02       | bob@co.gov       | CVR       | DENVER     | DENVER     |
-| LOG-B13       | carol@co.gov     | noCVR     | LOGANREQ   | LOGANPOSS  |
+| Collection id | Manager          | CVR type  | Required Contests| Possible Contests
+| DEN-A01       | abe@co.gov       | CVR       | DENVER|            DENVER
+| DEN-A02       | bob@co.gov       | CVR       | DENVER|            DENVER
+| LOG-B13       | carol@co.gov     | noCVR     | LOGAN REQ|         LOGAN POSS
 
 This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
 label, as in ``14-collections-09-08.csv``).
