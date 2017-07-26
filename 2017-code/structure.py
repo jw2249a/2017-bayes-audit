@@ -181,8 +181,7 @@ def test_read_collections(e):
 
 def get_election_structure(e):
 
-    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    read_election_structure(e, election_pathname)
+    read_election_structure(e, e.election_dirname)
     read_contests(e)
     read_contest_groups(e)
     read_collections(e)
@@ -284,7 +283,7 @@ def show_election_structure(e):
     utils.myprint("Contest ids with contest type, number of winners, and write-ins mode")
     utils.myprint("(e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
     for cid in e.cids:
-        utils.myprint("    {} ({}, {} winner(s), write-ins: {})"
+        utils.myprint("    {} ({}, {} winner(s), {} write-ins)"
                       .format(cid, e.contest_type_c[cid], e.winners_c[cid], e.write_ins_c[cid]))
     utils.myprint("Valid selection ids for each cid (e.selids_c):")
     for cid in e.cids:
