@@ -585,6 +585,11 @@ In other input files, a contest group name
 may be used as shorthand for a set of alternative contests.
 For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
+The contest group ids ``ALL`` and ``NONE`` are predefined and reserved, referring
+to the set of all contests and the set of no contests.  If the ``Required`` field
+is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
+assumed.
+
 A contest group has a file name of the form
 ``14-contest-groups-2017-09-08.csv`` (shown with version label).
 
@@ -596,22 +601,41 @@ A contest group has a file name of the form
 A **collections file** is needed to specify the various
 collections of paper ballots, contact info for the collection
 manager, collection type (CVR or noCVR),
+contest groups specifying what contests are required and possible,
 and a list of contests that may appear on ballots in that collection.
 
-| Collection id | Manager          | CVR type  | Contests   | ...        | ...         |...         |...    |
-| ---           | ---              | ---       | ---        | ---        | ---         |---         |---    |
-| DEN-A01       | abe@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
-| DEN-A02       | bob@co.gov       | CVR       | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
-| LOG-B13       | carol@co.gov     | noCVR     | LOG-mayor  | US-Senate-1|             |            |       |
+| Collection id | Manager          | CVR type  | Required   | Possible   | Contests   | ...        | ...         |...         |...    |
+| ---           | ---              | ---       | ---        | ---        | ---        | ---        | ---         |---         |---    |
+| DEN-A01       | abe@co.gov       | CVR       | DENVER     | DENVER     | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
+| DEN-A02       | bob@co.gov       | CVR       | DENVER     | DENVER     | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
+| LOG-B13       | carol@co.gov     | noCVR     | LOGANREQ   | LOGANPOSS  | LOG-mayor  | US-Senate-1|             |            |       |
 
 This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
 label, as in ``14-collections-09-08.csv``).
 
-Note that this representation doesn't represent the common notion of
+The possible ``ballot styles`` in a collection are constrained by the
+``Required`` and ``Possible`` contest groups.  Every ballot must contain
+every contest in the ``Required`` contest group, and may contain any
+contest in the ``Possible`` contest group.  (Every required contest should
+also be possible.)
+
+In this example, every ballot in collection ``DEN-A01`` must contain all
+and only those contests in the ``DENVER`` contest group.
+The ballots in collection ``LOG-B13`` must contain every contest in
+the ``LOGANREQ`` contest group, and may contain any contest in the
+``LOGANPOSS`` contest group.
+
+Note that this representation doesn't exactly represent the common notion of
 a "ballot style," where a style can viewed as a set of contests that
-co-occur on a ballot.  If a collection may hold ballots of several different
-styles, then the collections file shows every contest that may appear on
-any allowed ballot in the collection.
+co-occur on a ballot.  But it suffices for our purposes.
+
+If a collection (as for mail-in ballots)
+may hold ballots of several different ballot styles
+styles, then the ``Required`` field may show a contest group giving
+the contests common to all possible ballots in the collection, while
+the ``Possible`` field may show a contest group listing the contests
+that may occur on any ballot in the collection (that is, the union of
+the possible ballot styles).
 
 [Back to TOC](#table-of-contents)
 
@@ -805,15 +829,15 @@ official fully-expanded one-ballot-per-row format.
 
 Here is an example of a ballot manifest file.
 
-| Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Comments |
-|---            | --        | ---       | ---       | ---       | ---               | ---      |
-| LOG-B13       | B         | 1         | XY04213   | B-0001    |  1                |          |
-| LOG-B13       | B         | 2         | XY04214   | B-0002    |  1                |          |
-| LOG-B13       | B         | 3         | XY04215   | B-0003    |  1                |          |
-| LOG-B13       | C         | 1         | QE55311   | C-0001    |  3                |          |
-| LOG-B13       | D         | 1         |           | D-0001    |  50               |          |
-| LOG-B13       | E         | 1         | FF91320   | E-0200    |  50               |          |
-| LOG-B13       | F         | 1         | JS23334   | F-0001    |  1                | See Doc. #211 |
+| Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Required | Possible    | Comments      |
+|---            | --        | ---       | ---       | ---       | ---               | ---      | ---         | ---           |
+| LOG-B13       | B         | 1         | XY04213   | B-0001    |  1                |          |             |               |
+| LOG-B13       | B         | 2         | XY04214   | B-0002    |  1                |          |             |               |
+| LOG-B13       | B         | 3         | XY04215   | B-0003    |  1                |          |             |               |
+| LOG-B13       | C         | 1         | QE55311   | C-0001    |  3                | FEDERAL  | FEDERAL     |               |
+| LOG-B13       | D         | 1         |           | D-0001    |  50               |          |             |               |
+| LOG-B13       | E         | 1         | FF91320   | E-0200    |  50               |          |             |               |
+| LOG-B13       | F         | 1         | JS23334   | F-0001    |  1                |          |             | See Doc. #211 |
 
 Box B has three ballots, which are individually described, one row per ballot.
 Box C also has three ballots, but the compact format is used here.  The positions
@@ -821,6 +845,7 @@ of the three ballots are 1,2,3; the stamps are ``QE55311``, ``QE55312``, and ``Q
 and the ballot ids are ``C-0001``, ``C-0002``, and ``C-0003``. 
 (The ballot ids here just encode the box id and position; they need not do so, as
 we see for box E.)
+Ballots in box C all have the FEDERAL contests, and only the FEDERAL contests, on them.
 Box D has 50 unstamped ballots, in positions
 1--50, and ballot ids ``D-0001`` to ``D-0050``.
 Box F has a single ballot, with a comment (perhaps it was a provisional ballot).
