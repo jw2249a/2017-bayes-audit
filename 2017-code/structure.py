@@ -50,14 +50,15 @@ def read_election(e, election_dirname):
     """ 
     Read file 1-structure/11-election.csv, put results into Election e.
     election_dirname is the name of the directory for the election 
-        (e.g. "./elections/CO-2017-11")
+        (e.g. "CO-2017-11") with ELECTIONS_ROOT
     """
     
-    structure_dirname = os.path.join(election_dirname, "1-structure")
-    filename = utils.greatest_name(structure_dirname, "11-election", ".csv")
-    full_filename = os.path.join(structure_dirname, filename)
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, election_dirname)
+    structure_pathname = os.path.join(election_pathname, "1-structure")
+    filename = utils.greatest_name(structure_pathname, "11-election", ".csv")
+    file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Attribute", "Value"]
-    rows = csv_readers.read_csv_file(full_filename, fieldnames)
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames)
     for row in rows:
         if "Election name" == row["Attribute"]:
             e.election_name = row["Value"]
@@ -79,7 +80,7 @@ def read_election(e, election_dirname):
 def test_read_election(e):        
 
     print("test_read_election")
-    read_election(e, "./elections/v2-ex1")
+    read_election(e, "ex1")
 
 
 def read_contests(e):
@@ -116,7 +117,7 @@ def read_contests(e):
 def test_read_contests(e):
 
     print("test_read_contests")
-    read_election(e, "./elections/v2-ex1/")
+    read_election(e, "ex1/")
     read_contests(e)
 
 
@@ -139,9 +140,12 @@ def read_contest_groups(e):
         e.cgids_g[gid] = row["Contest or group id(s)"]
 
 
-def test_contest_groups(e):    
+def test_read_contest_groups(e):    
 
+    print("test_read_contest_groups")
+    read_contest_groups(e)
     pass
+
 
 def read_collections(e):
     """
