@@ -585,10 +585,11 @@ in which the contests are present on a ballot.
 | LOGAN REQ        |FED STATE        |Logan Mayor 
 | LOGAN POSS       |Logan Water
 
-In this example, JEFFERSON-2 includes all of the contests in group
-JEFFERSON, plus the contest ``Jeffco-water-bill``.
-For Logan county, we define two contest groups: those that are required (``LOGANREC``),
-and those that are possible (``LOGANPOSS``); the latter includes the former.  See
+In this example, ``FED STATE`` includes all of the contests in group
+``FEDERAL``, plus all contests in group ``STATE``.
+
+For Logan county, we define two contest groups: those that are required (``LOGAN REQ``),
+and those that are possible (``LOGAN POSS``); the latter includes the former.  See
 the [Collections file](#collections-file) section for an example of their use.
 
 In other input files, a contest group name
@@ -621,20 +622,22 @@ This is a CSV file, with the name ``14-collections.csv`` (possibly with a versio
 label, as in ``14-collections-09-08.csv``).
 
 The possible ``ballot styles`` in a collection are constrained by the
-``Required Contests`` and ``Possible Contests`` contest groups.  Every ballot must contain
-every contest in the ``Required Contests`` contest group, and may contain any
-contest in the ``Possible Contests`` contest group.  (Every required contest should
-also be possible.)
+``Required Contests`` and ``Possible Contests`` contest groups.  Every ballot in a collection
+must contain every contest in the ``Required Contests`` contest group, and may contain any
+contest in the ``Possible Contests`` contest group.  (Every required contest is automatically
+a possible contest, so there is no need include the required contest group in the
+definition of the possible contest group.)
 
 In this example, every ballot in collection ``DEN-A01`` must contain all
 and only those contests in the ``DENVER`` contest group.
 The ballots in collection ``LOG-B13`` must contain every contest in
-the ``LOGANREQ`` contest group, and may contain any contest in the
-``LOGANPOSS`` contest group.
+the ``LOGAN REQ`` contest group, and may contain any contest in the
+``LOGAN POSS`` contest group.
 
-If the ``Required Contests`` and the ``Possible Contests`` fields are equal,
-then ballots in that collection have a common ballot style (set of contests
-occurring on those ballots).
+If the ``Possible Contests`` contest group doesn't introduce any new
+contests above and beyond what is already in the ``Required Contests``
+group, then ballots in that collection have a common ballot style (set
+of contests occurring on those ballots).
 
 If a collection (as for mail-in ballots)
 may hold ballots of several different ballot styles
@@ -643,11 +646,6 @@ the contests **common** to all possible ballots in the collection, while
 the ``Possible`` field may show a contest group listing the contests
 that may occur on any ballot in the collection (that is, the union of
 the possible ballot styles).
-
-The contest group ids ``NONE`` and ``ALL`` are predefined and reserved, referring
-to the set of no contests and the set of all contests.  If the ``Required Contests`` field
-is missing, ``NONE`` is assumed.  If the ``Possible Contests`` field is missing, ``ALL`` is
-assumed.
 
 [Back to TOC](#table-of-contents)
 
