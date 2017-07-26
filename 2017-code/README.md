@@ -521,8 +521,8 @@ of the election, their type (e.g. plurality), whether
 write-ins are allowed (and if so, whether they may be arbitrary, or whether they
 must be pre-qualified), and the officially allowed selections.
 
-| Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |             |            |
-| ---             | ---          | ---       |---        | ---        | ---       |---         |---          |---         |
+| Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |            |
+| ---             | ---          | ---       |---        | ---        | ---       |---         |---         |
 | Denver Prop 1   | Plurality    | 1         | No        | Yes        | No  
 | Denver Prop 2   | Plurality    | 1         | No        | Yes        | No   
 | Denver Mayor    | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost 
@@ -530,7 +530,7 @@ must be pre-qualified), and the officially allowed selections.
 | Logan Mayor     | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu 
 | Logan Water     | Plurality    | 1         | No        | Yes        | No
 | U.S. President  | Plurality    | 1         | Arbitrary | Don Brown  | Larry Pew
-| U.S. Senate 1   | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | Sarah Day   | +Tom Cruz 
+| U.S. Senate 1   | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | +Tom Cruz 
 | U.S. Senate 2   | Plurality    | 1         | Qualified | Term Three | Old Guy   | +Hot Stuff
 | CO Prop A       | Plurality    | 1         | No        | Yes        | No
 
