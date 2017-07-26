@@ -183,8 +183,8 @@ def check_id(id, check_for_whitespace=False):
 
 def check_election_structure(e):
 
-    if not isinstance(e.cids, (list, tuple)):
-        utils.myerror("e.cids is not a list or a tuple.")
+    if not isinstance(e.cids, (list, tuple, set)):
+        utils.myerror("e.cids is not a list, tuple, or set.")
     if len(e.cids) == 0:
         utils.myerror("e.cids is an empty list of contests.")
     for cid in e.cids:

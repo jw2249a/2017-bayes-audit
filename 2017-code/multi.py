@@ -146,8 +146,8 @@ class Election(object):
         e.election_url = ""
         # URL to find more information about the election
 
-        e.cids = []
-        # list of contest ids (cids)
+        e.cids = set()
+        # set of contest ids (cids)
 
         e.contest_type_c = {}
         # cid->contest type  (e.g. "plurality" or "irv")

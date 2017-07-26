@@ -149,7 +149,7 @@ def generate_contests(se):
     # check number of contests
     assert isinstance(se.n_cids, int) and se.n_cids >= 1
     # make cid for each contest
-    se.cids = ["con{}".format(i+1) for i in range(se.n_cids)]
+    se.cids = set("con{}".format(i+1) for i in range(se.n_cids))
 
     # generate contest types as plurality and number winners = 1
     # no write-ins
