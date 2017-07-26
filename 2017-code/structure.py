@@ -21,19 +21,32 @@ Election URL  , https://sos.co.gov/election/2017-11-07/
 
 12-contests.csv
 Contest id      , Contest type , Winners   ,Write-ins  , Selections 
-DEN-prop-1      , Plurality    , 1         , No        , Yes        , No
-DEN-prop-2      , Plurality    , 1         , No        , Yes        , No
-DEN-mayor       , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost
-LOG-mayor       , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
-US-Senate-1     , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz
-Boulder-clerk   , IRV          , 1         , Arbitrary , Rock Ohn   , Peh Bull  , Roll Stone
-Boulder-council , Plurality    , 4         , No        , Dave Diddle, Ben Borg  , Sue Mee    , Fan Tacy    , Jill Snead
+Denver Prop 1   , Plurality    , 1         , No        , Yes        , No  
+Denver Prop 2   , Plurality    , 1         , No        , Yes        , No   
+Denver Mayor    , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
+Denver Clerk    , Plurality    , 1         , No        , Yet Again  , New Guy
+Logan Mayor     , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
+Logan Water     , Plurality    , 1         , No        , Yes        , No
+U.S. President  , Plurality    , 1         , Arbitrary , Don Brown  , Larry Pew
+U.S. Senate 1   , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
+U.S. Senate 2   , Plurality    , 1         , Qualified , Term Three , Old Guy   , +Hot Stuff
+CO Prop A       , Plurality    , 1         , No        , Yes        , No
+
+13-contest-groups.csv
+Contest group id ,Contest or group id(s)
+FEDERAL          ,U.S. President   ,U.S. Senate 1        ,U.S. Senate 2
+STATE            ,CO Prop A
+FED STATE        ,FEDERAL          ,STATE
+DENVER LOCAL     ,Denver Mayor     ,Denver Clerk, Denver Prop 1, Denver Prop 2
+DENVER           ,FED STATE        ,DENVER LOCAL
+LOGAN REQ        ,FED STATE        ,Logan Mayor 
+LOGAN POSS       ,Logan Water
 
 14-collections.csv
-Collection id , Manager          , CVR type  , Contests 
-DEN-A01       , abe@co.gov       , CVR       , DEN-prop-1 , DEN-prop-2 , US-Senate-1
-DEN-A02       , bob@co.gov       , CVR       , DEN-prop-1 , DEN-prop-2 , US-Senate-1
-LOG-B13       , carol@co.gov     , noCVR     , LOG-mayor  , US-Senate-1
+Collection id , Manager          , CVR type  , Required Contests, Possible Contests
+DEN-A01       , abe@co.gov       , CVR       , DENVER,            DENVER
+DEN-A02       , bob@co.gov       , CVR       , DENVER,            DENVER
+LOG-B13       , carol@co.gov     , noCVR     , LOGAN REQ,         LOGAN POSS
 
 The values are sanity checked, and put into the Election data structure (e)
 from multi.py
@@ -100,7 +113,7 @@ def read_contests(e):
 
         cid = row["Contest id"]
         
-        e.cids.add(cid)
+        e.cids.append(cid)
         
         e.contest_type_c[cid] = row["Contest type"].lower()
         
@@ -317,6 +330,15 @@ def show_election_structure(e):
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
         utils.myprint(", ".join(sorted(e.possible_pbcid_c[cid])))
+    utils.myprint("Required pbcids for each cid (e.possible_pbcid_c):")
+    for cid in e.cids:
+        utils.myprint("    {}: ".format(cid), end='')
+        utils.myprint(", ".join(sorted(e.required_pbcid_c[cid])))
+    utils.myprint("Possible pbcids for each cid (e.possible_pbcid_c):")
+    for cid in e.cids:
+        utils.myprint("    {}: ".format(cid), end='')
+        utils.myprint(", ".join(sorted(e.possible_pbcid_c[cid])))
+
 
 
 def test():

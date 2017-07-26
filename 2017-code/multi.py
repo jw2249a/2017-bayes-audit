@@ -154,8 +154,9 @@ class Election(object):
 
         # *** Contests
 
-        e.cids = set()
-        # set of contest ids (cids)
+        e.cids = []
+        # list of contest ids (cids)
+        # Order is important: contests will be printed in this order.
 
         e.contest_type_c = {}
         # cid->contest type  (e.g. "plurality" or "irv")
