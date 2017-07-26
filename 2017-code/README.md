@@ -591,11 +591,6 @@ In other input files, a contest group name
 may be used as shorthand for a set of alternative contests.
 For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
-The contest group ids ``ALL`` and ``NONE`` are predefined and reserved, referring
-to the set of all contests and the set of no contests.  If the ``Required`` field
-is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
-assumed.
-
 A contest group has a file name of the form
 ``14-contest-groups-2017-09-08.csv`` (shown with version label).
 
@@ -610,11 +605,11 @@ manager, collection type (CVR or noCVR),
 contest groups specifying what contests are required and possible,
 and a list of contests that may appear on ballots in that collection.
 
-| Collection id | Manager          | CVR type  | Required   | Possible   | Contests   | ...        | ...         |...         |...    |
-| ---           | ---              | ---       | ---        | ---        | ---        | ---        | ---         |---         |---    |
-| DEN-A01       | abe@co.gov       | CVR       | DENVER     | DENVER     | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
-| DEN-A02       | bob@co.gov       | CVR       | DENVER     | DENVER     | DEN-prop-1 | DEN-prop-2 | US-Senate-1 |            |       |
-| LOG-B13       | carol@co.gov     | noCVR     | LOGANREQ   | LOGANPOSS  | LOG-mayor  | US-Senate-1|             |            |       |
+| Collection id | Manager          | CVR type  | Required   | Possible   |
+| ---           | ---              | ---       | ---        | ---        |
+| DEN-A01       | abe@co.gov       | CVR       | DENVER     | DENVER     |
+| DEN-A02       | bob@co.gov       | CVR       | DENVER     | DENVER     |
+| LOG-B13       | carol@co.gov     | noCVR     | LOGANREQ   | LOGANPOSS  |
 
 This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
 label, as in ``14-collections-09-08.csv``).
@@ -642,6 +637,11 @@ the contests common to all possible ballots in the collection, while
 the ``Possible`` field may show a contest group listing the contests
 that may occur on any ballot in the collection (that is, the union of
 the possible ballot styles).
+
+The contest group ids ``ALL`` and ``NONE`` are predefined and reserved, referring
+to the set of all contests and the set of no contests.  If the ``Required`` field
+is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
+assumed.
 
 [Back to TOC](#table-of-contents)
 
@@ -860,6 +860,11 @@ If ballot stamps are not used, or if ballot stamps are sequential, then the
 ballot manifest might be easy to create by hand, thus removing the need to
 trust vendor software to create the ballot manifest.  The auditor will need
 to create one line of the ballot manifest file per box in the collection.
+
+The contest group ids ``ALL`` and ``NONE`` are predefined and reserved, referring
+to the set of all contests and the set of no contests.  If the ``Required`` field
+is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
+assumed.
 
 A ballot manifest file has a filename of the form
 ``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13-2017-11-07.csv``
