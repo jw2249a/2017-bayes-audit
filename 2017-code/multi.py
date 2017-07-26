@@ -46,6 +46,7 @@ import utils
 
 ELECTIONS_ROOT = "./elections"
 
+
 class Election(object):
 
     """
@@ -90,7 +91,7 @@ class Election(object):
                ("AliceJones", "BobSmith", "+LizardPeople") indicates that Alice
                is the voter's first choice, Bob the second, etc.               
 
-       
+
 
     It is recommended (but not required) that ids not contain anything but
              A-Z   a-z   0-9  -   _   .   +
@@ -101,9 +102,12 @@ class Election(object):
 
         e = self
 
-        # Note: we use nested dictionaries extensively.
-        # variables may be named e.de_wxyz
-        # where w, x, y, z give argument type:
+        # *** Notation
+
+        # We use nested dictionaries extensively.
+        # variables may be named e.de_xyz
+        # where x, y, z give argument type
+        # (and there may be one or more of these):
 
         # c = contest id (cid)
         # g = contest group id (gid)
@@ -124,11 +128,13 @@ class Election(object):
         # and reported vote r, e.g.
         # e.rn_cr[cid][r]  gives such a count.
 
-        # election structure
+        # *** Election structure
 
         # There is a standard directory ELECTIONS_ROOT where "all information
         # about elections is held", defaulting to "./elections".
         # This can be changed with a command-line option.
+
+        # *** General
 
         e.election_dirname = ""
         # Dirname of election (e.g. "CO-Nov-2017")
@@ -146,6 +152,8 @@ class Election(object):
         e.election_url = ""
         # URL to find more information about the election
 
+        # *** Contests
+
         e.cids = set()
         # set of contest ids (cids)
 
@@ -154,17 +162,19 @@ class Election(object):
 
         e.winners_c = {}
         # cid->int
-        # number of winners in contest 
+        # number of winners in contest
 
         e.write_ins_c = {}
         # cid->str  (e.g. "no" or "qualified" or "arbitrary")
 
         e.selids_c = {}
         # cid->selids->True
-        # dict of some possible selection ids (selids) for each cid 
+        # dict of some possible selection ids (selids) for each cid
         # note that e.selids_c is used for both reported selections
         # (from votes in e.rv) and for actual selections (from votes in e.av)
         # it also increases when new selids starting with "+" or "-" are seen.
+
+        # *** Contest groups
 
         e.gids = []
         # list of contest group ids (gids)
@@ -180,6 +190,8 @@ class Election(object):
         # This is the expanded-out version of e.cgids_g[gid],
         # so all contest groups are replaced by their contest sets.
 
+        # *** Collections
+
         e.pbcids = []
         # list of paper ballot collection ids (pbcids)
 
@@ -190,12 +202,25 @@ class Election(object):
         e.cvr_type_p = {}
         # pbcid-> "CVR" or "noCVR"
 
+        e.required_gid_p = {}
+        e.possible_gid_p = {}
+        # pbcid->gid
+        # e.required_gid_p[pbcid] is a contest group id for contests that *must* be on ballot.
+        # e.possible_gid_p[pbcid] is a contest group id for contests that *may* be on ballot.
+        #    The list of contest ids for the second gid must include all of those for the first.
+        # The first gives a *lower bound* saying what contests must be present.
+        # The second gives an *upper bound* saying what contests may be present.
+        # If no gid is given (i.e. gid = ""), then any ballot style is allowed.
+        # From collections file.
+
         e.rel_cp = {}
         # cid->pbcid->"True"
         # relevance; only relevant pbcids in e.rel_cp[cid]
         # True means the pbcid *might* contains ballots relevant to cid
 
-        # election data (manifests, reported votes, and reported outcomes)
+        # *** election data (manifests, reported votes, and reported outcomes)
+
+        # *** Ballot manifests
 
         e.bids_p = {}
         # pbcid->[bids]
@@ -211,29 +236,32 @@ class Election(object):
         e.position_pb = {}
         # pbcid->bid->position (an int)
         # from ballot manifest "Position" field
-        
+
         e.stamp_pb = {}
         # pbcid->bid->stampt (a string)
         # from ballot manifest "Stamp" field
-        
+
         # Note that the "Number of ballots" field of a ballot manifest
         # is not captured here; we assume that any rows in an input
-        # manifest with "Number of ballots">1 is expanded into multiple rows first.
-        
-        e.req_cids_pb = "NONE"
-        e.opt_cids_pb = "ANY"
+        # manifest with "Number of ballots">1 is expanded into multiple rows
+        # first.
+
+        e.required_gid_pb = {}
+        e.possible_gid_pb = {}
         # pbcid->bid->gid
-        # e.req_cids[pbcid][bid] is a contest group id for contests that *must* be on ballot.
-        # e.opt_cids[pbcid][bid] is a contest group id for contests that *may* be on ballot.
+        # e.required_gid_pb[pbcid][bid] is a contest group id for contests that *must* be on ballot.
+        # e.possible_gid_pb[pbcid][bid] is a contest group id for contests that *may* be on ballot.
         #    The list of contest ids for the second gid must include all of those for the first.
         # The first gives a *lower bound* saying what contests must be present.
         # The second gives an *upper bound* saying what contests may be present.
-        # If no gid is given (i.e. gid = ""), then the default values are as shown,
-        # which allows any ballot style.  
+        # If no gid is given (i.e. gid = ""), then any ballot style is allowed.
+        # From ballot manifest.
 
         e.comments_pb = {}
         # pbcid->bid->comments (string)
         # from ballot manifest "Comments" field
+
+        # *** Reported votes
 
         e.rn_p = {}
         # pbcid -> count
@@ -251,10 +279,6 @@ class Election(object):
         # reported number of votes by contest, paper ballot collection,
         # and reported vote.
 
-        e.ro_c = {}
-        # cid->outcome
-        # reported outcome by contest
-
         # computed from the above
 
         e.rn_c = {}
@@ -270,10 +294,20 @@ class Election(object):
         # vote in given contest, paper ballot collection, and ballot id
         # e.rv_cpb is like e.av, but reported votes instead of actual votes
 
-        ## audit
+        # *** Reported outcomes
+
+        e.ro_c = {}
+        # cid->outcome
+        # reported outcome by contest
+
+        # *** Audit setup
 
         e.audit_seed = None
         # seed for pseudo-random number generation for audit
+
+        # *** Audit orders
+
+        # *** Contest audit parameters
 
         e.mids = []
         # list of measurement ids (typically one/contest being audited)
@@ -284,7 +318,8 @@ class Election(object):
         e.risk_method_m = {}
         # mid->{"Bayes", "Frequentist"}
         # The risk-measurement method used for a given measurement.
-        # Right now, the options are "Bayes" and "Frequentist", but this may change.
+        # Right now, the options are "Bayes" and "Frequentist", but this may
+        # change.
 
         e.risk_measurement_parameters_m = {}
         # additional parameters that may be needed by the risk measurement method
@@ -297,9 +332,11 @@ class Election(object):
         e.risk_upset_m = {}
         # mid->reals
         # risk upset threshold for each measurement (from [0,1])
-        
+
         e.sampling_mode_m = {}
         # mid->{"Active", "Opportunistic"}
+
+        # *** Collection audit parameters
 
         e.audit_rate_p = {}
         # pbcid->int
@@ -316,14 +353,16 @@ class Election(object):
         # This higher value reflects prior knowledge that
         # the scanners are expected to be quite accurate.
 
+        # *** Fixed audit parameters
+
         e.n_trials = 100000
         # number of trials used to estimate risk in compute_contest_risk
 
         e.shuffled_indices_p = []
         e.shuffled_bids_p = []
-        # sampling order for bids of each pbcid 
+        # sampling order for bids of each pbcid
 
-        ###  stage-related items
+        # stage-related items
 
         e.stage = "0"
         # current audit stage number (in progress) or last stage completed
@@ -376,7 +415,8 @@ class Election(object):
 
 def main():
 
-    utils.myprint_switches = []       # put this after following line to suppress printing
+    # put this after following line to suppress printing
+    utils.myprint_switches = []
     utils.myprint_switches = ["std"]
 
     print("multi.py -- Bayesian audit support program.")
