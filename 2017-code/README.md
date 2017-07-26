@@ -730,17 +730,20 @@ Each ballot id may be given explicitly, or, if some ballots are organized
 into a batch (box) with sequential ballot ids, the first ballot id of the batch and
 the size of the batch may be given.
 
-It indicates the physical location of each ballot (giving a box id and position within box),
-any "stamp" or other identification imprinted on the ballot,
-and any additional comments about specific ballots.
+It indicates the physical location of each ballot (giving a box id and
+position within box), any "stamp" or other identification imprinted on
+the ballot, and any additional comments about specific ballots.
 
 The **``Collection id``** field specifies the collection id for the ballot manifest.
 This should the same for all rows in the file.
 
-The **``Box id``** field gives the identifier for the box containing the ballot(s)
-described in that row.  The box id should be unique within the paper ballot collection.
-If it is omitted, a box id is assumed to be equal to the collection id. (Maybe there
-are no "boxes" for this collection.)
+The **``Box id``** field gives the identifier for the box containing
+the ballot(s) described in that row.  The box id should be unique
+within the paper ballot collection.  If it is omitted, a box id is
+assumed to be equal to the collection id. (Maybe there are no "boxes"
+for this collection.)  The box id may be used flexibly---for example,
+it might encode both a box-id and batch-within-box-id.  For example,
+the box id might be ``Box45-Batch2``.
 
 The **``Position``** field gives the position (starting with 1) of the ballot within
 the box.  The auditor may find a particular ballot by counting to the right position
