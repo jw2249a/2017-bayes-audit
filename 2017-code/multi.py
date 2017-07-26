@@ -213,10 +213,19 @@ class Election(object):
         # If no gid is given (i.e. gid = ""), then any ballot style is allowed.
         # From collections file.
 
+        e.required_cid_p = {}
+        e.possible_cid_p = {}
+        # pbcid->cid->"True"
+        # Necessary relevance; every ballot in pbcid must contain the cid.
+
+        e.required_pbcid_c = {}
+        e.possible_pbcid_c = {}
+        # cid->pbcid->"True"
+        # Possible relevance; only relevant pbcids in e.possible_pbcid_c[cid]
+        # True means the pbcid *might* contains ballots relevant to cid
+
         e.rel_cp = {}
         # cid->pbcid->"True"
-        # relevance; only relevant pbcids in e.rel_cp[cid]
-        # True means the pbcid *might* contains ballots relevant to cid
 
         # *** election data (manifests, reported votes, and reported outcomes)
 
