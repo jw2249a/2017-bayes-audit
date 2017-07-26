@@ -56,7 +56,8 @@ def read_election(e, election_dirname):
     structure_dirname = os.path.join(election_dirname, "1-structure")
     filename = utils.greatest_name(structure_dirname, "11-election", ".csv")
     full_filename = os.path.join(structure_dirname, filename)
-    rows = csv_readers.read_csv_file(full_filename)
+    fieldnames = ["Attribute", "Value"]
+    rows = csv_readers.read_csv_file(full_filename, fieldnames)
     for row in rows:
         if "Election name" == row["Attribute"]:
             e.election_name = row["Value"]
@@ -90,12 +91,14 @@ def read_contests(e):
     structure_pathname = os.path.join(election_pathname, "1-structure")
     filename = utils.greatest_name(structure_pathname, "12-contests", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
-    rows = csv_readers.read_csv_file(file_pathname, varlen=True)
+    fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins",
+                  "Selections"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
 
         cid = row["Contest id"]
         
-        e.cids.append(cid)
+        e.cids.add(cid)
         
         e.contest_type_c[cid] = row["Contest type"].lower()
         
@@ -117,6 +120,29 @@ def test_read_contests(e):
     read_contests(e)
 
 
+def read_contest_groups(e):
+    """
+    Read file 13-contest-groups.csv, put results into Election e.
+    """
+
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname, "1-structure")
+    filename = utils.greatest_name(structure_pathname, "13-contest-groups", ".csv")
+    file_pathname = os.path.join(structure_pathname, filename)
+    fieldnames = ["Contest group id", "Contest or group id(s)"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+    for row in rows:
+
+        gid = row["Contest group id"]
+        e.gids.append(gid)
+        
+        e.cgids_g[gid] = row["Contest or group id(s)"]
+
+
+def test_contest_groups(e):    
+
+    pass
+
 def read_collections(e):
     """
     Read file 14-collections.csv, put results into Election e.
@@ -126,18 +152,22 @@ def read_collections(e):
     structure_pathname = os.path.join(election_pathname, "1-structure")
     filename = utils.greatest_name(structure_pathname, "14-collections", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
-    rows = csv_readers.read_csv_file(file_pathname, varlen=True)
+    fieldnames = ["Collection id", "Manager", "CVR type",
+                  "Required Contests", "Possible Contests"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
 
         pbcid = row["Collection id"]
         e.pbcids.append(pbcid)
+
         e.manager_p[pbcid] = row["Manager"]
+
         e.cvr_type_p[pbcid] = row["CVR type"]
-        for cid in row["Contests"]:
-            if cid not in e.rel_cp:
-                e.rel_cp[cid] = {}
-            e.rel_cp[cid][pbcid] = True
-    
+
+        e.required_gid_p[pbcid] = row["Required Contests"]
+
+        e.possible_gid_p[pbcid] = row["Possible Contests"]
+
 
 def test_read_collections(e):
 
@@ -147,10 +177,10 @@ def test_read_collections(e):
 
 def get_election_structure(e):
 
-    # load_part_from_json(e, "structure.js")
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     read_election(e, election_pathname)
     read_contests(e)
+    read_contest_groups(e)
     read_collections(e)
     finish_election_structure(e)
     check_election_structure(e)
@@ -268,8 +298,15 @@ def show_election_structure(e):
         utils.myprint(", ".join(sorted(e.rel_cp[cid])))
 
 
-if __name__=="__main__":
+def test():
+    
     e = multi.Election()
     test_read_election(e)
     test_read_contests(e)
-    test_read_collections(e)
+    test_read_contest_groups(e)
+    test_read_collections(e)    
+
+
+if __name__=="__main__":
+
+    test()
