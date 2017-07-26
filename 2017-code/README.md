@@ -576,10 +576,16 @@ in which the contests are present on a ballot.
 | FEDERAL          | U.S. President   | U.S Senate-1  | U.S. Senate  -2 |            |             |
 | STATEWIDE        | CO-prop-A        | CO-prop-B     | CO-prop-C       |            |             |
 | JEFFERSON        | Jeffco-prop-A    | Jeffco-prop-B | Jeffco-Judge   | Jeffco-council |         |
-| JEFFERSON-2      | JEFFERSON        | Jeffco-water-bill    |                |                |         |
+| JEFFERSON-2      | JEFFERSON        | Jeffco-water         |                |                |         |
+| DENVER           | Denver-mayor     | Denver-cleark        |                |                |         |
+| LOGANREQ         | Logan-council    |                      |                |                |         |
+| LOGANPOSS        | LOGANREC         | Logan-water          |                |                |         |
 
 In this example, JEFFERSON-2 includes all of the contests in group
 JEFFERSON, plus the contest ``Jeffco-water-bill``.
+For Logan county, we define two contest groups: those that are required (``LOGANREC``),
+and those that are possible (``LOGANPOSS``); the latter includes the former.  See
+the [Collections file](#collections-file) section for an example of their use.
 
 In other input files, a contest group name
 may be used as shorthand for a set of alternative contests.
