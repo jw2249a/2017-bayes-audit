@@ -521,7 +521,7 @@ of the election, their type (e.g. plurality), whether
 write-ins are allowed (and if so, whether they may be arbitrary, or whether they
 must be pre-qualified), and the officially allowed selections.
 
-| Contest id      | Contest type | Winners   |Write-ins  | Selections | ...       |...         |...          |...         |
+| Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |             |            |
 | ---             | ---          | ---       |---        | ---        | ---       |---         |---          |---         |
 | DEN-prop-1      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
 | DEN-prop-2      | Plurality    | 1         | No        | Yes        | No        |            |             |            |
@@ -712,7 +712,7 @@ each row represents a single vote of a voter in a contest.  There are three vote
 contests.
 
 
-|Collection id   | Scanner  | Ballot id   | Contest     | Selections     | ...       |
+|Collection id   | Scanner  | Ballot id   | Contest     | Selections     |           |
 |---             |---       | ---         | ---         | ---            | ---       |
 |DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
 |DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
@@ -734,7 +734,7 @@ with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.c
 **Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
 
-|Collection id   | Scanner  | Tally       | Contest     | Selections     | ...       |
+|Collection id   | Scanner  | Tally       | Contest     | Selections     |           |
 |---             |---       | ---         | ---         | ---            | ---       |
 |LOG-B13         |FG231     | 2034        | LOG-mayor   | Susan Hat      |           |
 |LOG-B13         |FG231     | 1156        | LOG-mayor   | Barry Su       |           |
@@ -879,7 +879,7 @@ A "**reported outcomes file**" gives the reported outcome for every
 contests.  It may indicate final vote tallies for the winner, and
 do the same for the losers.
 
-| Contest id      | Winner(s)  | ...        | ...       | ...         |
+| Contest id      | Winner(s)  |            |           |             |
 | ---             |  -         | ---        |---        |---          |
 | DEN-prop-1      | Yes        |            |           |             |
 | DEN-mayor       | John Smith |            |           |             |
@@ -1082,7 +1082,7 @@ Here is an example of a sample vote file for the ``DEN-A01`` collection, for
 two ballots and three contests each.
 
 
-|Collection id   | Ballot id   | Contest     | Selections     | ...       |
+|Collection id   | Ballot id   | Contest     | Selections     |           |
 |---             | ---         | ---         | ---            | ---       |
 |DEN-A01         | B-231       | DEN-prop-1  | Yes            |           |
 |DEN-A01         | B-231       | DEN-prop-2  | No             |           |
@@ -1514,7 +1514,7 @@ means copy the next three cells from the row nine rows earlier.
 
 Example:  The following file:
 
-|Collection id   | Scanner  | Ballot id   | Contest     | Selections     | ...       |
+|Collection id   | Scanner  | Ballot id   | Contest     | Selections     |           |
 |---             |---       | ---         | ---         | ---            | ---       |
 |DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
 |DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
@@ -1527,9 +1527,9 @@ Example:  The following file:
 can be compressed to the RRC CSV file:
 
 ```
-Collection id,Scanner,Ballot id,Contest,Selections,...
-DEN-A01,FG231,B-231,DEN-prop-1,Yes,
-&3,DEN-prop-2,
+Collection id,Scanner,Ballot id,Contest,Selections
+DEN-A01,FG231,B-231,DEN-prop-1,Yes
+&3,DEN-prop-2
 &3,US-Senate-1,Rhee Pub,Sarah Day
 &2,B-777,^3,No
 &3,^3,Yes
