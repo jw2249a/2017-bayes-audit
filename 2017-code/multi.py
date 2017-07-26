@@ -220,6 +220,17 @@ class Election(object):
         # is not captured here; we assume that any rows in an input
         # manifest with "Number of ballots">1 is expanded into multiple rows first.
         
+        e.req_cids_pb = "NONE"
+        e.opt_cids_pb = "ANY"
+        # pbcid->bid->gid
+        # e.req_cids[pbcid][bid] is a contest group id for contests that *must* be on ballot.
+        # e.opt_cids[pbcid][bid] is a contest group id for contests that *may* be on ballot.
+        #    The list of contest ids for the second gid must include all of those for the first.
+        # The first gives a *lower bound* saying what contests must be present.
+        # The second gives an *upper bound* saying what contests may be present.
+        # If no gid is given (i.e. gid = ""), then the default values are as shown,
+        # which allows any ballot style.  
+
         e.comments_pb = {}
         # pbcid->bid->comments (string)
         # from ballot manifest "Comments" field
