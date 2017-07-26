@@ -9,6 +9,7 @@ This module implements "contest groups" for the post-election audit program
 """
 
 import multi
+import utils
 
 
 def expand_contest_group_defs(e):
@@ -17,25 +18,37 @@ def expand_contest_group_defs(e):
     for each contest group purely in terms of its contests.
 
     The input definitions are in e.cgids_g, which gives definition
-    of each contest group as list of cids and gids, for each gid.
+    of each contests group as an ordered list of cids and gids, 
+    for each gid.
 
-    The output goes into e.cids_g, which gives just the cids in 
-    each group.
+    The output goes into e.cids_g, which gives just an ordered list
+    e.cids_g[gid] for the cids in each group.
 
     This is a simple reachability computation in a directed graph,
-    using repeated dfs starting from each gid node.
+    using repeated depth-first search starting from each gid node.
+
+    A warning is printed if the gid graph has any cycles.
+
+    When the graph is acyclic, this is just like doing a derviation of
+    a string in a context-free grammar, where the cids are the "terminals"
+    and the gids are the "nonterminals".  Each gid generates exactly one
+    string.
+
+    The reason for using ordered lists here is that this may reflect the
+    order in which the contests appear on a ballot.
     """
 
     e.cids_g = {}
 
     for gid in e.gids:
         gids = set()
-        cids = set()
-        reachable_from(e, gid, gids, cids)
+        cids = []
+        stack = []
+        reachable_from(e, gid, gids, cids, stack)
         e.cids_g[gid] = cids
 
 
-def reachable_from(e, gid, gids, cids):
+def reachable_from(e, gid, gids, cids, stack):
     """
     Find all gids and cids reachable from initial 
     gid in 0 or more steps.
@@ -44,17 +57,17 @@ def reachable_from(e, gid, gids, cids):
     """
 
     if gid in gids:
+        if gid in stack:
+            utils.mywarning("Group id {} is in a cycle!".format(gid))
         return
     gids.add(gid)
-    for cid in e.cgids_g[gid]:
-        if cid in e.cids:
-            cids.add(cid)
-
     for cgid in e.cgids_g[gid]:
         if cgid in e.cids:
-            cids.add(cgid)
+            cids.append(cgid)
         else:
-            reachable_from(e, cgid, gids, cids)
+            stack.append(gid)
+            reachable_from(e, cgid, gids, cids, stack)
+            stack.pop()
 
 def test_expand():
 
@@ -119,16 +132,18 @@ def expand_gids_in_list(e, L):
 
     Here L is a list of mixed cid and gid identifiers.
     Duplicates removed in output, of course.
+    The operation preserves the order of the portions 
+    (like a contest-free grammar, if there are no cycles).
     """
 
-    S = set()
+    L = []
     for cgid in L:
         if cgid in e.cids:
-            S.add(cgid)
+            L.append(cgid)
         else:
             for cid in e.cids_g[cgid]:
-                S.add(cid)
-    return sorted(S)
+                L.append(cid)
+    return L
 
 
 if __name__ == "__main__":

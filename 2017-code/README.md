@@ -568,6 +568,9 @@ compactness.
 A contest group is defined by listing the contests it contains and/or the
 other groups it includes.
 
+The *order* of the definition is important, as it may reflect the order
+in which the contests are present on a ballot.
+
 | Contest group id | Contest or group id(s)          | ...           | ...             | ...        | ...         |
 | ---              | ---              | ---           | ---             | ---        | ---         |
 | FEDERAL          | U.S. President   | U.S Senate-1  | U.S. Senate  -2 |            |             |
