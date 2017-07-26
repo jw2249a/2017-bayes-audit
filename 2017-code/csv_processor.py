@@ -1,5 +1,8 @@
+# csv_processor.py
+
 import csv
 import csv_readers
+import utils
 
 election_file = '/Users/hkarimi/Desktop/husayn_bayes_local/2017-code/test_files/election_file.csv'
 contests_file = '/Users/hkarimi/Desktop/husayn_bayes_local/2017-code/test_files/contests_file.csv'
@@ -47,11 +50,11 @@ def reported_number_cpr(filename):
                         if selection in rn_cpr[cid][pbcid]:
                             rn_cpr[cid][pbcid][selection]+=1
                         else:
-                            nested_set(rn_cpr, [cid, pbcid, selection], 1)
+                            utils.nested_set(rn_cpr, [cid, pbcid, selection], 1)
                     else:
-                        nested_set(rn_cpr, [cid, pbcid, selection], 1)
+                        utils.nested_set(rn_cpr, [cid, pbcid, selection], 1)
                 else:
-                    nested_set(rn_cpr, [cid, pbcid, selection], 1)
+                    utils.nested_set(rn_cpr, [cid, pbcid, selection], 1)
     return rn_cpr 
 
 #just call reported_number_cr and sum over reported outcomes
@@ -178,11 +181,6 @@ def reported_results():
                     results[selid] += reported_totals[contest][pbcid][selid]
         e_ro[contest]=sorted(results, key=lambda k: results[k])[-1]
     return e_ro 
-
-def nested_set(dic, keys, value):
-    for key in keys[:-1]:
-        dic = dic.setdefault(key, {})
-    dic[keys[-1]] = value
 
 if __name__ == "__main__":
     election_name = election_basics(election_file)

@@ -105,25 +105,6 @@ def geospace_choice(se, start, stop, num=7):
 
 
 ##############################################################################
-## nested_set -- convenient utility to assign into a tree of nested dicts
-
-def nested_set(dic, keys, value):
-    """ 
-    Here 
-       dic = existing dict
-       keys = nonempty list of keys
-       value = an arbitrary value
-    Function by example:
-       If keys = ["A", "B", "C"], then set dic["A"]["B"]["C"] = value,
-       ensuring all intermediate dicts exit
-    """
-
-    for key in keys[:-1]:
-        dic = dic.setdefault(key, {})
-    dic[keys[-1]] = value
-
-
-##############################################################################
 ## election structure
 
 def generate_election_structure(se=default_SynElection):
@@ -352,7 +333,7 @@ def generate_reported(se):
                 if se.contest_type_c[cid] == 'plurality':
                     selection = se.SynRandomState.choice(selids)
                     rvote = (selection,)
-                    nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
+                    utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
                 else: # we can handle this later when its not hardcoded 
                     # need to distinguish preferential voting, etc...
                     pass
@@ -365,10 +346,10 @@ def generate_reported(se):
             for bid in se.bids_p[pbcid]:
                 rvote = se.rv_cpb[cid][pbcid][bid]
                 if cid not in rn_cv:
-                    nested_set(rn_cv, [cid, rvote], 1)
+                    utils.nested_set(rn_cv, [cid, rvote], 1)
                 else:
                     if rvote not in rn_cv[cid]:
-                        nested_set(rn_cv, [cid, rvote], 1)
+                        utils.nested_set(rn_cv, [cid, rvote], 1)
                     else:
                         rn_cv[cid][rvote]+=1
 
@@ -402,11 +383,11 @@ def generate_reported(se):
                         if rvote in se.rn_cpr[cid][pbcid]:
                             se.rn_cpr[cid][pbcid][rvote]+=1
                         else:
-                            nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                            utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
                     else:
-                        nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                        utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
                 else:
-                    nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                    utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
 
     # sum over pbcids to get rn_cr
     se.rn_cr = dict()
@@ -417,9 +398,9 @@ def generate_reported(se):
                     if rvote in se.rn_cr[cid]:
                         se.rn_cr[cid][rvote] += se.rn_cpr[cid][pbcid][rvote]
                     else:
-                        nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
+                        utils.nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
                 else:
-                    nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
+                    utils.nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
 
     se.ro_c = dict()
     for cid in rn_cv:
@@ -456,10 +437,10 @@ def generate_ballot_manifest(se):
     # se.comments_pb = {}
     for pbcid in se.pbcids:
         for i, bid in enumerate(se.bids_p[pbcid]):
-            nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
-            nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
-            nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
-            nested_set(se.comments_pb, [pbcid, bid], "")
+            utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
+            utils.nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
+            utils.nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
+            utils.nested_set(se.comments_pb, [pbcid, bid], "")
 
 
 def write_reported(se):
@@ -587,7 +568,7 @@ def generate_audited_votes(se):
                         selids = list(se.selids_c[cid].keys())
                     selection = se.SynRandomState.choice(selids)
                     # FIX: this should be a vote, not just a selection
-                    nested_set(se.av_cpb, [cid, pbcid, bid], selection)
+                    utils.nested_set(se.av_cpb, [cid, pbcid, bid], selection)
 
 
 def write_audit(se):

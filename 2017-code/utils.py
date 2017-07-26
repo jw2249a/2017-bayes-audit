@@ -238,6 +238,25 @@ def RandomState(seed):
         return np.random.RandomState(seed)
 
 
+##############################################################################
+## nested_set -- convenient utility to assign into a tree of nested dicts
+
+def nested_set(dic, keys, value):
+    """ 
+    Here 
+       dic = existing dict
+       keys = nonempty list of keys
+       value = an arbitrary value
+    Function by example:
+       If keys = ["A", "B", "C"], then set dic["A"]["B"]["C"] = value,
+       ensuring all intermediate dicts exit
+    """
+
+    for key in keys[:-1]:
+        dic = dic.setdefault(key, {})
+    dic[keys[-1]] = value
+
+
 if __name__=="__main__":
     pass
 

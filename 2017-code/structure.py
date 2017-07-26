@@ -43,6 +43,7 @@ import os
 
 import multi
 import csv_readers
+import groups
 import utils
 
 
@@ -111,8 +112,6 @@ def read_contests(e):
         for selid in row["Selections"]:
             e.selids_c[cid][selid] = True
 
-        e.rel_cp[cid] = {}
-
 
 def test_read_contests(e):
 
@@ -163,13 +162,9 @@ def read_collections(e):
 
         pbcid = row["Collection id"]
         e.pbcids.append(pbcid)
-
         e.manager_p[pbcid] = row["Manager"]
-
         e.cvr_type_p[pbcid] = row["CVR type"]
-
         e.required_gid_p[pbcid] = row["Required Contests"]
-
         e.possible_gid_p[pbcid] = row["Possible Contests"]
 
 
@@ -192,15 +187,26 @@ def get_election_structure(e):
 
 def finish_election_structure(e):
 
+    groups.expand_contest_group_defs(e)
+
     noCVRvote = ("-noCVR",)
 
+    for pbcid in e.pbcids:
+        for cid in e.cids:
+            if cid in e.cids_g[e.required_gid_p[pbcid]]:
+                e.required_cid_p[pbcid][cid] = "True"
+                e.required_pbcid_c[cid][pbcid] = "True
+            if cid in e.cids_g[e.possible_gid_p[pbcid]]:
+                e.required_cid_p[pbcid][cid] = "True"
+                e.required_pbcid_c[cid][pbcid] = "True
     for cid in e.cids:
         e.votes_c[cid] = {}
         for selid in e.selids_c[cid]:
             e.votes_c[cid][(selid,)] = True
-        for pbcid in e.rel_cp[cid]:
-            if e.cvr_type_p[pbcid] == "noCVR":
-                e.votes_c[cid][noCVRvote] = True
+    for pbcid in e.pbcids:
+        if e.cvr_type_p[pbcid] == "noCVR":
+            for cid in e.required_possible[pbcid]:
+                e.votes_c[cid][noCVRvote] = True            
 
 
 def check_id(id, check_for_whitespace=False):
