@@ -104,6 +104,41 @@ def geospace_choice(se, start, stop, num=7):
     return se.SynRandomState.choice(elts)
 
 
+def generate_segments(se, m, low, high):
+    """ 
+    Generate and return list of  m  random segments (r, s)  
+    where low <= r <= s < high. 
+
+    Intent is that pbcids are integers in range low <= pbcid < high,
+    and each segment is a contest covering pbcids r..s (inclusive).
+
+    Note that not every integer in range(low, high) need be 
+    included in some segment.  That is OK.
+
+    The segments do "nest" -- given any two segments, either they
+    are disjoint, or they are equal, or one contains the other.
+    """
+
+    assert low < high
+    if m <= 0:
+        return []
+    m_all = se.SynRandomState.choice(range(0, int(np.sqrt(m))))
+    L = [(low, high-1)] * m_all
+    if m==1:
+        return [(low, high-1)]
+    if high == low + 1:
+        return [(low, high-1)] * m
+    midpt = se.SynRandomState.choice(range(low+1, high))
+    if m_all < m:
+        m_left = se.SynRandomState.choice(range(0, m - m_all))
+    else:
+        m_left = 0
+    m_right = m - m_left - m_all
+    L.extend(generate_segments(se, m_left, low, midpt))
+    L.extend(generate_segments(se, m_right, midpt, high))
+    return L
+
+
 ##############################################################################
 ## election structure
 
@@ -157,6 +192,11 @@ def generate_contests(se):
         se.selids_c[cid] = {"sel{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
 
 
+def generate_contest_groups(se):
+
+    pass
+
+
 def generate_collections(se):
 
     # generate list of pbcids
@@ -187,14 +227,19 @@ def generate_collections(se):
     assert M <= se.n_pbcids
     se.firstpbcidx_c = {}
     se.lastpbcidx_c = {}
+
     se.rel_cp = {}
+
     for cid in se.cids:
         s = geospace_choice(se, m, M)
         se.firstpbcidx_c[cid] = se.SynRandomState.randint(0, se.n_pbcids - s + 1)
         se.lastpbcidx_c[cid] = se.firstpbcidx_c[cid] + s - 1
+
         se.rel_cp[cid] = {}
+
         for pbcidx in range(se.firstpbcidx_c[cid], se.lastpbcidx_c[cid]+1):
             pbcid = se.pbcids[pbcidx]
+
             se.rel_cp[cid][pbcid] = True
 
 
