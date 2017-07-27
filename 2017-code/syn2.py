@@ -215,29 +215,16 @@ def generate_collections(se):
     for pbcid in se.pbcids:
         if pbcid not in se.cvr_type_p:
             se.cvr_type_p[pbcid] = "CVR"
+
+    # record randomly chosen required and possible contest groups for each pbcid
+    for pbcid in se.pbcids:
+        if len(se.gids)>0:
+            se.required_gid_p[pbcid] = se.SynRandomState.choice(se.gids)
+            se.possible_gid_p[pbcid] = se.SynRandomState.choice(se.gids)
+        else:
+            se.required_gid_p[pbcid] = ""
+            se.possible_gid_p[pbcid] = ""
     
-    # determine range of pbcids for each cid
-    # (always a range of consecutive pbcids, looking at them as integers)
-    m = se.min_pbcids_per_cid
-    M = se.max_pbcids_per_cid
-    assert m >= 1
-    assert M <= se.n_pbcids
-    se.firstpbcidx_c = {}
-    se.lastpbcidx_c = {}
-
-    se.rel_cp = {}
-
-    for cid in se.cids:
-        s = geospace_choice(se, m, M)
-        se.firstpbcidx_c[cid] = se.SynRandomState.randint(0, se.n_pbcids - s + 1)
-        se.lastpbcidx_c[cid] = se.firstpbcidx_c[cid] + s - 1
-
-        se.rel_cp[cid] = {}
-
-        for pbcidx in range(se.firstpbcidx_c[cid], se.lastpbcidx_c[cid]+1):
-            pbcid = se.pbcids[pbcidx]
-
-            se.rel_cp[cid][pbcid] = True
 
 
 def write_structure_csvs(se):
