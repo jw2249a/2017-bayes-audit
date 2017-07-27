@@ -50,6 +50,8 @@ class SynElection(multi.Election):
     def __init__(self, synseed=1):
 
         super(SynElection, self).__init__()
+
+        # controllable fields
         self.n_cids = 2
         self.n_cids_wrong = 0
         self.min_n_selids_per_cid = 2
@@ -66,6 +68,8 @@ class SynElection(multi.Election):
         self.synseed = synseed
         self.SynRandomState = np.random.RandomState(self.synseed)
 
+        # working fields
+        self.segments = []     # list of (low, high) segments for contest groups
 
 default_SynElection = SynElection()          
 
@@ -104,38 +108,26 @@ def geospace_choice(se, start, stop, num=7):
     return se.SynRandomState.choice(elts)
 
 
-def generate_segments(se, m, low, high):
+def generate_segments(se, low, high):
     """ 
-    Generate and return list of  m  random segments (r, s)  
-    where low <= r <= s < high. 
+    Generate and return list of  random segments (r, s)  
+    where low <= r < s <= high. 
+    (Does not return segments of the form (k, k).)
 
-    Intent is that pbcids are integers in range low <= pbcid < high,
-    and each segment is a contest covering pbcids r..s (inclusive).
+    Intent is that pbcids are integers in range low <= pbcid <= high,
+    and each segment is a contest group covering pbcids r..s (inclusive).
 
-    Note that not every integer in range(low, high) need be 
-    included in some segment.  That is OK.
-
-    The segments do "nest" -- given any two segments, either they
+    The segments "nest" -- given any two segments, either they
     are disjoint, or they are equal, or one contains the other.
     """
 
-    assert low < high
-    if m <= 0:
-        return []
-    m_all = se.SynRandomState.choice(range(0, int(np.sqrt(m))))
-    L = [(low, high-1)] * m_all
-    if m==1:
-        return [(low, high-1)]
-    if high == low + 1:
-        return [(low, high-1)] * m
-    midpt = se.SynRandomState.choice(range(low+1, high))
-    if m_all < m:
-        m_left = se.SynRandomState.choice(range(0, m - m_all))
-    else:
-        m_left = 0
-    m_right = m - m_left - m_all
-    L.extend(generate_segments(se, m_left, low, midpt))
-    L.extend(generate_segments(se, m_right, midpt, high))
+    assert low <= high
+    L = []
+    if low!=high:
+        L.append((low, high))
+        mid = se.SynRandomState.choice(range(low, high))
+        L.extend(generate_segments(se, low, mid))
+        L.extend(generate_segments(se,  mid+1, high))
     return L
 
 
@@ -194,7 +186,12 @@ def generate_contests(se):
 
 def generate_contest_groups(se):
 
-    pass
+    se.gids = []
+    cids_list = sorted(list(se.cids))
+    for (low, high) in generate_segments(se, 1, se.n_cids):
+        gid = "gid{}-{}".format(low, high)
+        se.cgids_g[gid] = cids_list[low:high+1] 
+    print(se.gids)
 
 
 def generate_collections(se):
@@ -674,6 +671,7 @@ def test():
     se.seed = 9
     generate_election_structure(se)
     generate_contests(se)
+    generate_contest_groups(se)
     generate_collections(se)
     generate_reported(se)
     generate_audited_votes(se)
