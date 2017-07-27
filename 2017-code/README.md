@@ -613,7 +613,6 @@ on ballots in that collection.
 
 | Collection id | Manager          | CVR type  | Required Contests  | Possible Contests |
 | ---           | ---              | ---       | ---        | ---        |
-| Collection id | Manager          | CVR type  | Required Contests| Possible Contests
 | DEN-A01       | abe@co.gov       | CVR       | DENVER|            DENVER
 | DEN-A02       | bob@co.gov       | CVR       | DENVER|            DENVER
 | LOG-B13       | carol@co.gov     | noCVR     | LOGAN REQ|         LOGAN POSS
@@ -715,19 +714,19 @@ each row represents a single vote of a voter in a contest.  There are three vote
 contests.
 
 
-|Collection id   | Scanner  | Ballot id   | Contest     | Selections     |           |
-|---             |---       | ---         | ---         | ---            | ---       |
-|DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
-|DEN-A01         |FG231     | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
-|DEN-A01         |FG231     | B-777       | DEN-prop-1  | No             |           |
-|DEN-A01         |FG231     | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         |FG231     | B-777       | US-Senate-1 | +Tom Cruz      |           |
-|DEN-A01         |FG231     | B-888       | US-Senate-1 | -Invalid       |           |
+|Collection id   | Scanner  | Ballot id   | Contest        | Selections     |           |
+|---             |---       | ---         | ---            | ---            | ---       |
+|DEN-A01         |FG231     | B-231       | Denver Prop 1  | Yes            |           |
+|DEN-A01         |FG231     | B-231       | Denver Prop 2  |                |           |
+|DEN-A01         |FG231     | B-231       | U.S. Senate 1  | Rhee Pub       | Deb O'Crat |
+|DEN-A01         |FG231     | B-777       | Denver Prop 1  | No             |           |
+|DEN-A01         |FG231     | B-777       | Denver Prop 2  | Yes            |           |
+|DEN-A01         |FG231     | B-777       | U.S. Senate 1  | +Tom Cruz      |           |
+|DEN-A01         |FG231     | B-888       | U.S. Senate 1  | -Invalid       |           |
 
 
 The second row is an undervote, and the third row is an overvote.  The sixth
-row has a write-in for Tom Cruz.  The last row represents a vote that
+row has a write-in for qualified candidate Tom Cruz.  The last row represents a vote that
 is invalid for some unspecified reason.
 
 The reported vote file will have a name of the form
@@ -737,19 +736,18 @@ with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.c
 **Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
 
-|Collection id   | Scanner  | Tally       | Contest     | Selections     |           |
-|---             |---       | ---         | ---         | ---            | ---       |
-|LOG-B13         |FG231     | 2034        | LOG-mayor   | Susan Hat      |           |
-|LOG-B13         |FG231     | 1156        | LOG-mayor   | Barry Su       |           |
-|LOG-B13         |FG231     | 987         | LOG-mayor   | Benton Liu     |           |
-|LOG-B13         |FG231     | 3           | LOG-mayor   | -Invalid       |           |
-|LOG-B13         |FG231     | 1           | LOG-mayor   | +Lizard People |           |
-|LOG-B13         |FG231     | 3314        | US-Senate-1 | Rhee Pub       |           |
-|LOG-B13         |FG231     | 542         | US-Senate-1 | Deb O'Crat     |           |
-|LOG-B13         |FG231     | 216         | US-Senate-1 | Val Green      |           |
-|LOG-B13         |FG231     | 99          | US-Senate-1 | Sarah Day      |           |
-|LOG-B13         |FG231     | 9           | US-Senate-1 | +Tom Cruz      |           |
-|LOG-B13         |FG231     | 1           | US-Senate-1 | -Invalid       |           |
+|Collection id   | Scanner  | Tally       | Contest       | Selections     |           |
+|---             |---       | ---         | ---           | ---            | ---       |
+|LOG-B13         |FG231     | 2034        | Logan Mayor   | Susan Hat      |           |
+|LOG-B13         |FG231     | 1156        | Logan Mayor   | Barry Su       |           |
+|LOG-B13         |FG231     | 987         | Logan Mayor   | Benton Liu     |           |
+|LOG-B13         |FG231     | 3           | Logan Mayor   | -Invalid       |           |
+|LOG-B13         |FG231     | 1           | Logan Mayor   | +Lizard People |           |
+|LOG-B13         |FG231     | 3314        | U.S. Senate 1 | Rhee Pub       |           |
+|LOG-B13         |FG231     | 542         | U.S. Senate 1 | Deb O'Crat     |           |
+|LOG-B13         |FG231     | 216         | U.S. Senate 1 | Val Green      |           |
+|LOG-B13         |FG231     | 9           | U.S. Senate 1 | +Tom Cruz      |           |
+|LOG-B13         |FG231     | 1           | U.S. Senate 1 | -Invalid       |           |
 
 This file format for noCVRs is also used for output tally files for CVR
 collections.
@@ -884,12 +882,13 @@ do the same for the losers.
 
 | Contest id      | Winner(s)  |            |           |             |
 | ---             |  -         | ---        |---        |---          |
-| DEN-prop-1      | Yes        |            |           |             |
-| DEN-mayor       | John Smith |            |           |             |
-| Boulder-council | Dave Diddle| Ben Borg   | Sue Mee   | Jill Snead  |
+| Denver Prop 1   | Yes        |            |           |             |
+| Denver Prop 2   | No         |            |           |             |
+| Denver Mayor    | John Smith |            |           |             |
+| CO Prop A       | Yes        |            |           |             |
 
 When a contest outcome includes multiple winners, they are listed in
-additional columns, as shown.  The order of these winners may be important,
+additional columns.  The order of these winners may be important,
 depending on the contest type and outcome rule.
 
 This file shows only the reported winners, it does not show tally
@@ -1083,22 +1082,22 @@ collection), but the scanner field is omitted.
 
 Here is an example of a sample vote file for the ``DEN-A01`` collection, for
 two ballots and three contests each.
-
-
-|Collection id   | Ballot id   | Contest     | Selections     |           |
-|---             | ---         | ---         | ---            | ---       |
-|DEN-A01         | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         | B-231       | DEN-prop-2  | No             |           |
-|DEN-A01         | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
-|DEN-A01         | B-777       | DEN-prop-1  | No             |           |
-|DEN-A01         | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         | B-777       | US-Senate-1 | +Tom Cruz      |           |
+ 
+ 
+|Collection id   | Ballot id   | Contest        | Selections     |           |
+|---             | ---         | ---            | ---            | ---       |
+|DEN-A01         | B-231       | Denver Prop 1  | Yes            |           |
+|DEN-A01         | B-231       | Denver Prop 2  | No             |           |
+|DEN-A01         | B-231       | U.S. Senate 1  | Rhee Pub       | Val Green |
+|DEN-A01         | B-777       | Denver Prop 1  | No             |           |
+|DEN-A01         | B-777       | Denver Prop 2  | Yes            |           |
+|DEN-A01         | B-777       | U.S. Senate 1  | +Tom Cruz      |           |
 
 Compared to the reported vote file above, we note a discrepancy in the
-interpretation of contest ``DEN-prop-2`` for ballot ``B-231``: the scanner showed
+interpretation of contest ``Denver Prop 2`` for ballot ``B-231``: the scanner showed
 an undervote, while the hand examination showed a ``No`` vote.
 
-The sample vote file will have a name of the form ``audited-votes-<bcid>.csv``, possibly
+The sample vote file will have a name of the form ``audited-votes-<pbcid>.csv``, possibly
 with a version label.  An example filename: ``audited-votes-DEN-A01-2017-11-21.csv``.
 
 As noted, if the sample is expanded, then the new sample vote file will
@@ -1175,11 +1174,11 @@ Here is a sample contest audit parameters file:
 
 | Measurement id | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
 |---             | ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
-| 1              | DEN-prop-1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
-| 2              | DEN-prop-2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
+| 1              | Denver Prop 1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
+| 2              | Denver Prop 2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
 | 3              | DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
 | 4              | LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off    |         |         |
-| 5              | US-Senate-1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
+| 5              | U.S. Senate 1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
 | 6              | Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
 | 7              | Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
 | 8              | Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open   |         |         |
@@ -1519,21 +1518,21 @@ Example:  The following file:
 
 |Collection id   | Scanner  | Ballot id   | Contest     | Selections     |           |
 |---             |---       | ---         | ---         | ---            | ---       |
-|DEN-A01         |FG231     | B-231       | DEN-prop-1  | Yes            |           |
-|DEN-A01         |FG231     | B-231       | DEN-prop-2  |                |           |
-|DEN-A01         |FG231     | B-231       | US-Senate-1 | Rhee Pub       | Sarah Day |
-|DEN-A01         |FG231     | B-777       | DEN-prop-1  | No             |           |
-|DEN-A01         |FG231     | B-777       | DEN-prop-2  | Yes            |           |
-|DEN-A01         |FG231     | B-777       | US-Senate-1 | +Tom Cruz      |           |
-|DEN-A01         |FG231     | B-888       | US-Senate-1 | -Invalid       |           |
+|DEN-A01         |FG231     | B-231       | Denver Prop 1  | Yes            |           |
+|DEN-A01         |FG231     | B-231       | Denver Prop 2  |                |           |
+|DEN-A01         |FG231     | B-231       | U.S. Senate 1 | Rhee Pub       | Val Green |
+|DEN-A01         |FG231     | B-777       | Denver Prop 1  | No             |           |
+|DEN-A01         |FG231     | B-777       | Denver Prop 2  | Yes            |           |
+|DEN-A01         |FG231     | B-777       | U.S. Senate 1 | +Tom Cruz      |           |
+|DEN-A01         |FG231     | B-888       | U.S. Senate 1 | -Invalid       |           |
 
 can be compressed to the RRC CSV file:
 
 ```
 Collection id,Scanner,Ballot id,Contest,Selections
-DEN-A01,FG231,B-231,DEN-prop-1,Yes
-&3,DEN-prop-2
-&3,US-Senate-1,Rhee Pub,Sarah Day
+DEN-A01,FG231,B-231,Denver Prop 1,Yes
+&3,Denver Prop 2
+&3,U.S. Senate 1,Rhee Pub,Val Green
 &2,B-777,^3,No
 &3,^3,Yes
 &3,^2,+Tom Cruz
