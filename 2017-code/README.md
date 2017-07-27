@@ -742,6 +742,12 @@ it expands such rows representing multiple ballots into individual
 rows as described above.  So, the compact format is just "shorthand" for the
 official fully-expanded one-ballot-per-row format.
 
+The **``Required Contests``** and **``Possible Contests``** fields work much
+as they do for a collections file.  Any additional required or possible contests
+specified in a row of the ballot manifest file are understood to be added to those already
+specifed in the collections file, for the ballots described in that row of the
+ballot manifest file.
+
 Here is an example of a ballot manifest file.
 
 | Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Required Contests | Possible Contests  | Comments      |
