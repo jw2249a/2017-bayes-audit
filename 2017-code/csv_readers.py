@@ -45,9 +45,9 @@ import ids
 import utils
 
 
-def read_csv_file(filename, expected_fieldnames=None, varlen=False):
+def read_csv_file(filename, required_fieldnames=None, varlen=False):
     """
-    Read CSV file and check expected fieldnames; varlen if variable-length rows.
+    Read CSV file and check required fieldnames present; varlen if variable-length rows.
     """
 
     # print("Reading CSV file:", filename)
@@ -88,11 +88,19 @@ def read_csv_file(filename, expected_fieldnames=None, varlen=False):
                 last_value = tuple(row[len(fieldnames)-1:])
                 row_dict[last_fieldname] = last_value
             row_dicts.append(row_dict)
-        if expected_fieldnames!=None:
-            expected_fieldnames = [ids.clean_id(id) for id in expected_fieldnames]
-            if expected_fieldnames != fieldnames:
-                utils.myerror("File {} has fieldnames {} instead of expected {}."
-                              .format(filename, fieldnames, expected_fieldnames))
+        if required_fieldnames != None:
+            # check that all required fieldnames are present
+            required_fieldnames = [ids.clean_id(id) for id in required_fieldnames]
+            missing_fieldnames = set(required_fieldnames).difference(set(fieldnames))
+            if len(missing_fieldnames) > 0:
+                utils.myerror("File {} has fieldnames {}, while {} are required. Missing {}."
+                              .format(filename, fieldnames,
+                                      required_fieldnames, missing_fieldnames))
+            # check to see if extra fieldnames present; warn user if so
+            extra_fieldnames = set(fieldnames).difference(set(required_fieldnames))
+            if len(extra_fieldnames) > 0:
+                utils.mywarning("File {} has extra fieldnames (ignored): {}"
+                                .format(filename, extra_fieldnames))
         return row_dicts
 
 
