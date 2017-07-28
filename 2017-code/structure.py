@@ -7,12 +7,12 @@
 Routines to work with multi.py, to read in the
 CSV files containing information about the "structure"
 of an election:
-   11-election-2017-09-08.csv
+   11-general-2017-09-08.csv
    12-contests-2017-09-08.csv
    14-collections-2017-09-08.csv
 with structures represented by csv files of the form:
 
-11-election.csv:
+11-general.csv:
 Attribute     , Value                                   
 Election name , Colorado general election               
 Election dirname , CO-2017-11-07,
@@ -62,14 +62,14 @@ import utils
 
 def read_election_structure(e, election_dirname):
     """ 
-    Read file 1-structure/11-election.csv, put results into Election e.
+    Read file 1-election-specification/11-general.csv, put results into Election e.
     election_dirname is the name of the directory for the election 
         (e.g. "CO-2017-11") with ELECTIONS_ROOT
     """
     
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-structure")
-    filename = utils.greatest_name(structure_pathname, "11-election", ".csv")
+    structure_pathname = os.path.join(election_pathname, "1-election-specification")
+    filename = utils.greatest_name(structure_pathname, "11-general", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Attribute", "Value"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames)
@@ -85,7 +85,7 @@ def read_election_structure(e, election_dirname):
     for attribute in ["election_name", "election_dirname",
                       "election_date", "election_url"]:
         if attribute not in vars(e):
-            utils.mywarning("Attribute {} not present in 11-election.csv."
+            utils.mywarning("Attribute {} not present in 11-general.csv."
                             .format(attribute))
     if utils.warnings_given > 0:
         utils.myerror("Too many errors; terminating.")
@@ -103,7 +103,7 @@ def read_contests(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-structure")
+    structure_pathname = os.path.join(election_pathname, "1-election-specification")
     filename = utils.greatest_name(structure_pathname, "12-contests", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins",
@@ -139,7 +139,7 @@ def read_contest_groups(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-structure")
+    structure_pathname = os.path.join(election_pathname, "1-election-specification")
     filename = utils.greatest_name(structure_pathname, "13-contest-groups", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Contest group id", "Contest or group id(s)"]
@@ -165,7 +165,7 @@ def read_collections(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-structure")
+    structure_pathname = os.path.join(election_pathname, "1-election-specification")
     filename = utils.greatest_name(structure_pathname, "14-collections", ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     fieldnames = ["Collection id", "Manager", "CVR type",

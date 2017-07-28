@@ -349,7 +349,7 @@ The top-level directory might be named something like
 of that directory might look as follows.
 (Here we illustrate the use of "year-month-day" version labels.)
 
-    1-structure
+    1-election-specification
        11-election.csv
        12-contests.csv
        13-contest-groups.csv
@@ -1249,7 +1249,7 @@ observer).
 Define election structure, global parameters, contests, and collections.
 Put this information into directory:
 
-    1-structure
+    1-election-specification
 
 [Back to TOC](#table-of-contents)
 

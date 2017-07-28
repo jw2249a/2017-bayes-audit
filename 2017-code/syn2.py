@@ -247,7 +247,7 @@ def write_structure_csvs(se):
 
 def write_11_election_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "11-election.csv")
 
@@ -261,7 +261,7 @@ def write_11_election_csv(se):
 
 def write_12_contests_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "12-contests.csv")
 
@@ -280,7 +280,7 @@ def write_12_contests_csv(se):
 
 def write_13_contest_groups_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "13-contest-groups.csv")
 
@@ -296,7 +296,7 @@ def write_13_contest_groups_csv(se):
 
 def write_14_collections_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "14-collections.csv")
 

@@ -75,13 +75,17 @@ def compute_audit_order(e, pbcid):
 
 def write_audit_orders(e):
 
+    print("write_audit_orders")
+    print("e.pbcids", e.pbcids)
     for pbcid in e.pbcids:
         write_audit_order(e, pbcid)
         
 
 def write_audit_order(e, pbcid):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "3-audit", "32-audit-orders")
+    print("write_audit_order", pbcid)
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
+                           "3-audit", "32-audit-orders")
     os.makedirs(dirpath, exist_ok=True)
     ds = utils.date_string()
     safe_pbcid = ids.filename_safe(pbcid)
@@ -112,7 +116,6 @@ def test_audit_orders():
     import syn2
 
     e = syn2.SynElection()
-    # TODO: need to load ballot manifests right here
     compute_audit_orders(e)
     write_audit_orders(e)
     
