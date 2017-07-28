@@ -39,10 +39,10 @@ import numpy as np
 import os
 
 import multi
+import election_specification
 import ids
 import outcomes
 import random 
-import structure
 import utils
 
 class SynElection(multi.Election):
@@ -132,14 +132,16 @@ def generate_segments(se, low, high):
 
 
 ##############################################################################
-## election structure
+## election specification
 
-def generate_election_structure(se=default_SynElection):
+def generate_election_specification(se=default_SynElection):
     """
     se has SynElection for the parameters noted above;
     add to se values that would be otherwise read in,
-    e.g. via structure.py (read_election_structure, read_contests,
-    read_contest_groups, read_collections)
+    e.g. via election_specification.py (read_election_specification, 
+    read_election_specification_contests,
+    read_election_specification_contest_groups, 
+    read_election_specification_collections)
     """
 
     # reset SynRandomState from synseed
@@ -233,7 +235,7 @@ def generate_collections(se):
             se.required_gid_p[pbcid] = ""
             se.possible_gid_p[pbcid] = ""
 
-    structure.finish_election_structure_groups(se)
+    election_specification.finish_election_specification_contest_groups(se)
     
 
 
@@ -704,8 +706,8 @@ def test():
     se = SynElection()
     se.seed = 9
 
-    generate_election_structure(se)
-    structure.finish_election_structure(se)
+    generate_election_specification(se)
+    election_specification.finish_election_specification(se)
     generate_contests(se)
     generate_contest_groups(se)
     generate_collections(se)
@@ -720,8 +722,8 @@ def test():
         print(key)
         print("    ", vars(se)[key])
 
-    print("Checking structure: ", end='')
-    structure.check_election_structure(se)
+    print("Checking specification: ", end='')
+    election_specification.check_election_specification(se)
     print("OK.")
     
     write_election_specification_csv(se)

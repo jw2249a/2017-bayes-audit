@@ -33,11 +33,11 @@ import sys
 
 import audit
 import cli
+import election_specification
 import outcomes
 import planner
 import reported
 import snapshot
-import structure
 import utils
 
 ##############################################################################
@@ -128,7 +128,7 @@ class Election(object):
         # and reported vote r, e.g.
         # e.rn_cr[cid][r]  gives such a count.
 
-        # *** Election structure
+        # *** Election specification
 
         # There is a standard directory ELECTIONS_ROOT where "all information
         # about elections is held", defaulting to "./elections".

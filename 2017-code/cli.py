@@ -12,10 +12,10 @@ import argparse
 
 
 import multi
+import election_specification
 import ids
 import audit
 import reported
-import structure
 
 
 ##############################################################################
@@ -43,8 +43,8 @@ def parse_args():
                         help="""Seed for the random number generator used for
                         auditing (arbitrary nonnegative integer). (If omitted, uses clock.)""")
     ## v2:
-    parser.add_argument("--read_structure", action="store_true", help="""
-                        Read and check election structure.""")
+    parser.add_argument("--read_specification", action="store_true", help="""
+                        Read and check election specification.""")
     parser.add_argument("--read_reported", action="store_true", help="""
                         Read and check reported election data and results.""")
     parser.add_argument("--read_seed", action="store_true", help="""
@@ -70,16 +70,16 @@ def process_args(e, args):
 
     audit.set_audit_seed(e, args.audit_seed)
 
-    if args.read_structure:
-        # print("read_structure")
-        structure.get_election_structure(e)
+    if args.read_specification:
+        # print("read_specification")
+        election_specification.get_election_specification(e)
     elif args.read_reported:
         print("read_reported")
-        structure.get_election_structure(e)
+        election_specification.get_election_specification(e)
         reported.get_election_data(e)
     elif args.read_seed:
         print("read_seed")
-        structure.get_election_structure(e)
+        election_specification.get_election_specification(e)
         reported.get_election_data(e)
         audit.get_audit_parameters(e, args)
     elif args.make_orders:
@@ -88,7 +88,7 @@ def process_args(e, args):
         print("read_audited")
     elif args.stage:
         print("stage", args.stage)
-        structure.get_election_structure(e)
+        election_specification.get_election_specification(e)
         reported.get_election_data(e)
         audit.get_audit_parameters(e, args)
         audit.audit(e, args)

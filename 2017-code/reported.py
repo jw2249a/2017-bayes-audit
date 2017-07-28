@@ -119,18 +119,18 @@ def read_reported_ballot_manifests(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname,
-                                      "2-reported",
-                                      "21-reported-ballot-manifests")
+    specification_pathname = os.path.join(election_pathname,
+                                          "2-reported",
+                                          "21-reported-ballot-manifests")
     fieldnames = ["Collection id", "Box id", "Position", "Stamp", 
                   "Ballot id", "Number of ballots",
                   "Required Contests", "Possible Contests", "Comments"]
     for pbcid in e.pbcids:
         safe_pbcid = ids.filename_safe(pbcid)
-        filename = utils.greatest_name(structure_pathname,
+        filename = utils.greatest_name(specification_pathname,
                                        "manifest-" + safe_pbcid,
                                        ".csv")
-        file_pathname = os.path.join(structure_pathname, filename)
+        file_pathname = os.path.join(specification_pathname, filename)
         rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
         for row in rows:
             pbcid = row["Collection id"]
@@ -168,16 +168,16 @@ def read_reported_cvrs(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname,
-                                      "2-reported","22-reported-cvrs")
+    specification_pathname = os.path.join(election_pathname,
+                                          "2-reported","22-reported-cvrs")
     fieldnames = ["Collection id", "Scanner", "Ballot id",
                   "Contest", "Selections"]
     for pbcid in e.pbcids:
         safe_pbcid = ids.filename_safe(pbcid)
-        filename = utils.greatest_name(structure_pathname,
+        filename = utils.greatest_name(specification_pathname,
                                        "reported-cvrs-" + safe_pbcid,
                                        ".csv")
-        file_pathname = os.path.join(structure_pathname, filename)
+        file_pathname = os.path.join(specification_pathname, filename)
         rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
         for row in rows:
             pbcid = row["Collection id"]
@@ -192,13 +192,13 @@ def read_reported_cvrs(e):
 def read_reported_outcomes(e):
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname,
-                                      "2-reported")
+    specification_pathname = os.path.join(election_pathname,
+                                          "2-reported")
     fieldnames = ["Contest", "Winner(s)"]
-    filename = utils.greatest_name(structure_pathname,
+    filename = utils.greatest_name(specification_pathname,
                                    "23-reported-outcomes",
                                    ".csv")
-    file_pathname = os.path.join(structure_pathname, filename)
+    file_pathname = os.path.join(specification_pathname, filename)
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
         cid = row["Contest"]

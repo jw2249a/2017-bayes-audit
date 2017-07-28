@@ -1,15 +1,16 @@
-# structure.py
+# election_specification.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
 # July 7, 2017
 # python3
 
 """
 Routines to work with multi.py, to read in the
-CSV files containing information about the "structure"
+CSV files containing information about the specification
 of an election:
-   11-general-2017-09-08.csv
-   12-contests-2017-09-08.csv
-   14-collections-2017-09-08.csv
+   11-general.csv
+   12-contests.csv
+   13-contest-groups.csv
+   14-collections.csv
 with structures represented by csv files of the form:
 
 11-general.csv:
@@ -60,7 +61,7 @@ import groups
 import utils
 
 
-def read_election_structure(e, election_dirname):
+def read_election_specification_general(e, election_dirname):
     """ 
     Read file 1-election-specification/11-general.csv, put results into Election e.
     election_dirname is the name of the directory for the election 
@@ -68,9 +69,9 @@ def read_election_structure(e, election_dirname):
     """
     
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(structure_pathname, "11-general", ".csv")
-    file_pathname = os.path.join(structure_pathname, filename)
+    specification_pathname = os.path.join(election_pathname, "1-election-specification")
+    filename = utils.greatest_name(specification_pathname, "11-general", ".csv")
+    file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Attribute", "Value"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames)
     for row in rows:
@@ -91,21 +92,21 @@ def read_election_structure(e, election_dirname):
         utils.myerror("Too many errors; terminating.")
 
 
-def test_read_election_structure(e):        
+def test_read_election_specification_general(e):        
 
-    print("test_read_election_structure")
-    read_election_structure(e, "ex1")
+    print("test_read_election_specification_general")
+    read_election_specification_general(e, "ex1")
 
 
-def read_contests(e):
+def read_election_specification_contests(e):
     """
     Read file 12-contests.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(structure_pathname, "12-contests", ".csv")
-    file_pathname = os.path.join(structure_pathname, filename)
+    specification_pathname = os.path.join(election_pathname, "1-election-specification")
+    filename = utils.greatest_name(specification_pathname, "12-contests", ".csv")
+    file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins",
                   "Selections"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
@@ -126,22 +127,21 @@ def read_contests(e):
             e.selids_c[cid][selid] = True
 
 
-def test_read_contests(e):
+def test_read_election_specification_contests(e):
 
-    print("test_read_contests")
-    read_election_structure(e, "ex1/")
-    read_contests(e)
+    print("test_read_election_specification_contests")
+    read_election_specification_contests(e)
 
 
-def read_contest_groups(e):
+def read_election_specification_contest_groups(e):
     """
     Read file 13-contest-groups.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(structure_pathname, "13-contest-groups", ".csv")
-    file_pathname = os.path.join(structure_pathname, filename)
+    specification_pathname = os.path.join(election_pathname, "1-election-specification")
+    filename = utils.greatest_name(specification_pathname, "13-contest-groups", ".csv")
+    file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Contest group id", "Contest or group id(s)"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
@@ -152,22 +152,21 @@ def read_contest_groups(e):
         e.cgids_g[gid] = row["Contest or group id(s)"]
 
 
-def test_read_contest_groups(e):    
+def test_read_election_specification_contest_groups(e):    
 
     print("test_read_contest_groups")
-    read_contest_groups(e)
-    pass
+    read_election_specification_contest_groups(e)
 
 
-def read_collections(e):
+def read_election_specification_collections(e):
     """
     Read file 14-collections.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    structure_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(structure_pathname, "14-collections", ".csv")
-    file_pathname = os.path.join(structure_pathname, filename)
+    specification_pathname = os.path.join(election_pathname, "1-election-specification")
+    filename = utils.greatest_name(specification_pathname, "14-collections", ".csv")
+    file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Collection id", "Manager", "CVR type",
                   "Required Contests", "Possible Contests"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
@@ -181,30 +180,30 @@ def read_collections(e):
         e.possible_gid_p[pbcid] = row["Possible Contests"]
 
 
-def test_read_collections(e):
+def test_read_election_specification_collections(e):
 
     print("test_read_collections")
-    read_collections(e)
+    read_election_specification_collections(e)
 
 
-def get_election_structure(e):
+def get_election_specification(e):
 
-    read_election_structure(e, e.election_dirname)
-    read_contests(e)
-    read_contest_groups(e)
-    read_collections(e)
-    finish_election_structure(e)
-    check_election_structure(e)
-    show_election_structure(e)
+    read_election_specification_general(e, e.election_dirname)
+    read_election_specification_contests(e)
+    read_election_specification_contest_groups(e)
+    read_election_specification_collections(e)
+    finish_election_specification(e)
+    check_election_specification(e)
+    show_election_specification(e)
 
 
-def finish_election_structure(e):
+def finish_election_specification(e):
 
-    finish_election_structure_groups(e)
-    finish_election_structure_votes(e)
+    finish_election_specification_contest_groups(e)
+    finish_election_specification_votes(e)
 
     
-def finish_election_structure_groups(e):
+def finish_election_specification_contest_groups(e):
 
     groups.expand_contest_group_defs(e)
 
@@ -230,7 +229,7 @@ def finish_election_structure_groups(e):
                 utils.nested_set(e.possible_pbcid_c, [cid, pbcid], "True")
 
 
-def finish_election_structure_votes(e):
+def finish_election_specification_votes(e):
 
     noCVRvote = ("-noCVR",)
     for cid in e.cids:
@@ -254,7 +253,7 @@ def check_id(id, check_for_whitespace=False):
                 break
 
 
-def check_election_structure(e):
+def check_election_specification(e):
 
     if not isinstance(e.cids, (list, tuple, set)):
         utils.myerror("e.cids is not a set.")
@@ -293,11 +292,11 @@ def check_election_structure(e):
                       .format(pbcid))
 
     if utils.warnings_given > 0:
-        utils.myerror("structure.check_election_structure: Too many errors or warnings; terminating.")
+        utils.myerror("election_specification.check_election_specification: Too many errors or warnings; terminating.")
 
 
-def show_election_structure(e):
-    utils.myprint("====== Election structure ======")
+def show_election_specification(e):
+    utils.myprint("====== Election specification ======")
     utils.myprint("Election name: (e.election_name):")
     utils.myprint("    {}".format(e.election_name))
     utils.myprint("Election dirname (e.election_dirname):")
@@ -337,10 +336,10 @@ def show_election_structure(e):
 def test():
     
     e = multi.Election()
-    test_read_election_structure(e)
-    test_read_contests(e)
-    test_read_contest_groups(e)
-    test_read_collections(e)    
+    test_read_election_specification_general(e)
+    test_read_election_specification_contests(e)
+    test_read_election_specification_contest_groups(e)
+    test_read_election_specification_collections(e)    
 
 
 if __name__=="__main__":
