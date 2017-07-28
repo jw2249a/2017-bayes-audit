@@ -250,7 +250,7 @@ class Election(object):
         # *** Ballot manifests
 
         e.bids_p = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
         # from ballot manifest "Ballot id" column (as expanded for batches)
@@ -258,17 +258,17 @@ class Election(object):
         # "Number of ballots" field (always implicitly 1 now).
 
         e.boxid_pb = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->bid->boxid
         # from ballot manifest "Box id" field
 
         e.position_pb = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->bid->position (an int)
         # from ballot manifest "Position" field
 
         e.stamp_pb = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->bid->stampt (a string)
         # from ballot manifest "Stamp" field (same as "imprint")
 
@@ -279,7 +279,7 @@ class Election(object):
 
         e.required_gid_pb = {}
         e.possible_gid_pb = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->bid->gid
         # e.required_gid_pb[pbcid][bid] is a contest group id for contests that *must* be on ballot.
         # e.possible_gid_pb[pbcid][bid] is a contest group id for contests that *may* be on ballot.
@@ -290,14 +290,14 @@ class Election(object):
         # From ballot manifest.
 
         e.comments_pb = {}
-        # input (21-ballots-manifests/manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->bid->comments (string)
         # from ballot manifest "Comments" field
 
         # *** Reported votes
 
         e.rv_cpb = {}
-        # input (22-reported-votes/reported-cvrs-PBCID.csv)
+        # input (22-reported-cvrs/reported-cvrs-PBCID.csv)
         # cid->pbcid->bid->vote
         # vote in given contest, paper ballot collection, and ballot id
         # e.rv_cpb is like e.av, but reported votes instead of actual votes

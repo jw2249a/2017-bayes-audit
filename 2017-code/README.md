@@ -355,12 +355,12 @@ of that directory might look as follows.
        13-contest-groups.csv
        14-collections.csv
 
-    2-election
-       21-ballot-manifests
-          manifest-DEN-A01.csv
-          manifest-DEN-A01.csv
-          manifest-LOG-B13.csv
-       22-reported-votes
+    2-reported
+       21-reported-ballot-manifests
+          reported-ballot-manifest-DEN-A01.csv
+          reported-ballot-manifest-DEN-A01.csv
+          reported-ballot-manifest-LOG-B13.csv
+       22-reported-cvrs
           reported-cvrs-DEN-A01.csv
           reported-cvrs-DEN-A02.csv
           reported-cvrs-LOG-B13.csv
@@ -1259,9 +1259,9 @@ Gather cast vote records, organize paper ballots into collections,
 and produce ballot manifests.
 Put this information into directories:
 
-    2-election
-      21-ballot-manifests
-      22-reported-votes
+    2-reported
+      21-reported-ballot-manifests
+      22-reported-cvrs
       23-reported-outcomes
 
 [Back to TOC](#table-of-contents)

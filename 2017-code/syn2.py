@@ -237,15 +237,15 @@ def generate_collections(se):
     
 
 
-def write_structure_csvs(se):
+def write_election_specification_csv(se):
 
-    write_11_election_csv(se)
+    write_11_general_csv(se)
     write_12_contests_csv(se)
     write_13_contest_groups_csv(se)
     write_14_collections_csv(se)
 
 
-def write_11_election_csv(se):
+def write_11_general_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
@@ -506,17 +506,19 @@ def generate_ballot_manifest(se):
             utils.nested_set(se.comments_pb, [pbcid, bid], "")
 
 
-def write_reported(se):
+def write_reported_csv(se):
 
-    write_21_ballot_manifests(se)
-    write_22_reported_csv(se)
-    write_23_reported_outcomes(se)
+    write_21_ballot_manifests_csv(se)
+    write_22_reported_cvrs_csv(se)
+    write_23_reported_outcomes_csv(se)
 
 
-def write_21_ballot_manifests(se):
+def write_21_ballot_manifests_csv(se):
                            
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "2-election", "21-ballot-manifests")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "2-reported",
+                           "21-reported-ballot-manifests")
     os.makedirs(dirpath, exist_ok=True)
 
     for pbcid in se.pbcids:
@@ -542,10 +544,12 @@ def write_21_ballot_manifests(se):
                 file.write("\n")
 
 
-def write_22_reported_csv(se):
+def write_22_reported_cvrs_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "2-election", "22-reported-votes")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "2-reported",
+                           "22-reported-cvrs")
     os.makedirs(dirpath, exist_ok=True)
 
     scanner = "scanner1"
@@ -575,10 +579,11 @@ def write_22_reported_csv(se):
             pass
 
 
-def write_23_reported_outcomes(se):
+def write_23_reported_outcomes_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "2-election")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "2-reported")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "23-reported-outcomes.csv")
 
@@ -638,18 +643,20 @@ def generate_audited_votes(se):
                     utils.nested_set(se.av_cpb, [cid, pbcid, bid], selection)
 
 
-def write_audit(se):
+def write_audit_csv(se):
 
-    write_311_audit_seed(se)
-    write_32_audit_orders(se)
-    write_33_audited_votes(se)
+    write_311_audit_seed_csv(se)
+    write_32_audit_orders_csv(se)
+    write_33_audited_votes_csv(se)
 
 
-def write_311_audit_seed(se):
+def write_311_audit_seed_csv(se):
     """ Write 3-audit/31-audit-setup/311-audit-seed.csv """
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "3-audit", "31-audit-setup")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "31-audit-setup")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "311-audit-seed.csv")
     with open(filename, "w") as file:
@@ -657,17 +664,19 @@ def write_311_audit_seed(se):
         file.write("{}\n".format(se.audit_seed))
 
 
-def write_32_audit_orders(se):
+def write_32_audit_orders_csv(se):
     """ Write 3-audit/32-audit-orders/audit_orders-PBCID.csv """
 
     pass
 
 
-def write_33_audited_votes(se):
+def write_33_audited_votes_csv(se):
     """ Write 3-audit/33-audited-votes/audited-votes-PBCID.csv """
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "3-audit", "33-audited-votes")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "33-audited-votes")
     os.makedirs(dirpath, exist_ok=True)
     for cid in se.av_cpb:
         for pbcid in se.av_cpb[cid]:
@@ -715,9 +724,9 @@ def test():
     structure.check_election_structure(se)
     print("OK.")
     
-    write_structure_csvs(se)
-    write_reported(se)
-    write_audit(se)
+    write_election_specification_csv(se)
+    write_reported_csv(se)
+    write_audit_csv(se)
 
     # audit stages
     pass # TBD

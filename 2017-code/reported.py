@@ -11,26 +11,28 @@ and reported outcomes.
 The directory format is illustrated by this example from
 README.md:
 
-    2-election
-       21-ballot-manifests
-          manifest-DEN-A01-2017-11-07.csv
-          manifest-DEN-A01-2017-11-07.csv
-          manifest-LOG-B13-2017-11-07.csv
-       22-reported-votes
+    2-reported
+       21-reported-ballot-manifests
+          reported-ballot-manifest-DEN-A01.csv
+          reported-ballot-manifest-DEN-A01.csv
+          reported-ballot-manifest-LOG-B13.csv
+       22-reported-cvrs
           reported-cvrs-DEN-A01-2017-11-07.csv
           reported-cvrs-DEN-A02-2017-11-07.csv
           reported-cvrs-LOG-B13-2017-11-07.csv
        23-reported-outcomes-2017-11-07.csv
 
-The 2-election directory is a subdirectory of the main
+The 2-reported directory is a subdirectory of the main
 directory for the election.
 
 There are three file types here:
-   ballot-manifests
+   reported-ballot-manifests
    reported-cvrs
    reported-outcomes
 
-Here is an example of a ballot-manifests file, from the README.md file:
+Here is an example of a reported-ballot-manifests file, from the README.md file:
+
+FIX!!!
 
 Collection id , Original index , Ballot id , Location       
 LOG-B13       , 1              , B-0001    , Box 001 no 0001
@@ -67,7 +69,7 @@ LOG-B13         , L      , 9           , US-Senate-1 , +Tom Cruz
 LOG-B13         , L      , 1           , US-Senate-1 , -Invalid      
 
 
-Here is an example of a reported outcomes file, from the README.md file:
+Here is an example of a reported-outcomes file, from the README.md file:
 
 Contest id      , Winner(s)
 DEN-prop-1      , Yes      
@@ -97,7 +99,7 @@ def get_election_data(e):
     # next line needs to be replaced!
     # load_part_from_json(e, "data.js")
 
-    read_ballot_manifests(e)
+    read_reported_ballot_manifests(e)
     read_reported_votes(e)
     read_reported_outcomes(e)
     
@@ -111,14 +113,15 @@ def get_election_data(e):
     show_election_data(e)
 
 
-def read_ballot_manifests(e):
+def read_reported_ballot_manifests(e):
     """
-    Read ballot manifest file 21-ballot-manifests and expand rows if needed.
+    Read ballot manifest file 21-reported-ballot-manifests and expand rows if needed.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname,
-                                      "2-election","21-ballot-manifests")
+                                      "2-reported",
+                                      "21-reported-ballot-manifests")
     fieldnames = ["Collection id", "Box id", "Position", "Stamp", 
                   "Ballot id", "Number of ballots",
                   "Required Contests", "Possible Contests", "Comments"]
@@ -159,14 +162,14 @@ def read_ballot_manifests(e):
                 utils.nested_set(e.comments_pb, [pbcid, bids[i]], comments)
                           
 
-def read_reported_votes(e):
+def read_reported_cvrs(e):
     """
-    Read reported votes 22-reported-votes/reported-cvrs-PBCID.csv.
+    Read reported votes 22-reported-cvrs/reported-cvrs-PBCID.csv.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname,
-                                      "2-election","22-reported-votes")
+                                      "2-reported","22-reported-cvrs")
     fieldnames = ["Collection id", "Scanner", "Ballot id",
                   "Contest", "Selections"]
     for pbcid in e.pbcids:
@@ -190,7 +193,7 @@ def read_reported_outcomes(e):
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname,
-                                      "2-election")
+                                      "2-reported")
     fieldnames = ["Contest", "Winner(s)"]
     filename = utils.greatest_name(structure_pathname,
                                    "23-reported-outcomes",
