@@ -112,6 +112,9 @@ def get_election_data(e):
 
 
 def read_ballot_manifests(e):
+    """
+    Read ballot manifest file 21-ballot-manifests and expand rows if needed.
+    """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     structure_pathname = os.path.join(election_pathname,
@@ -130,20 +133,28 @@ def read_ballot_manifests(e):
             position = row["Position"]
             stamp = row["Stamp"]
             bid = row["Ballot id"]
-            num = row["Number of ballots"]
+            try:
+                num = int(row["Number of ballots"])
+            except ValueError:
+                utils.myerror("Number {} of ballots not an integer.".format(num))
+            if num<=0:
+                utils.mywarning("Number {} of ballots not positive.".format(num))
             req = row["Required Contests"]
             poss = row["Possible Contests"]
             comments = row["Comments"]
 
-            if int(num) != 1:
-                utils.myerror("number {} not equal to 1.".format(num))
-            utils.nested_set(e.bids_p, [pbcid, bid], True)
-            utils.nested_set(e.boxid_pb, [pbcid, bid], boxid)
-            utils.nested_set(e.position_pb, [pbcid, bid], position)
-            utils.nested_set(e.stamp_pb, [pbcid, bid], stamp)
-            utils.nested_set(e.required_gid_pb, [pbcid, bid], req)
-            utils.nested_set(e.possible_gid_pb, [pbcid, bid], poss)
-            utils.nested_set(e.comments_pb, [pbcid, bid], comments)
+            bids = utils.count_on(bid, num)
+            stamps = utils.count_on(stamp, num)
+            positions = utils.count_on(position, num)
+
+            for i in range(num):
+                utils.nested_set(e.bids_p, [pbcid, bids[i]], True)
+                utils.nested_set(e.boxid_pb, [pbcid, bids[i]], boxid)
+                utils.nested_set(e.position_pb, [pbcid, bids[i]], position[i])
+                utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamp[i])
+                utils.nested_set(e.required_gid_pb, [pbcid, bids[i]], req)
+                utils.nested_set(e.possible_gid_pb, [pbcid, bids[i]], poss)
+                utils.nested_set(e.comments_pb, [pbcid, bids[i]], comments)
                           
 
 def read_reported_votes(e):
