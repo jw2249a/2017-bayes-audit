@@ -224,6 +224,8 @@ def generate_collections(se):
         else:
             se.required_gid_p[pbcid] = ""
             se.possible_gid_p[pbcid] = ""
+
+    structure.finish_election_structure_groups(se)
     
 
 
@@ -269,7 +271,9 @@ def write_12_contests_csv(se):
         
 
 def write_13_contest_groups_csv(se):
-    """ Experimental feature not yet implemented """
+    """
+    TBD
+    """
 
     pass
 
@@ -281,15 +285,15 @@ def write_14_collections_csv(se):
     filename = os.path.join(dirpath, "14-collections.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Collection id", "Manager", "CVR type", "Contests"]
+        fieldnames = ["Collection id", "Manager", "CVR type", "Required Contests", "Possible Contests"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for pbcid in se.pbcids:
             file.write("{},".format(pbcid))
             file.write("{},".format(se.manager_p[pbcid]))
             file.write("{},".format(se.cvr_type_p[pbcid]))
-            cids = [cid for cid in se.cids if pbcid in se.rel_cp[cid]]
-            file.write(",".join(cids))
+            file.write("{},".format(se.required_gid_p[pbcid]))
+            file.write("{}".format(se.possible_gid_p[pbcid]))
             file.write("\n")
 
 
@@ -332,33 +336,49 @@ def generate_reported(se):
     """
 
     # se.cids_b
-    # FIX: this code seems to assume that ballot ids are globally unique! ??
-    # Why do we need cids_b ??
     se.cids_b = {}
     for pbcid in se.pbcids:
-        if se.cvr_type_p[pbcid] == 'CVR':
-            available_cids = [c for c in se.cids \
-                              if pbcid in se.rel_cp[c]]
-            for bid in se.bids_p[pbcid]:
-                L = list(range(1, 1+len(available_cids)))
-                num_contests =  se.SynRandomState.choice(L)
-                if bid not in se.cids_b:
-                    se.cids_b[bid] = []
-                while len(se.cids_b[bid]) < min(num_contests, len(available_cids)):
-                    cid = se.SynRandomState.choice(available_cids)
-                    if cid not in se.cids_b[bid]:
-                        se.cids_b[bid].append(cid)
-        else:
-            # not sure what to do here if cvr_type_p[pbcid] == "noCVR"
-            pass 
+        se.required_gid_b = {}
+        se.possible_gid_b = {}
+        for bid in se.bids_p[pbcid]:
+            se.cids_b[bid] = set()
+
+            if len(se.gids) > 0:
+                se.required_gid_b[bid] = se.SynRandomState.choice(se.gids)
+                se.possible_gid_b[bid] = se.SynRandomState.choice(se.gids)
+            else:
+                se.required_gid_b[bid] = ""
+                se.possible_gid_b[bid] = ""
+
+            required_cids_p = set(se.required_cid_p[pbcid])
+            if se.required_gid_b[bid] != "":
+                required_cids_b = set(se.cids_g[se.required_gid_b[bid]])
+            else:
+                required_cids_b = set()
+            required_cids = required_cids_p.union(required_cids_b)
+            for cid in required_cids:
+                se.cids_b[bid].add(cid)
+
+            possible_cids_p = set(se.possible_cid_p[pbcid])
+            if se.possible_gid_b[bid] != "":
+                possible_cids_b = set(se.cids_g[se.possible_gid_b[bid]])
+            else:
+                possible_cids_b = set(se.cids)
+            possible_cids = possible_cids_p.intersection(possible_cids_b)
+            for cid in possible_cids:
+                if se.SynRandomState.choice([True, False]):
+                    se.cids_b[bid].add(cid)
+
+            se.cids_b[bid] = list(se.cids_b[bid])
 
     # Generate the reported selection for each contest and ballot (populate rv_cpb).
     # Draw from selids_c[cid] for each cid.
     se.rv_cpb = {}
-    for cid in se.cids:
-        selids = list(se.selids_c[cid])
-        for pbcid in se.rel_cp[cid]:
-            for bid in se.bids_p[pbcid]:
+
+    for pbcid in se.pbcids:
+        for bid in se.bids_p[pbcid]:
+            for cid in se.cids_b[bid]:
+                selids = list(se.selids_c[cid])
                 if se.contest_type_c[cid] == 'plurality':
                     selection = se.SynRandomState.choice(selids)
                     rvote = (selection,)
@@ -368,11 +388,11 @@ def generate_reported(se):
                     pass
                     
 
-    # sum over ballot ids and pbcids to get se.ro_c
-    rn_cv = dict() 
-    for cid in se.cids:
-        for pbcid in se.rel_cp[cid]:
-            for bid in se.bids_p[pbcid]:
+    # sum over ballot ids and pbcids to get se.rn_cv
+    rn_cv = {}
+    for pbcid in se.pbcids:
+        for bid in se.bids_p[pbcid]:
+            for cid in se.cids_b[bid]:
                 rvote = se.rv_cpb[cid][pbcid][bid]
                 if cid not in rn_cv:
                     utils.nested_set(rn_cv, [cid, rvote], 1)
@@ -474,48 +494,15 @@ def generate_ballot_manifest(se):
 
 def write_reported(se):
 
-    write_21_reported_csv(se)
-    write_22_ballot_manifests(se)
+    write_21_ballot_manifests(se)
+    write_22_reported_csv(se)
     write_23_reported_outcomes(se)
 
 
-def write_21_reported_csv(se):
-
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "2-election", "21-reported-votes")
-    os.makedirs(dirpath, exist_ok=True)
-
-    scanner = "scanner1"
-    for pbcid in se.pbcids:
-        # handle cvr pbcids
-        if se.cvr_type_p[pbcid]=="CVR": 
-            safe_pbcid = ids.filename_safe(pbcid)
-            filename = os.path.join(dirpath,
-                                    "reported-cvrs-" + safe_pbcid+".csv")
-            with open(filename, "w") as file:
-                fieldnames = ["Collection id", "Scanner", "Ballot id",
-                              "Contest", "Selections"]
-                file.write(",".join(fieldnames))
-                file.write("\n")
-                for bid in se.bids_p[pbcid]:
-                    for cid in se.cids:
-                        if pbcid in se.rel_cp[cid]:
-                            vote = se.rv_cpb[cid][pbcid][bid]
-                            file.write("{},".format(pbcid))
-                            file.write("{},".format(scanner))
-                            file.write("{},".format(bid))
-                            file.write("{},".format(cid))
-                            file.write(",".join(vote))
-                            file.write("\n")
-        # handle noCVR pbcids
-        else:
-            pass
-
-
-def write_22_ballot_manifests(se):
+def write_21_ballot_manifests(se):
                            
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "2-election", "22-ballot-manifests")
+                           "2-election", "21-ballot-manifests")
     os.makedirs(dirpath, exist_ok=True)
 
     for pbcid in se.pbcids:
@@ -537,6 +524,39 @@ def write_22_ballot_manifests(se):
                 file.write("1") # number of ballots
                 # no comments
                 file.write("\n")
+
+
+def write_22_reported_csv(se):
+
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
+                           "2-election", "22-reported-votes")
+    os.makedirs(dirpath, exist_ok=True)
+
+    scanner = "scanner1"
+    for pbcid in se.pbcids:
+        # handle cvr pbcids
+        if se.cvr_type_p[pbcid]=="CVR": 
+            safe_pbcid = ids.filename_safe(pbcid)
+            filename = os.path.join(dirpath,
+                                    "reported-cvrs-" + safe_pbcid+".csv")
+            with open(filename, "w") as file:
+                fieldnames = ["Collection id", "Scanner", "Ballot id",
+                              "Contest", "Selections"]
+                file.write(",".join(fieldnames))
+                file.write("\n")
+                for bid in se.bids_p[pbcid]:
+                    for cid in se.cids:
+                        if cid in se.cids_b[bid]:
+                            vote = se.rv_cpb[cid][pbcid][bid]
+                            file.write("{},".format(pbcid))
+                            file.write("{},".format(scanner))
+                            file.write("{},".format(bid))
+                            file.write("{},".format(cid))
+                            file.write(",".join(vote))
+                            file.write("\n")
+        # handle noCVR pbcids
+        else:
+            pass
 
 
 def write_23_reported_outcomes(se):
