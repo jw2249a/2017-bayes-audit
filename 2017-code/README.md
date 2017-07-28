@@ -305,7 +305,7 @@ Thus, a vote is a **set** of selections.  Possibly empty,
 possibly of size one, possibly of greater size.
 With plurality voting, the set is of size one for
 a valid selection, but it may be of size zero (an undervote)
-or of sizegreater than one (an overvote).
+or of size greater than one (an overvote).
 
 Implementation note: Within Python, we represent a vote as a
 tuple, such as
@@ -347,7 +347,6 @@ for details.
 The top-level directory might be named something like
 ``./elections/CO-2017-general-election``.  The contents
 of that directory might look as follows.
-(Here we illustrate the use of "year-month-day" version labels.)
 
     1-election-specification
        11-general.csv
