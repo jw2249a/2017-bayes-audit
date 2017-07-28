@@ -12,23 +12,32 @@ The directory format is illustrated by this example from
 README.md:
 
     2-election
-       21-reported-votes
-          reported-cvrs-DEN-A01-2017-11-07.csv
-          reported-cvrs-DEN-A02-2017-11-07.csv
-          reported-cvrs-LOG-B13-2017-11-07.csv
-       22-ballot-manifests
+       21-ballot-manifests
           manifest-DEN-A01-2017-11-07.csv
           manifest-DEN-A01-2017-11-07.csv
           manifest-LOG-B13-2017-11-07.csv
+       22-reported-votes
+          reported-cvrs-DEN-A01-2017-11-07.csv
+          reported-cvrs-DEN-A02-2017-11-07.csv
+          reported-cvrs-LOG-B13-2017-11-07.csv
        23-reported-outcomes-2017-11-07.csv
 
 The 2-election directory is a subdirectory of the main
 directory for the election.
 
 There are three file types here:
-   reported-cvrs
    ballot-manifests
+   reported-cvrs
    reported-outcomes
+
+Here is an example of a ballot-manifests file, from the README.md file:
+
+Collection id , Original index , Ballot id , Location       
+LOG-B13       , 1              , B-0001    , Box 001 no 0001
+LOG-B13       , 2              , B-0002    , Box 001 no 0002
+LOG-B13       , 3              , B-0003    , Box 001 no 0003
+LOG-B13       , 4              , B-0004    , Box 001 no 0004
+LOG-B13       , 5              , C-0001    , Box 002 no 0001
 
 Here is an example of a reported-cvrs file, from
 the README.md file:
@@ -58,15 +67,6 @@ LOG-B13         , L      , 9           , US-Senate-1 , +Tom Cruz
 LOG-B13         , L      , 1           , US-Senate-1 , -Invalid      
 
 
-Here is an example of a ballot-manifests file, from the README.md file:
-
-Collection id , Original index , Ballot id , Location       
-LOG-B13       , 1              , B-0001    , Box 001 no 0001
-LOG-B13       , 2              , B-0002    , Box 001 no 0002
-LOG-B13       , 3              , B-0003    , Box 001 no 0003
-LOG-B13       , 4              , B-0004    , Box 001 no 0004
-LOG-B13       , 5              , C-0001    , Box 002 no 0001
-
 Here is an example of a reported outcomes file, from the README.md file:
 
 Contest id      , Winner(s)
@@ -90,14 +90,35 @@ import utils
 def get_election_data(e):
 
     # next line needs to be replaced!
-    load_part_from_json(e, "data.js")
+    # load_part_from_json(e, "data.js")
+
+    read_ballot_manifests(e)
+    read_reported_votes(s)
+    read_reported_outcomes(e)
+    
     for cid in e.rn_cpr:
         unpack_json_keys(e.syn_rn_cr[cid])
         for pbcid in e.rn_cpr[cid]:
             unpack_json_keys(e.rn_cpr[cid][pbcid])
+
     finish_election_data(e)
     check_election_data(e)
     show_election_data(e)
+
+
+def read_ballot_manifests(e):
+
+    pass
+
+def read_reported_votes(e):
+
+    pass
+
+
+def read_reported_outcomes(e):
+
+    pass
+
 
 
 def finish_election_data(e):
