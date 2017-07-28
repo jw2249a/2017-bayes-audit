@@ -304,7 +304,7 @@ class Election(object):
 
         e.votes_c = {}
         # input (from selids_c, reported votes, and actual otes)
-        # cid->votes
+        # cid->vote->True
         # e.votes_c[cid] gives all the distinct votes ever seen for cid,
         # reported or actual. (These are the different possible votes,
         # not the count.  So e.votes_c[cid] is the domain for tallies of
