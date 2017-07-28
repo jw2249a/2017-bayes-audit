@@ -293,7 +293,7 @@ def check_election_structure(e):
                       .format(pbcid))
 
     if utils.warnings_given > 0:
-        utils.myerror("Too many errors; terminating.")
+        utils.myerror("structure.check_election_structure: Too many errors or warnings; terminating.")
 
 
 def show_election_structure(e):
