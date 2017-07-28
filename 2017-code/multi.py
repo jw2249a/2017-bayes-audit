@@ -310,13 +310,13 @@ class Election(object):
         # not the count.  So e.votes_c[cid] is the domain for tallies of
         # contest cid.)
 
+        # Computed from the above
+
         e.rn_cpr = {}
-        # input (22-reported-votes/reported-cvrs-PBCID.csv)
+        # Computed from e.rv_cpb
         # cid->pbcid->rvote->count
         # reported number of votes by contest, paper ballot collection,
         # and reported vote.
-
-        # Computed from the above
 
         e.rn_p = {}
         # Computed from e.rv_cpb
