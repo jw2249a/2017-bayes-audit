@@ -25,7 +25,7 @@ here.  At least not yet.**
   * [Votes](#votes)
   * [File formats](#file-formats)
   * [Directory structure](#directory-structure)
-* [(Pre-election) Election definition.](#pre-election-election-definition)
+* [(Pre-election) Election specification.](#pre-election-election-specification)
   * [Election file](#election-file)
   * [Contests file](#contests-file)
   * [Contest groups file](#contest-groups-file)
@@ -121,7 +121,7 @@ We assume the following:
   showing that contest,
 
 We assume that the election has the following components:
-1. ("_Pre-election_") Election definition and setup.
+1. ("_Pre-election_") Election specification and setup.
 2. ("_Election_") Vote-casting, interpretation and preliminary reporting.
 3. ("_Post-election_") Audit.
 4. ("_Certification_") Certification.
@@ -401,9 +401,9 @@ of that directory might look as follows.
  
 [Back to TOC](#table-of-contents)
 
-## (Pre-election) Election definition.
+## (Pre-election) Election specification.
 
-The election definition phase answers the questions:
+The election specification phase answers the questions:
 * What contests are there?
 * For each contest, what selections (choices) may the voter mark?
 * For each contest, what **voting method** will be used to determine the
@@ -419,7 +419,7 @@ The election definition phase answers the questions:
 Election officials answer these questions with three CSV files:
 an "**election file**", a "**contests file**", and a
 "**collections file**".  It is likely that these three
-election-definition files are produced from similar files used
+election-specification files are produced from similar files used
 for the election itself.
 
 [Back to TOC](#table-of-contents)
