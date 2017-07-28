@@ -15,7 +15,7 @@ def test_scale(k):
 
     # ... set parameters here based on k
 
-    # run "test"
+    # run "tester"
 
     # stop timer; print k and elapsed time
 
