@@ -350,7 +350,7 @@ of that directory might look as follows.
 (Here we illustrate the use of "year-month-day" version labels.)
 
     1-election-specification
-       11-election.csv
+       11-general.csv
        12-contests.csv
        13-contest-groups.csv
        14-collections.csv
@@ -441,7 +441,7 @@ about this election is held.  This directory is within some
 "standard directory where election information is held", such
 as "./elections".
 
-This is a CSV file, with the name ``11-election.csv`` (possibly with a version
+This is a CSV file, with the name ``11-general.csv`` (possibly with a version
 label).
 
 [Back to TOC](#table-of-contents)
@@ -1358,7 +1358,7 @@ with later version labels have been added to the directory structure.)
 
 | Filename                   | Hash |
 |---                         |---                  |
-| ``11-election-2017-09-08.csv``           | ``ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb`` |
+| ``11-general-2017-09-08.csv``           | ``ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb`` |
 | ``12-contests-2017-09-08.csv``           | ``3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d`` |
 | ``14-collections-2017-09-08.csv``        | ``2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6`` |
 | ...                                  | ...                                                              |
