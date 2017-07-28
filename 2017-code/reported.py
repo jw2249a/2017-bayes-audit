@@ -193,7 +193,7 @@ def read_reported_outcomes(e):
                                       "2-election")
     fieldnames = ["Contest", "Winner(s)"]
     filename = utils.greatest_name(structure_pathname,
-                                   "reported-outcomes",
+                                   "23-reported-outcomes",
                                    ".csv")
     file_pathname = os.path.join(structure_pathname, filename)
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
