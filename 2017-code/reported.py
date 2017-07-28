@@ -100,7 +100,7 @@ def get_election_data(e):
     # load_part_from_json(e, "data.js")
 
     read_reported_ballot_manifests(e)
-    read_reported_votes(e)
+    read_reported_cvrs(e)
     read_reported_outcomes(e)
     
     for cid in e.rn_cpr:
