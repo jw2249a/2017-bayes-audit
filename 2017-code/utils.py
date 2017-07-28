@@ -1,6 +1,6 @@
 # utils.py
 # Ronald L. Rivest
-# July 8, 2017
+# July 27, 2017
 # python3
 
 """
