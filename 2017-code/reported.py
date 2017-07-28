@@ -124,7 +124,9 @@ def read_ballot_manifests(e):
                   "Required Contests", "Possible Contests", "Comments"]
     for pbcid in e.pbcids:
         safe_pbcid = ids.filename_safe(pbcid)
-        filename = utils.greatest_name(structure_pathname, "manifest", ".csv")
+        filename = utils.greatest_name(structure_pathname,
+                                       "manifest-" + safe_pbcid,
+                                       ".csv")
         file_pathname = os.path.join(structure_pathname, filename)
         rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
         for row in rows:
@@ -158,8 +160,50 @@ def read_ballot_manifests(e):
                           
 
 def read_reported_votes(e):
+    """
+    Read reported votes 22-reported-votes/reported-cvrs-PBCID.csv.
+    """
 
-    pass
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname,
+                                      "2-election","22-reported-votes")
+    fieldnames = ["Collection id", "Scanner", "Ballot id",
+                  "Contest", "Selections"]
+    for pbcid in e.pbcids:
+        safe_pbcid = ids.filename_safe(pbcid)
+        filename = utils.greatest_name(structure_pathname,
+                                       "reported-cvrs-" + safe_pbcid,
+                                       ".csv")
+        file_pathname = os.path.join(structure_pathname, filename)
+        rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+        for row in rows:
+            pbcid = row["Collection id"]
+            boxid = row["Box id"]
+            position = row["Position"]
+            stamp = row["Stamp"]
+            bid = row["Ballot id"]
+            try:
+                num = int(row["Number of ballots"])
+            except ValueError:
+                utils.myerror("Number {} of ballots not an integer.".format(num))
+            if num<=0:
+                utils.mywarning("Number {} of ballots not positive.".format(num))
+            req = row["Required Contests"]
+            poss = row["Possible Contests"]
+            comments = row["Comments"]
+
+            bids = utils.count_on(bid, num)
+            stamps = utils.count_on(stamp, num)
+            positions = utils.count_on(position, num)
+
+            for i in range(num):
+                utils.nested_set(e.bids_p, [pbcid, bids[i]], True)
+                utils.nested_set(e.boxid_pb, [pbcid, bids[i]], boxid)
+                utils.nested_set(e.position_pb, [pbcid, bids[i]], position[i])
+                utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamp[i])
+                utils.nested_set(e.required_gid_pb, [pbcid, bids[i]], req)
+                utils.nested_set(e.possible_gid_pb, [pbcid, bids[i]], poss)
+                utils.nested_set(e.comments_pb, [pbcid, bids[i]], comments)
 
 
 def read_reported_outcomes(e):
