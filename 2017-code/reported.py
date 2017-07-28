@@ -188,7 +188,19 @@ def read_reported_votes(e):
 
 def read_reported_outcomes(e):
 
-    pass
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname,
+                                      "2-election")
+    fieldnames = ["Contest", "Winner(s)"]
+    filename = utils.greatest_name(structure_pathname,
+                                   "reported-outcomes",
+                                   ".csv")
+    file_pathname = os.path.join(structure_pathname, filename)
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+    for row in rows:
+        cid = row["Contest"]
+        winners = row["Winner(s)"]
+        utils.nested_set(e.ro_c, [cid], winners)
 
 
 def finish_election_data(e):
@@ -333,31 +345,6 @@ def check_election_data(e):
         if not isinstance(e.bids_p[pbcid], dict):
             utils.myerror("e.bids_p[{}] is not a dict.".format(pbcid))
 
-    if not isinstance(e.av_cpb, dict):
-        utils.myerror("e.av_cpb is not a dict.")
-    for cid in e.av_cpb:
-        if cid not in e.cids:
-            utils.mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
-        for pbcid in e.av_cpb[cid]:
-            if pbcid not in e.pbcids:
-                utils.mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
-                          .format(cid, pbcid))
-            if not isinstance(e.av_cpb[cid][pbcid], dict):
-                utils.myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
-            bidsset = set(e.bids_p[pbcid])
-            for bid in e.av_cpb[cid][pbcid]:
-                if bid not in bidsset:
-                    utils.mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
-                              .format(bid, cid, pbcid, pbcid))
-
-    for cid in e.cids:
-        if cid not in e.av_cpb:
-            utils.mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
-        for pbcid in e.possible_pbcid_c[cid]:
-            if pbcid not in e.av_cpb[cid]:
-                utils.mywarning("pbcid `{}` is not in e.av_cpb[{}]."
-                          .format(pbcid, cid))
-
     if not isinstance(e.rv_cpb, dict):
         utils.myerror("e.rv_cpb is not a dict.")
     for cid in e.rv_cpb:
@@ -393,6 +380,39 @@ def check_election_data(e):
 
     if utils.warnings_given > 0:
         utils.myerror("Too many errors; terminating.")
+
+
+def check_audited_votes(e):
+    """
+    old code; was in check_election_data, but moved here temporarily
+    """
+
+    if not isinstance(e.av_cpb, dict):
+        utils.myerror("e.av_cpb is not a dict.")
+    for cid in e.av_cpb:
+        if cid not in e.cids:
+            utils.mywarning("e.av_cpb key {} is not in e.cids.".format(cid))
+        for pbcid in e.av_cpb[cid]:
+            if pbcid not in e.pbcids:
+                utils.mywarning("e.av_cpb[{}] key `{}` is not in e.pbcids"
+                          .format(cid, pbcid))
+            if not isinstance(e.av_cpb[cid][pbcid], dict):
+                utils.myerror("e.av_cpb[{}][{}] is not a dict.".format(cid, pbcid))
+            bidsset = set(e.bids_p[pbcid])
+            for bid in e.av_cpb[cid][pbcid]:
+                if bid not in bidsset:
+                    utils.mywarning("bid `{}` from e.av_cpb[{}][{}] is not in e.bids_p[{}]."
+                              .format(bid, cid, pbcid, pbcid))
+
+    for cid in e.cids:
+        if cid not in e.av_cpb:
+            utils.mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
+        for pbcid in e.possible_pbcid_c[cid]:
+            if pbcid not in e.av_cpb[cid]:
+                utils.mywarning("pbcid `{}` is not in e.av_cpb[{}]."
+                          .format(pbcid, cid))
+
+
 
 
 def show_election_data(e):
