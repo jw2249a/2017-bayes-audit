@@ -175,35 +175,15 @@ def read_reported_votes(e):
                                        "reported-cvrs-" + safe_pbcid,
                                        ".csv")
         file_pathname = os.path.join(structure_pathname, filename)
-        rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+        rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
         for row in rows:
             pbcid = row["Collection id"]
-            boxid = row["Box id"]
-            position = row["Position"]
-            stamp = row["Stamp"]
+            scanner = row["Scanner"]
             bid = row["Ballot id"]
-            try:
-                num = int(row["Number of ballots"])
-            except ValueError:
-                utils.myerror("Number {} of ballots not an integer.".format(num))
-            if num<=0:
-                utils.mywarning("Number {} of ballots not positive.".format(num))
-            req = row["Required Contests"]
-            poss = row["Possible Contests"]
-            comments = row["Comments"]
-
-            bids = utils.count_on(bid, num)
-            stamps = utils.count_on(stamp, num)
-            positions = utils.count_on(position, num)
-
-            for i in range(num):
-                utils.nested_set(e.bids_p, [pbcid, bids[i]], True)
-                utils.nested_set(e.boxid_pb, [pbcid, bids[i]], boxid)
-                utils.nested_set(e.position_pb, [pbcid, bids[i]], position[i])
-                utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamp[i])
-                utils.nested_set(e.required_gid_pb, [pbcid, bids[i]], req)
-                utils.nested_set(e.possible_gid_pb, [pbcid, bids[i]], poss)
-                utils.nested_set(e.comments_pb, [pbcid, bids[i]], comments)
+            cid = row["Contest"]
+            vote = row["Selections"]
+            utils.nested_set(e.rv_cpb, [cid, pbcid, bid], vote)
+            utils.nested_set(e.votes_c, [cid, vote], True)
 
 
 def read_reported_outcomes(e):
@@ -223,20 +203,20 @@ def finish_election_data(e):
         for pbcid in e.possible_pbcid_c[cid]:
             print("***", cid, e.possible_pbcid_c[cid])
             for bid in e.bids_p[pbcid]:
-                r = e.rv_cpb[cid][pbcid][bid]
-                e.votes_c[r] = True
-                for selid in r:
+                rv = e.rv_cpb[cid][pbcid][bid]
+                e.votes_c[rv] = True
+                for selid in rv:
                     if ids.is_writein(selid) or ids.is_error_selid(selid):
                         e.selids_c[cid][selid] = True
 
-    # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
+    # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote rv:
     for cid in e.cids:
         e.rn_cpr[cid] = {}
         for pbcid in e.possible_pbcid_c[cid]:
             e.rn_cpr[cid][pbcid] = {}
-            for r in e.votes_c[cid]:
-                e.rn_cpr[cid][pbcid][r] = len([bid for bid in e.bids_p[pbcid]
-                                               if e.rv_cpb[cid][pbcid][bid] == r])
+            for rv in e.votes_c[cid]:
+                e.rn_cpr[cid][pbcid][rv] = len([bid for bid in e.bids_p[pbcid]
+                                                if e.rv_cpb[cid][pbcid][bid] == rv])
 
     # e.rn_c[cid] is reported number of votes cast in contest cid
     for cid in e.cids:
