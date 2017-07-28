@@ -424,14 +424,14 @@ of that directory might look as follows.
        14-collections-2017-09-08.csv
 
     2-election
-       21-reported-votes
-          reported-cvrs-DEN-A01-2017-11-07.csv
-          reported-cvrs-DEN-A02-2017-11-07.csv
-          reported-cvrs-LOG-B13-2017-11-07.csv
-       22-ballot-manifests
+       21-ballot-manifests
           manifest-DEN-A01-2017-11-07.csv
           manifest-DEN-A01-2017-11-07.csv
           manifest-LOG-B13-2017-11-07.csv
+       22-reported-votes
+          reported-cvrs-DEN-A01-2017-11-07.csv
+          reported-cvrs-DEN-A02-2017-11-07.csv
+          reported-cvrs-LOG-B13-2017-11-07.csv
        23-reported-outcomes-2017-11-07.csv
 
     3-audit
@@ -1329,8 +1329,8 @@ and produce ballot manifests.
 Put this inforation into directories:
 
     2-election
-      21-reported-votes
-      22-ballot-manifests
+      21-ballot-manifests
+      22-reported-votes
       23-reported-outcomes
 
 [Back to TOC](#table-of-contents)
