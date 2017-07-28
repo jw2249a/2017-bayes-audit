@@ -615,6 +615,8 @@ def generate_audit_seed(se):
 
 def generate_audit_orders(se):
 
+    # see audit_orders.py
+
     pass
 
 
@@ -644,10 +646,10 @@ def write_audit(se):
 
 
 def write_311_audit_seed(se):
-    """ Write 3-audit/31-setup/311-audit-seed.csv """
+    """ Write 3-audit/31-audit-setup/311-audit-seed.csv """
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
-                           "3-audit", "31-setup")
+                           "3-audit", "31-audit-setup")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "311-audit-seed.csv")
     with open(filename, "w") as file:

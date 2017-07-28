@@ -367,7 +367,7 @@ of that directory might look as follows.
        23-reported-outcomes.csv
 
     3-audit
-       31-setup
+       31-audit-setup
           311-audit-seed.csv
        32-audit-orders
           audit-order-DEN-A01.csv
@@ -1257,7 +1257,7 @@ Put this information into directory:
 
 Gather cast vote records, organize paper ballots into collections,
 and produce ballot manifests.
-Put this inforation into directories:
+Put this information into directories:
 
     2-election
       21-ballot-manifests
@@ -1275,7 +1275,7 @@ Put these into the audit seed file and
 the audit-orders directory.
 
     3-audit
-       31-setup
+       31-audit-setup
           311-audit-seed.csv
        32-audit-orders
           audit-order-DEN-A01.csv

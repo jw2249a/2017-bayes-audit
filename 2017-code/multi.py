@@ -343,7 +343,7 @@ class Election(object):
         # *** Audit setup
 
         e.audit_seed = None
-        # input (31-setup/311-audit-seed.csv)
+        # input (31-audit-setup/311-audit-seed.csv)
         # seed for pseudo-random number generation for audit
 
         # *** Audit orders
