@@ -93,7 +93,7 @@ def get_election_data(e):
     # load_part_from_json(e, "data.js")
 
     read_ballot_manifests(e)
-    read_reported_votes(s)
+    read_reported_votes(e)
     read_reported_outcomes(e)
     
     for cid in e.rn_cpr:
@@ -120,17 +120,16 @@ def read_reported_outcomes(e):
     pass
 
 
-
 def finish_election_data(e):
     """ 
     Compute election data attributes that are derivative from others. 
     or that need conversion (e.g. strings-->tuples from json keys).
     """
 
-    # make sure e.selids_c contains all +/- selids seen in reported votes
+    # make sure e.selids_c[cid] contains all +/- selids seen in reported votes
     # and that e.votes_c[cid] contains all reported votes
     for cid in e.cids:
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             for bid in e.bids_p[pbcid]:
                 r = e.rv_cpb[cid][pbcid][bid]
                 e.votes_c[r] = True
@@ -141,7 +140,7 @@ def finish_election_data(e):
     # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote r:
     for cid in e.cids:
         e.rn_cpr[cid] = {}
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             e.rn_cpr[cid][pbcid] = {}
             for r in e.votes_c[cid]:
                 e.rn_cpr[cid][pbcid][r] = len([bid for bid in e.bids_p[pbcid]
@@ -189,14 +188,14 @@ def check_election_data(e):
                               .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote],
                                       e.rn_p[pbcid]))
                 if e.rn_cr[cid][vote] != \
-                        sum([e.rn_cpr[cid][pbcid][vote]
-                             for pbcid in e.rel_cp[cid]]):
-                    utils.mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
+                        sum([e.rn_cpr[cid][pbcid][vote]]):
+                    for pbcid in e.possible_pbcid_c[cid]:
+                        utils.mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
                               .format(cid, vote, cid, vote))
     for cid in e.cids:
         if cid not in e.rn_cpr:
             utils.mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             if pbcid not in e.rn_cpr[cid]:
                 utils.mywarning(
                     "pbcid {} is not a key for e.rn_cpr[{}].".format(pbcid, cid))
@@ -260,7 +259,7 @@ def check_election_data(e):
     for cid in e.cids:
         if cid not in e.av_cpb:
             utils.mywarning("cid `{}` is not a key for e.av_cpb.".format(cid))
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             if pbcid not in e.av_cpb[cid]:
                 utils.mywarning("pbcid `{}` is not in e.av_cpb[{}]."
                           .format(pbcid, cid))
@@ -284,9 +283,9 @@ def check_election_data(e):
     for cid in e.cids:
         if cid not in e.rv_cpb:
             utils.mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             if pbcid not in e.rv_cpb[cid]:
-                utils.mywarning("pbcid `{}` from e.rel_cp[{}] is not a key for e.rv_cpb[{}]."
+                utils.mywarning("pbcid `{}` from e.possible_pbcid_c[{}] is not a key for e.rv_cpb[{}]."
                           .format(pbcid, cid, cid))
 
     if not isinstance(e.ro_c, dict):
@@ -308,7 +307,7 @@ def show_election_data(e):
 
     utils.myprint("Total reported votes for each vote by cid and pbcid (e.rn_cpr):")
     for cid in e.cids:
-        for pbcid in sorted(e.rel_cp[cid]):
+        for pbcid in sorted(e.possible_pbcid_c[cid]):
             utils.myprint("    {}.{}: ".format(cid, pbcid), end='')
             for vote in sorted(e.rn_cpr[cid][pbcid]):
                 utils.myprint("{}:{} ".format(

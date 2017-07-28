@@ -270,18 +270,6 @@ def check_election_structure(e):
     for pbcid in e.pbcids:
         check_id(pbcid)
 
-    if not isinstance(e.rel_cp, dict):
-        utils.myerror("e.rel_cp is not a dict.")
-    for cid in e.rel_cp:
-        if cid not in e.cids:
-            utils.mywarning("cid is not in e.cids: {}".format(cid))
-        for pbcid in e.rel_cp[cid]:
-            if pbcid not in e.pbcids:
-                utils.mywarning("pbcid is not in e.pbcids: {}".format(pbcid))
-            if e.rel_cp[cid][pbcid] != True:
-                utils.mywarning("e.rel_cp[{}][{}] != True.".format(
-                    cid, pbcid, e.rel_cp[cid][pbcid]))
-
     for cid in e.selids_c:
         if cid not in e.cids:
             utils.myerror("e.selids_c has a key `{}` not in e.cids.".format(cid))
