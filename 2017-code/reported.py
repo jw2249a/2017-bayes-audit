@@ -135,15 +135,15 @@ def read_ballot_manifests(e):
             poss = row["Possible Contests"]
             comments = row["Comments"]
 
-            e.bids_p[pbcid][bid] = True
-            e.boxid_pb[pbcid][bid] = boxid
-            e.position_pb[pbcid][bid] = position
-            e.stamp_pb[pbcid][bid] = stamp
+            utils.nested_set(e.bids_p, [pbcid, bid], True)
+            utils.nested_set(e.boxid_pb, [pbcid, bid], boxid)
+            utils.nested_set(e.position_pb, [pbcid, bid], position)
+            utils.nested_set(e.stamp_pb, [pbcid, bid], stamp)
             if num != 1:
                 utils.myerror("number not equal to 1.")
-            e.required_gid_pb[pbcid][bid] = req
-            e.possible_gid_pb[pbcid][bid] = poss
-            e.comments_pb[pbcid][bid] = comments
+            utils.nested_set(e.required_gid_pb, [pbcid, bid], req)
+            utils.nested_set(e.possible_gid_pb, [pbcid, bid], poss)
+            utils.nested_set(e.comments_pb, [pbcid, bid], comments)
                           
 
 def read_reported_votes(e):
