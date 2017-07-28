@@ -445,7 +445,7 @@ of that directory might look as follows.
           audited-votes-DEN-A01-2017-11-21.csv
           audited-votes-DEN-A02-2017-11-21.csv
           audited-votes-LOG-B13-2017-11-22.csv
-       33-audit-stages
+       34-audit-stages
           audit-stage-000
              10-audit-parameters-global-2017-11-22.csv
              11-audit-parameters-contest-2017-11-22.csv
@@ -1356,7 +1356,7 @@ Produce first *plan* for the audit, and put this information
 into the stage "000" directory in the audit-plan file.
 
     3-audit
-      33-audit-stages
+      34-audit-stages
          audit-stage-000
              40-audit-plan.csv
 
