@@ -330,8 +330,8 @@ def check_election_data(e):
     if not isinstance(e.bids_p, dict):
         utils.myerror("e.bids_p is not a dict.")
     for pbcid in e.pbcids:
-        if not isinstance(e.bids_p[pbcid], list):
-            utils.myerror("e.bids_p[{}] is not a list.".format(pbcid))
+        if not isinstance(e.bids_p[pbcid], dict):
+            utils.myerror("e.bids_p[{}] is not a dict.".format(pbcid))
 
     if not isinstance(e.av_cpb, dict):
         utils.myerror("e.av_cpb is not a dict.")
