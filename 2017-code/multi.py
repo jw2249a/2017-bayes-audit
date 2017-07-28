@@ -137,23 +137,23 @@ class Election(object):
         # *** General
 
         e.election_dirname = ""
-        # input (11-election.csv)
+        # input (11-general.csv)
         # Dirname of election (e.g. "CO-Nov-2017")
         # Used as a directory name within the elections root dir.
         # so e.g. election data for CO-Nov-2017
         # is all in "./elections/CO-Nov-2017"
 
         e.election_name = ""
-        # input (11-election.csv)
+        # input (11-general.csv)
         # A human-readable name for the election, such as
         # "Colorado November 2017 General Election"
 
         e.election_date = ""
-        # input (11-election.csv)
+        # input (11-general.csv)
         # In ISO8601 format, e.g. "2017-11-07"
 
         e.election_url = ""
-        # input (11-election.csv)
+        # input (11-general.csv)
         # URL to find more information about the election
 
         # *** Contests
