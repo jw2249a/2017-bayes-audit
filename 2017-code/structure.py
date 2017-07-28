@@ -200,9 +200,13 @@ def get_election_structure(e):
 
 def finish_election_structure(e):
 
-    groups.expand_contest_group_defs(e)
+    finish_election_structure_groups(e)
+    finish_election_structure_votes(e)
 
-    noCVRvote = ("-noCVR",)
+    
+def finish_election_structure_groups(e):
+
+    groups.expand_contest_group_defs(e)
 
     for pbcid in e.pbcids:
         e.possible_cid_p[pbcid] = {}
@@ -224,6 +228,11 @@ def finish_election_structure(e):
             if poss_gid=="" or cid in e.cids_g[poss_gid] or cid in e.cids_g[req_gid]:
                 utils.nested_set(e.possible_cid_p, [pbcid, cid], "True")
                 utils.nested_set(e.possible_pbcid_c, [cid, pbcid], "True")
+
+
+def finish_election_structure_votes(e):
+
+    noCVRvote = ("-noCVR",)
     for cid in e.cids:
         e.votes_c[cid] = {}
         for selid in e.selids_c[cid]:
