@@ -491,12 +491,16 @@ def generate_ballot_manifest(se):
     #               this protects against digit substitution
     #               and transposition errors.
     # se.number_of_ballots_pb not used, since they are all 1.
+    # se.required_gid_pb = {}
+    # se.possible_gid_pb = {}
     # se.comments_pb = {}
     for pbcid in se.pbcids:
         for i, bid in enumerate(se.bids_p[pbcid]):
             utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
             utils.nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
             utils.nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
+            utils.nested_set(se.required_gid_pb, [pbcid, bid], "")
+            utils.nested_set(se.possible_gid_pb, [pbcid, bid], "")
             utils.nested_set(se.comments_pb, [pbcid, bid], "")
 
 
@@ -519,6 +523,7 @@ def write_21_ballot_manifests(se):
         with open(filename, "w") as file:
             fieldnames = ["Collection id", "Box id", "Position",
                           "Stamp", "Ballot id", "Number of ballots",
+                          "Required Contests", "Possible Contests",
                           "Comments"]
             file.write(",".join(fieldnames))
             file.write("\n")
@@ -530,6 +535,8 @@ def write_21_ballot_manifests(se):
                 file.write("{},".format(se.stamp_pb[pbcid][bid]))
                 file.write("{},".format(bid))
                 file.write("1") # number of ballots
+                file.write("{},".format(""))
+                file.write("{},".format(""))
                 # no comments
                 file.write("\n")
 
