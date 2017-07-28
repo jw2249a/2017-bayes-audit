@@ -335,7 +335,7 @@ def show_election_structure(e):
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {} ({}, Manager:{})"
                       .format(pbcid, e.cvr_type_p[pbcid], e.manager_p[pbcid]))
-    utils.myprint("Required pbcids for each cid (e.possible_pbcid_c):")
+    utils.myprint("Required pbcids for each cid (e.required_pbcid_c):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
         utils.myprint(", ".join(sorted(e.required_pbcid_c[cid])))

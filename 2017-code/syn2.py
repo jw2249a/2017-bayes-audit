@@ -271,11 +271,19 @@ def write_12_contests_csv(se):
         
 
 def write_13_contest_groups_csv(se):
-    """
-    TBD
-    """
 
-    pass
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-structure")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath, "13-contest-groups.csv")
+
+    with open(filename, "w") as file:
+        fieldnames = ["Contest group id", "Contest or group id(s)"]
+        file.write(",".join(fieldnames))
+        file.write("\n")
+        for gid in se.gids:
+            file.write(gid+",")
+            file.write(",".join(sorted(se.cgids_g[gid])))
+            file.write("\n")
 
 
 def write_14_collections_csv(se):
