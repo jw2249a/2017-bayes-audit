@@ -26,13 +26,13 @@ here.  At least not yet.**
   * [File formats](#file-formats)
   * [Directory structure](#directory-structure)
 * [(Pre-election) Election specification.](#pre-election-election-specification)
-  * [Election file](#election-file)
+  * [Election specification general file](#election-specification-general-file)
   * [Contests file](#contests-file)
   * [Contest groups file](#contest-groups-file)
   * [Collections file](#collections-file)
-* [Election data (CVRs, ballot manifests, and reported outcomes)](#election-data-cvrs-ballot-manifests-and-reported-outcomes)
-  * [Ballot manifest file](#ballot-manifest-file)
-  * [Reported Vote file (CVRs)](#reported-vote-file-cvrs)
+* [Reported data (CVRs, ballot manifests, and outcomes)](#reported-data-cvrs-ballot-manifests-and-outcomes)
+  * [Reported ballot manifest files](#reported-ballot-manifest-files)
+  * [Reported CVRs file](#reported-cvrs-file)
   * [Reported outcomes file](#reported-outcomes-file)
 * [Audit](#audit)
   * [Audit setup](#audit-setup)
@@ -416,17 +416,21 @@ The election specification phase answers the questions:
 * For each collection, will it be a CVR collection or a noCVR
   collection?
 
-Election officials answer these questions with three CSV files:
-an "**election file**", a "**contests file**", and a
-"**collections file**".  It is likely that these three
+Election officials answer these questions with four CSV files:
+an "**general file**", 
+a "**contests file**", 
+a "**contest groups file**",
+and a "**collections file**".  
+It is likely that these four
 election-specification files are produced from similar files used
 for the election itself.
 
 [Back to TOC](#table-of-contents)
 
-### Election file
+### Election specification general file
 
-An **election file** gives some high-level attributes of the election.
+An election specification
+**general file** gives some high-level attributes of the election.
 
 | Attribute         | Value                                   |
 | ---               | ---                                     |
@@ -579,7 +583,7 @@ the possible ballot styles).
 
 [Back to TOC](#table-of-contents)
 
-## Election data (ballot manifests, CVRs, and reported outcomes)
+## Reported data: (ballot manifests, CVRs, and outcomes)
 
 When the election is run, paper ballots are cast and scanned.  The
 electronic results are organized in "**reported vote files**".
@@ -593,7 +597,7 @@ outcome for each contest.
 
 [Back to TOC](#table-of-contents)
 
-### Ballot manifest file
+### Reported ballot manifest files
 
 A **ballot manifest file** lists all of the ballot ids for a given collection.
 Each ballot id may be given explicitly, or, if some ballots are organized
@@ -719,16 +723,16 @@ A ballot manifest file has a filename of the form
 [Back to TOC](#table-of-contents)
 
 
-### Reported Vote file (CVRs)
+### Reported CVRs file
 
-A **reported vote file** is a CSV format file containing a number of
+A **reported cvrs file** is a CSV format file containing a number of
 rows, where (for a CVR collection) each row represents a voter's choices for a
 particular contest. These are the **cast vote records** (CVRs) of the election.
 
 The format is capable of representing votes in more
 complex voting schemes, like approval or instant runoff (IRV).
 
-Here are the fields of a row of a reported vote file:
+Here are the fields of a row of a reported cvrs file:
 
 1. **Paper Ballot Collection Identifier** (pbcid)
    Typically, all rows in a vote file will have the same pbcid.
