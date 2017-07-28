@@ -20,7 +20,7 @@ given the following parameters (defaults in brackets):
     max_pbcids_per_cid = maximum number of pbcids per contest [1]
     dropoff = rate at which votes drop off with selection (geometric) [0.9]
     errorrate = rate at which reported votes != actual votes [0.005]
-    seed = random number seed (for reproducibility) [1]
+    synseed = random number seed (for reproducibility) [1]
     RandomState = state for random number generator
 
     ### following are then computed ###
@@ -142,7 +142,7 @@ def generate_election_structure(se=default_SynElection):
     read_contest_groups, read_collections)
     """
 
-    # reset SynRandomState from seed
+    # reset SynRandomState from synseed
     se.SynRandomState = np.random.RandomState(se.synseed)
 
     dts = utils.datetime_string()
@@ -466,12 +466,6 @@ def generate_reported(se):
         tally = rn_cv[cid]
         se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
 
-    # dropoff
-    assert 0 < se.dropoff <= 1
-
-    # error_rate
-    assert 0 <= se.error_rate <= 1
-
     return se
 
 
@@ -582,7 +576,7 @@ def write_23_reported_outcomes(se):
     filename = os.path.join(dirpath, "23-reported-outcomes.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Contest id", "Winner(s)"]
+        fieldnames = ["Contest", "Winner(s)"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for cid in se.cids:
@@ -691,14 +685,17 @@ def test():
 
     se = SynElection()
     se.seed = 9
+
     generate_election_structure(se)
+    structure.finish_election_structure(se)
     generate_contests(se)
     generate_contest_groups(se)
     generate_collections(se)
+
     generate_reported(se)
-    generate_audited_votes(se)
     generate_ballot_manifest(se)
-    structure.finish_election_structure(se)
+
+    generate_audited_votes(se)
 
     for key in sorted(vars(se)):
         print(key)
