@@ -249,7 +249,7 @@ def write_11_election_csv(se):
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "11-election.csv")
+    filename = os.path.join(dirpath, "11-general.csv")
 
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
