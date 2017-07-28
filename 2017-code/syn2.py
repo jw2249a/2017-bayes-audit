@@ -69,7 +69,7 @@ class SynElection(multi.Election):
         self.SynRandomState = np.random.RandomState(self.synseed)
 
         # working fields
-        self.segments = []     # list of (low, high) segments for contest groups
+        # none right now...
 
 default_SynElection = SynElection()          
 
@@ -183,6 +183,15 @@ def generate_contests(se):
 
         se.selids_c[cid] = {"sel{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
 
+    # generate possible votes for each cid
+    for cid in se.cids:
+        if se.contest_type_c[cid] == "plurality":
+            for selid in se.selids_c[cid]:
+                utils.nested_set(se.votes_c, [cid, (selid,)], True)
+        else:
+            utils.myerror("Contest {} is not plurality---can't generate votes for it."
+                          .format(cid))
+
 
 def generate_contest_groups(se):
 
@@ -191,7 +200,6 @@ def generate_contest_groups(se):
     for (low, high) in generate_segments(se, 1, se.n_cids):
         gid = "gid{}-{}".format(low, high)
         se.cgids_g[gid] = cids_list[low:high+1] 
-    print(se.gids)
 
 
 def generate_collections(se):
@@ -389,8 +397,8 @@ def generate_reported(se):
                 selids = list(se.selids_c[cid])
                 if se.contest_type_c[cid] == 'plurality':
                     selection = se.SynRandomState.choice(selids)
-                    rvote = (selection,)
-                    utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rvote)
+                    rv = (selection,)
+                    utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rv)
                 else: # we can handle this later when its not hardcoded 
                     # need to distinguish preferential voting, etc...
                     pass
@@ -521,7 +529,6 @@ def write_21_ballot_manifests(se):
                           "Comments"]
             file.write(",".join(fieldnames))
             file.write("\n")
-            print(se.bids_p[pbcid])
             for bid in se.bids_p[pbcid]:
                 file.write("{},".format(pbcid))
                 file.write("{},".format(se.boxid_pb[pbcid][bid]))
@@ -603,7 +610,7 @@ def generate_audit(se):
 
 def generate_audit_seed(se):
 
-    se.audit_seed = se.SynRandomState.randint(0, 2**64-1)
+    se.audit_seed = se.SynRandomState.randint(0, 2**32-1)
 
 
 def generate_audit_orders(se):
@@ -695,13 +702,16 @@ def test():
     generate_reported(se)
     generate_ballot_manifest(se)
 
+    generate_audit_seed(se)
     generate_audited_votes(se)
 
     for key in sorted(vars(se)):
         print(key)
         print("    ", vars(se)[key])
 
-    print("Checking structure:", structure.check_election_structure(se))
+    print("Checking structure: ", end='')
+    structure.check_election_structure(se)
+    print("OK.")
     
     write_structure_csvs(se)
     write_reported(se)

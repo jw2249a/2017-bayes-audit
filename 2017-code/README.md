@@ -24,7 +24,6 @@ here.  At least not yet.**
   * [Identifiers](#identifiers)
   * [Votes](#votes)
   * [File formats](#file-formats)
-  * [File names](#file-names)
   * [Directory structure](#directory-structure)
 * [(Pre-election) Election definition.](#pre-election-election-definition)
   * [Election file](#election-file)
@@ -60,6 +59,7 @@ here.  At least not yet.**
       * [Audit output file(s)](#audit-output-file-s)
       * [Audit plan file](#audit-plan-file)
 * [Command-line interface to ``multi.py``](#command-line-interface-to-multi-py)
+* [Appendix: File names](#appendix-file-names)
 * [Appendix (Possible future work)](#appendix-possible-future-work)
   * [Compression](#compression)
 
@@ -333,78 +333,6 @@ suggested in the Appendix below.
 
 [Back to TOC](#table-of-contents)
 
-### File names
-
-During an audit, data may be augmented or improved somehow.  We
-use a file naming scheme that doesn't overwrite older data.
-
-We support the principles of "**transparency**" and
-"**reproducibility**": the information relied upon by the audit, and
-the information produced by the audit, should be identifiable,
-readable by the public, and usable to confirm the audit computations.
-To support this principle, information is never changed in-place;
-the older version is kept, but a newer version is added.
-
-This is done by interpreting part of the filename as a
-"version label".  When looking for a file, there may be
-several files that differ only in the version label portion of
-their filename.  If so, the system uses the one with the
-version label that is (lexicographically) greatest.
-The version label is arbitrary text; it may encode a
-date, time, or some other form of version indicator.
-
-When the system searches for a file in a given directory,
-it looks for a file with a filename having a given "prefix"
-(such as "data") and a given "suffix" (such as ".csv"). A
-file with filename
-
-    ``data.csv``
-
-matches the search request, but has no version label (more precisely,
-a zero-length string as a version label).  A file
-with filename
-
-    ``data-v005.csv``
-
-also matches the search request, but has ``"-v005"`` as the version
-label (for that search).  Similarly a filename:
-
-    ``data-2017-11-07.csv``
-
-as ``"-2017-11-07-08"`` as its version label for this search.
-
-Note that version labels are compared as **strings**, not as **numbers**.
-For good results:
-* For numbers, use _fixed-width_ numeric fields, since the comparisons
-  are lexicographic.  Don't be bitten by thinking that ``"-v10"`` is
-  greater than ``"-v5"`` -- it isn't!
-* For dates, used fixed-field numeric fields for each component, and
-  order the fields from most significant to least significant (e.g.
-  year, month, day, hour, minute, second), as is done in the ISO 8601
-  standard, so lexicographic comparisons give the desired result.
-
-Note that having no version label means having the empty string
-as the version label, which compares "before" all other strings,
-so your first version might have no version label, with later
-versions having increasing version labels.
-
-Within a directory, if two or more files differ only in their version labels,
-then the file with the greatest version label is operative, and the
-others are ignored (but may be kept around for archival purposes).
-
-In our application, version labels are used as follows.  When
-an audit sample is augmented, a new file is created to contain
-**all** of the sampled ballot data (previously sampled, and the
-new data as well).  The new file is given a version label that is
-greater than the previous version label.  
-
-If this sample is augmented, the above file is not changed, but
-a new file with a later date is just added to the directory.
-The earlier file may be deleted, if desired.
-
-
-[Back to TOC](#table-of-contents)
-
 ###  Directory structure
 
 The information for an election is kept in a single directory
@@ -412,58 +340,62 @@ structure, as documented here.  Information for a different election
 would be kept in a separate similar (but disjoint) directory
 structure.
 
+Flexible version labels in file names are supported (but not
+illustrated) here; see [Appendix: File names](#appendix-file-names)
+for details.
+
 The top-level directory might be named something like
 ``./elections/CO-2017-general-election``.  The contents
 of that directory might look as follows.
 (Here we illustrate the use of "year-month-day" version labels.)
 
     1-structure
-       11-election-2017-09-08.csv
-       12-contests-2017-09-08.csv
-       13-contest-groups-2017-09-08.csv
-       14-collections-2017-09-08.csv
+       11-election.csv
+       12-contests.csv
+       13-contest-groups.csv
+       14-collections.csv
 
     2-election
        21-ballot-manifests
-          manifest-DEN-A01-2017-11-07.csv
-          manifest-DEN-A01-2017-11-07.csv
-          manifest-LOG-B13-2017-11-07.csv
+          manifest-DEN-A01.csv
+          manifest-DEN-A01.csv
+          manifest-LOG-B13.csv
        22-reported-votes
-          reported-cvrs-DEN-A01-2017-11-07.csv
-          reported-cvrs-DEN-A02-2017-11-07.csv
-          reported-cvrs-LOG-B13-2017-11-07.csv
-       23-reported-outcomes-2017-11-07.csv
+          reported-cvrs-DEN-A01.csv
+          reported-cvrs-DEN-A02.csv
+          reported-cvrs-LOG-B13.csv
+       23-reported-outcomes.csv
 
     3-audit
        31-setup
-          311-audit-seed-2017-11-20.csv
+          311-audit-seed.csv
        32-audit-orders
-          audit-order-DEN-A01-2017-11-20.csv
-          audit-order-DEN-A02-2017-11-20.csv
-          audit-order-LOG-B13-2017-11-20.csv
+          audit-order-DEN-A01.csv
+          audit-order-DEN-A02.csv
+          audit-order-LOG-B13.csv
        33-audited-votes
-          audited-votes-DEN-A01-2017-11-21.csv
-          audited-votes-DEN-A02-2017-11-21.csv
-          audited-votes-LOG-B13-2017-11-22.csv
+          audited-votes-DEN-A01.csv
+          audited-votes-DEN-A02.csv
+          audited-votes-LOG-B13.csv
        34-audit-stages
           audit-stage-000
-             10-audit-parameters-global-2017-11-22.csv
-             11-audit-parameters-contest-2017-11-22.csv
-             12-audit-parameters-collection-2017-11-22.csv
-             20-audit-snapshot-2017-11-22.csv
-             30-audit-output-2017-11-22.csv
+             10-audit-parameters-global.csv
+             11-audit-parameters-contest.csv
+             12-audit-parameters-collection.csv
+             20-audit-snapshot.csv
+             30-audit-output.csv
           audit-stage-001
-             10-audit-parameters-global-2017-11-22.csv
-             11-audit-parameters-contest-2017-11-22.csv
-             12-audit-parameters-collection-2017-11-22.csv
-             20-audit-snapshot-2017-11-22.csv
-             30-audit-output-2017-11-22.csv
+             10-audit-parameters-global.csv
+             11-audit-parameters-contest.csv
+             12-audit-parameters-collection.csv
+             20-audit-snapshot.csv
+             30-audit-output.csv
           audit-stage-002
-             10-audit-parameters-global-2017-11-23.csv
-             11-audit-parameters-contest-2017-11-23.csv
-             12-audit-parameters-collection-2017-11-23.csv
-             20-audit-snapshot-2017-11-23.csv
-             30-audit-output-2017-11-23.csv
+             10-audit-parameters-global.csv
+             11-audit-parameters-contest.csv
+             12-audit-parameters-collection.csv
+             20-audit-snapshot.csv
+             30-audit-output.csv
           audit-stage-003
              ...
  
@@ -510,7 +442,7 @@ about this election is held.  This directory is within some
 as "./elections".
 
 This is a CSV file, with the name ``11-election.csv`` (possibly with a version
-label, as in ``11-election-2017-09-08.csv``).
+label).
 
 [Back to TOC](#table-of-contents)
 
@@ -541,8 +473,7 @@ not printed on the ballot.
 
 Additional contest types may be supported as needed.
 
-This is a CSV file, with the name ``12-contests.csv`` (possibly with a version
-label, as in ``12-contests-2017-09-08.csv``).
+This is a CSV file, with the name ``12-contests.csv`` (possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 
@@ -597,7 +528,7 @@ may be used as shorthand for a set of alternative contests.
 For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
 A contest group has a file name of the form
-``13-contest-groups-2017-09-08.csv`` (shown with version label).
+``13-contest-groups.csv`` (possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 
@@ -618,7 +549,7 @@ on ballots in that collection.
 | LOG-B13       | carol@co.gov     | noCVR     | LOGAN REQ|         LOGAN POSS
 
 This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
-label, as in ``14-collections-09-08.csv``).
+label).
 
 The possible ``ballot styles`` in a collection are constrained by the
 ``Required Contests`` and ``Possible Contests`` contest groups.  Every ballot in a collection
@@ -782,8 +713,8 @@ is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` 
 assumed.
 
 A ballot manifest file has a filename of the form
-``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13-2017-11-07.csv``
-(possibly with a version label, as exemplified).
+``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13.csv``
+(possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 
@@ -859,7 +790,7 @@ is invalid for some unspecified reason.
 
 The reported vote file will have a name of the form
 ``reported-cvrs-<pbcid>.csv``, possibly
-with a version label.  An example filename: ``reported-cvrs-DEN-A01-2017-11-09.csv``.
+with a version label.  An example filename: ``reported-cvrs-DEN-A01.csv``.
 
 **Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
@@ -908,8 +839,8 @@ since this information is not relevant for the audit, we do not describe
 it here.
 
 A reported outcomes file has a filename of the form
-``23-reported-outcomes.csv``, e.g. ``23-reported-outcomes-2017-11-07.csv``
-(possibly with a version label, as exemplified).
+``23-reported-outcomes.csv``
+(possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 
@@ -1072,7 +1003,7 @@ closely related to this random order.
 
 An audit order file has a filename of the form
 ``audit-order-<pbcid>.csv``.  Example:
-``audit-order-DEN-A01-2017-11-20.csv`` (including a version label).
+``audit-order-DEN-A01.csv`` (possibly with a version label).
 
 The audit order file and the reported cvrs file may be used
 with an appropriate UI interface to generate the audited votes
@@ -1107,13 +1038,13 @@ interpretation of contest ``Denver Prop 2`` for ballot ``B-231``: the scanner sh
 an undervote, while the hand examination showed a ``No`` vote.
 
 The sample vote file will have a name of the form ``audited-votes-<pbcid>.csv``, possibly
-with a version label.  An example filename: ``audited-votes-DEN-A01-2017-11-21.csv``.
+with a version label.  An example filename: ``audited-votes-DEN-A01.csv``.
 
 As noted, if the sample is expanded, then the new sample vote file will
 contain records for not only the newly examined ballots, but also for the previously
 examined ballots.
 For example, the file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
-``audited-votes-DEN-A01-2017-11-21.csv``.
+``audited-votes-DEN-A01-2017-11-21.csv`` (shown here with dates as version labels).
 
 [Back to TOC](#table-of-contents)
 
@@ -1347,9 +1278,9 @@ the audit-orders directory.
        31-setup
           311-audit-seed.csv
        32-audit-orders
-          audit-order-DEN-A01-2017-11-20.csv
-          audit-order-DEN-A02-2017-11-20.csv
-          audit-order-LOG-B13-2017-11-20.csv
+          audit-order-DEN-A01.csv
+          audit-order-DEN-A02.csv
+          audit-order-LOG-B13.csv
 
 
 Produce first *plan* for the audit, and put this information
@@ -1500,6 +1431,80 @@ by setting the risk limits to all other contests to 1.00.
 
 
 [Back to TOC](#table-of-contents)
+
+## Appendix: File names
+
+During an audit, data may be augmented or improved somehow.  We
+use a file naming scheme that doesn't overwrite older data.
+
+We support the principles of "**transparency**" and
+"**reproducibility**": the information relied upon by the audit, and
+the information produced by the audit, should be identifiable,
+readable by the public, and usable to confirm the audit computations.
+To support this principle, information is never changed in-place;
+the older version is kept, but a newer version is added.
+
+This is done by interpreting part of the filename as a
+"version label".  When looking for a file, there may be
+several files that differ only in the version label portion of
+their filename.  If so, the system uses the one with the
+version label that is (lexicographically) greatest.
+The version label is arbitrary text; it may encode a
+date, time, or some other form of version indicator.
+
+When the system searches for a file in a given directory,
+it looks for a file with a filename having a given "prefix"
+(such as "data") and a given "suffix" (such as ".csv"). A
+file with filename
+
+    ``data.csv``
+
+matches the search request, but has no version label (more precisely,
+a zero-length string as a version label).  A file
+with filename
+
+    ``data-v005.csv``
+
+also matches the search request, but has ``"-v005"`` as the version
+label (for that search).  Similarly a filename:
+
+    ``data-2017-11-07.csv``
+
+as ``"-2017-11-07-08"`` as its version label for this search.
+
+Note that version labels are compared as **strings**, not as **numbers**.
+For good results:
+* For numbers, use _fixed-width_ numeric fields, since the comparisons
+  are lexicographic.  Don't be bitten by thinking that ``"-v10"`` is
+  greater than ``"-v5"`` -- it isn't!
+* For dates, used fixed-field numeric fields for each component, and
+  order the fields from most significant to least significant (e.g.
+  year, month, day, hour, minute, second), as is done in the ISO 8601
+  standard, so lexicographic comparisons give the desired result.
+
+Note that having no version label means having the empty string
+as the version label, which compares "before" all other strings,
+so your first version might have no version label, with later
+versions having increasing version labels.
+
+Within a directory, if two or more files differ only in their version labels,
+then the file with the greatest version label is operative, and the
+others are ignored (but may be kept around for archival purposes).
+
+In our application, version labels are used as follows.  When
+an audit sample is augmented, a new file is created to contain
+**all** of the sampled ballot data (previously sampled, and the
+new data as well).  The new file is given a version label that is
+greater than the previous version label.  
+
+If this sample is augmented, the above file is not changed, but
+a new file with a later date is just added to the directory.
+The earlier file may be deleted, if desired.
+
+
+[Back to TOC](#table-of-contents)
+
+
 
 ## Appendix (Possible Future Work)
 
