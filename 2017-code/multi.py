@@ -137,38 +137,47 @@ class Election(object):
         # *** General
 
         e.election_dirname = ""
+        # input (11-election.csv)
         # Dirname of election (e.g. "CO-Nov-2017")
         # Used as a directory name within the elections root dir.
         # so e.g. election data for CO-Nov-2017
         # is all in "./elections/CO-Nov-2017"
 
         e.election_name = ""
+        # input (11-election.csv)
         # A human-readable name for the election, such as
         # "Colorado November 2017 General Election"
 
         e.election_date = ""
+        # input (11-election.csv)
         # In ISO8601 format, e.g. "2017-11-07"
 
         e.election_url = ""
+        # input (11-election.csv)
         # URL to find more information about the election
 
         # *** Contests
 
         e.cids = []
+        # input (12-contests.csv)
         # list of contest ids (cids)
         # Order is important: contests will be printed in this order.
 
         e.contest_type_c = {}
+        # input (12-contests.csv)
         # cid->contest type  (e.g. "plurality" or "irv")
 
         e.winners_c = {}
+        # input (12-contests.csv)
         # cid->int
         # number of winners in contest
 
         e.write_ins_c = {}
+        # input (12-contests.csv)
         # cid->str  (e.g. "no" or "qualified" or "arbitrary")
 
         e.selids_c = {}
+        # input (from 12-contests.csv, reported votes, and audited votes)
         # cid->selids->True
         # dict of some possible selection ids (selids) for each cid
         # note that e.selids_c is used for both reported selections
@@ -178,14 +187,17 @@ class Election(object):
         # *** Contest groups
 
         e.gids = []
+        # input (13-contest-groups.csv)
         # list of contest group ids (gids)
 
         e.cgids_g = {}
+        # input (13-contest-groups.cs)
         # gid->[cgids]
         # e.cgids_g[gid] list of contest and/or group ids that
         # define contest group gid.
 
         e.cids_g = {}
+        # computed from e.cgids_g
         # gid-> set of cids
         # e.cids_g[gid] is list of cids for given gid.
         # This is the expanded-out version of e.cgids_g[gid],
@@ -194,17 +206,21 @@ class Election(object):
         # *** Collections
 
         e.pbcids = []
+        # input (14-collections.csv)
         # list of paper ballot collection ids (pbcids)
 
         e.manager_p = {}
+        # input (14-collections.csv)
         # pbcid->manager
         # Gives name and/or contact information for collection manager
 
         e.cvr_type_p = {}
+        # input (14-collections.csv)
         # pbcid-> "CVR" or "noCVR"
 
         e.required_gid_p = {}
         e.possible_gid_p = {}
+        # input (14-collections.csv)
         # pbcid->gid
         # e.required_gid_p[pbcid] is a contest group id for contests that *must* be on ballot.
         # e.possible_gid_p[pbcid] is a contest group id for contests that *may* be on ballot.
@@ -216,23 +232,25 @@ class Election(object):
 
         e.required_cid_p = {}
         e.possible_cid_p = {}
+        # Computed from e.required_gid_p and e.cids_g)
+        # Computed from e.possible_gid_p and e.cids_g)
         # pbcid->cid->"True"
         # Necessary relevance; every ballot in pbcid must contain the cid.
 
         e.required_pbcid_c = {}
         e.possible_pbcid_c = {}
+        # Computed from e.required_cid_p
+        # Computed from e.possible_cid_p
         # cid->pbcid->"True"
         # Possible relevance; only relevant pbcids in e.possible_pbcid_c[cid]
         # True means the pbcid *might* contains ballots relevant to cid
-
-        e.rel_cp = {}
-        # cid->pbcid->"True"
 
         # *** election data (manifests, reported votes, and reported outcomes)
 
         # *** Ballot manifests
 
         e.bids_p = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->[bids]
         # list of ballot ids (bids) for each pcbid
         # from ballot manifest "Ballot id" column (as expanded for batches)
@@ -240,16 +258,19 @@ class Election(object):
         # "Number of ballots" field (always implicitly 1 now).
 
         e.boxid_pb = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->bid->boxid
         # from ballot manifest "Box id" field
 
         e.position_pb = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->bid->position (an int)
         # from ballot manifest "Position" field
 
         e.stamp_pb = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->bid->stampt (a string)
-        # from ballot manifest "Stamp" field
+        # from ballot manifest "Stamp" field (same as "imprint")
 
         # Note that the "Number of ballots" field of a ballot manifest
         # is not captured here; we assume that any rows in an input
@@ -258,118 +279,141 @@ class Election(object):
 
         e.required_gid_pb = {}
         e.possible_gid_pb = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->bid->gid
         # e.required_gid_pb[pbcid][bid] is a contest group id for contests that *must* be on ballot.
         # e.possible_gid_pb[pbcid][bid] is a contest group id for contests that *may* be on ballot.
-        #    The list of contest ids for the second gid must include all of those for the first.
+        # The list of contest ids for the second gid must include all of those for the first.
         # The first gives a *lower bound* saying what contests must be present.
         # The second gives an *upper bound* saying what contests may be present.
         # If no gid is given (i.e. gid = ""), then any ballot style is allowed.
         # From ballot manifest.
 
         e.comments_pb = {}
+        # input (21-ballots-manifests/manifest-PBCID.csv)
         # pbcid->bid->comments (string)
         # from ballot manifest "Comments" field
 
         # *** Reported votes
 
-        e.rn_p = {}
-        # pbcid -> count
-        # e.rn_p[pbcid] number ballots reported cast in collection pbcid
+        e.rv_cpb = {}
+        # input (22-reported-votes/reported-cvrs-PBCID.csv)
+        # cid->pbcid->bid->vote
+        # vote in given contest, paper ballot collection, and ballot id
+        # e.rv_cpb is like e.av, but reported votes instead of actual votes
 
         e.votes_c = {}
+        # input (from selids_c, reported votes, and actual otes)
         # cid->votes
-        # e.votes_c[cid] gives all the distinct votes seen for cid,
+        # e.votes_c[cid] gives all the distinct votes ever seen for cid,
         # reported or actual. (These are the different possible votes,
         # not the count.  So e.votes_c[cid] is the domain for tallies of
         # contest cid.)
 
         e.rn_cpr = {}
+        # input (22-reported-votes/reported-cvrs-PBCID.csv)
         # cid->pbcid->rvote->count
         # reported number of votes by contest, paper ballot collection,
         # and reported vote.
 
-        # computed from the above
+        # Computed from the above
+
+        e.rn_p = {}
+        # Computed from e.rv_cpb
+        # pbcid -> count
+        # e.rn_p[pbcid] number ballots reported cast in collection pbcid
 
         e.rn_c = {}
+        # Computed from e.rn_cpr.
         # cid->int
         # reported number of votes cast in contest
 
         e.rn_cr = {}
+        # Computed from e.rn_cpr.
         # cid->votes->int
         # reported number of votes for each reported vote in cid
-
-        e.rv_cpb = {}
-        # cid->pbcid->bid->vote
-        # vote in given contest, paper ballot collection, and ballot id
-        # e.rv_cpb is like e.av, but reported votes instead of actual votes
 
         # *** Reported outcomes
 
         e.ro_c = {}
+        # input (23-reported-outcomes.csv)
         # cid->outcome
         # reported outcome by contest
 
         # *** Audit setup
 
         e.audit_seed = None
+        # input (31-setup/311-audit-seed.csv)
         # seed for pseudo-random number generation for audit
 
         # *** Audit orders
 
+        # TBD
+
         # *** Contest audit parameters
 
         e.mids = []
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # list of measurement ids (typically one/contest being audited)
 
         e.cid_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # The contest being measured in a given measurement.
 
         e.risk_method_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # mid->{"Bayes", "Frequentist"}
         # The risk-measurement method used for a given measurement.
         # Right now, the options are "Bayes" and "Frequentist", but this may
         # change.
 
         e.risk_measurement_parameters_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # additional parameters that may be needed by the risk measurement method
         # These are are represented as a *tuple* for each measurement.
 
         e.risk_limit_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # mid->reals
         # risk limit for each measurement (from [0,1])
 
         e.risk_upset_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # mid->reals
         # risk upset threshold for each measurement (from [0,1])
 
         e.sampling_mode_m = {}
+        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
         # mid->{"Active", "Opportunistic"}
 
         # *** Collection audit parameters
 
         e.audit_rate_p = {}
+        # input (33-audit-stages/audit-stage-nnn/12-audit-parameters-collection.csv)
         # pbcid->int
         # number of ballots that can be audited per stage in a pcb
 
+        # *** Fixed audit parameters
+
         e.pseudocount_base = 0.5
+        # Fixed parameter
         # base-level pseudocount (hyperparameter)
         # to use for Bayesian priors
         # (0.5 for Jeffrey's distribution)
 
         e.pseudocount_match = 50.0
+        # Fixed parameter
         # hyperparameter for prior distribution to use
         # for components where reported_vote==actual_vote
         # This higher value reflects prior knowledge that
         # the scanners are expected to be quite accurate.
-
-        # *** Fixed audit parameters
 
         e.n_trials = 100000
         # number of trials used to estimate risk in compute_contest_risk
 
         e.shuffled_indices_p = []
         e.shuffled_bids_p = []
+        # computed in audit_orders.py (but probably will be replaced)
         # sampling order for bids of each pbcid
 
         # stage-related items
@@ -426,8 +470,7 @@ class Election(object):
 def main():
 
     # put this after following line to suppress printing
-    utils.myprint_switches = []
-    utils.myprint_switches = ["std"]
+    utils.myprint_switches = ["std"]   # [] to suppress printing
 
     print("multi.py -- Bayesian audit support program.")
 
