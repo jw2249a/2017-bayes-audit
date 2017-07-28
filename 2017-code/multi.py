@@ -1,7 +1,7 @@
 # multi.py
 # Ronald L. Rivest
 # (with help from Karim Husayn Karimi and Neal McBurnett)
-# July 8, 2017
+# July 27, 2017
 
 # python3
 # clean up with autopep8
@@ -469,7 +469,6 @@ class Election(object):
 
 def main():
 
-    # put this after following line to suppress printing
     utils.myprint_switches = ["std"]   # [] to suppress printing
 
     print("multi.py -- Bayesian audit support program.")
