@@ -597,7 +597,7 @@ may be used as shorthand for a set of alternative contests.
 For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
 A contest group has a file name of the form
-``14-contest-groups-2017-09-08.csv`` (shown with version label).
+``13-contest-groups-2017-09-08.csv`` (shown with version label).
 
 [Back to TOC](#table-of-contents)
 
