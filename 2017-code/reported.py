@@ -203,8 +203,12 @@ def finish_election_data(e):
         for pbcid in e.possible_pbcid_c[cid]:
             print("***", cid, e.possible_pbcid_c[cid])
             for bid in e.bids_p[pbcid]:
-                rv = e.rv_cpb[cid][pbcid][bid]
-                e.votes_c[rv] = True
+                print(cid, pbcid, bid, e.rv_cpb)
+                if bid in e.rv_cpb[cid][pbcid]:
+                    rv = e.rv_cpb[cid][pbcid][bid]
+                else:
+                    rv = ("-NoSuchContest",)
+                utils.nested_set(e.votes_c, [cid, rv], True)
                 for selid in rv:
                     if ids.is_writein(selid) or ids.is_error_selid(selid):
                         e.selids_c[cid][selid] = True
@@ -216,24 +220,31 @@ def finish_election_data(e):
             e.rn_cpr[cid][pbcid] = {}
             for rv in e.votes_c[cid]:
                 e.rn_cpr[cid][pbcid][rv] = len([bid for bid in e.bids_p[pbcid]
-                                                if e.rv_cpb[cid][pbcid][bid] == rv])
+                                                if bid in e.rv_cpb[cid][pbcid] and \
+                                                e.rv_cpb[cid][pbcid][bid] == rv])
 
-    # e.rn_c[cid] is reported number of votes cast in contest cid
+    # e.rn_c[cid] is number of reported votes cast in contest cid
     for cid in e.cids:
         e.rn_c[cid] = sum([e.rn_cpr[cid][pbcid][vote]
                            for pbcid in e.rn_cpr[cid]
                            for vote in e.votes_c[cid]])
+
+    # e.rn_p[pbcid] is number of reported votes cast in collection pbcid
+    for pbcid in e.pbcids:
+        e.rn_p[pbcid] = sum([e.rn_cpr[cid][pbcid][rv]
+                             for cid in e.rn_cpr
+                             for rv in e.votes_c[cid]])        
 
     # e.rn_cr[cid][vote] is reported number cast for vote in cid
     for cid in e.cids:
         e.rn_cr[cid] = {}
         for pbcid in e.rn_cpr[cid]:
             for vote in e.votes_c[cid]:
-                if vote not in e.rn_cr[cid]:
-                    e.rn_cr[cid][vote] = 0
+                if rv not in e.rn_cr[cid]:
+                    e.rn_cr[cid][rv] = 0
                 if vote not in e.rn_cpr[cid][pbcid]:
-                    e.rn_cpr[cid][pbcid][vote] = 0
-                e.rn_cr[cid][vote] += e.rn_cpr[cid][pbcid][vote]
+                    e.rn_cpr[cid][pbcid][rv] = 0
+                e.rn_cr[cid][rv] += e.rn_cpr[cid][pbcid][rv]
 
 
 def check_election_data(e):
@@ -246,24 +257,24 @@ def check_election_data(e):
         for pbcid in e.rn_cpr[cid]:
             if pbcid not in e.pbcids:
                 utils.mywarning("pbcid `{}` is not in e.pbcids.".format(pbcid))
-            for vote in e.rn_cpr[cid][pbcid]:
-                for selid in vote:
+            for rv in e.rn_cpr[cid][pbcid]:
+                for selid in rv:
                     if selid not in e.selids_c[cid] and selid[0].isalnum():
                         utils.mywarning(
                             "selid `{}` is not in e.selids_c[{}]."
                             .format(selid, cid))
-                if not isinstance(e.rn_cpr[cid][pbcid][vote], int):
+                if not isinstance(e.rn_cpr[cid][pbcid][rv], int):
                     utils.mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is not an integer."
-                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote]))
-                if not (0 <= e.rn_cpr[cid][pbcid][vote] <= e.rn_p[pbcid]):
+                              .format(cid, pbcid, rv, e.rn_cpr[cid][pbcid][rv]))
+                if not (0 <= e.rn_cpr[cid][pbcid][rv] <= e.rn_p[pbcid]):
                     utils.mywarning("value `e.rn_cpr[{}][{}][{}] = `{}` is out of range 0:{}."
-                              .format(cid, pbcid, vote, e.rn_cpr[cid][pbcid][vote],
+                              .format(cid, pbcid, rv, e.rn_cpr[cid][pbcid][vote],
                                       e.rn_p[pbcid]))
-                if e.rn_cr[cid][vote] != \
-                        sum([e.rn_cpr[cid][pbcid][vote]]):
+                if e.rn_cr[cid][rv] != \
+                        sum([e.rn_cpr[cid][pbcid][rv]]):
                     for pbcid in e.possible_pbcid_c[cid]:
                         utils.mywarning("sum of e.rn_cpr[{}][*][{}] is not e.rn_cr[{}][{}]."
-                              .format(cid, vote, cid, vote))
+                              .format(cid, rv, cid, rv))
     for cid in e.cids:
         if cid not in e.rn_cpr:
             utils.mywarning("cid `{}` is not a key for e.rn_cpr".format(cid))
