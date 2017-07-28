@@ -77,9 +77,14 @@ Boulder-council , Dave Diddle, Ben Borg   , Sue Mee   , Jill Snead
 """
 
 
+import os
+
+
 import multi
+import csv_readers
 import ids
 import utils
+
 
 
 ##############################################################################
@@ -108,7 +113,38 @@ def get_election_data(e):
 
 def read_ballot_manifests(e):
 
-    pass
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
+    structure_pathname = os.path.join(election_pathname,
+                                      "2-election","21-ballot-manifests")
+    fieldnames = ["Collection id", "Box id", "Position", "Stamp", 
+                  "Ballot id", "Number of ballots",
+                  "Required Contests", "Possible Contests", "Comments"]
+    for pbcid in e.pbcids:
+        safe_pbcid = ids.filename_safe(pbcid)
+        filename = utils.greatest_name(structure_pathname, "manifest", ".csv")
+        file_pathname = os.path.join(structure_pathname, filename)
+        rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+        for row in rows:
+            pbcid = row["Collection id"]
+            boxid = row["Box id"]
+            position = row["Position"]
+            stamp = row["Stamp"]
+            bid = row["Ballot id"]
+            num = row["Number of ballots"]
+            req = row["Required Contests"]
+            poss = row["Possible Contests"]
+            comments = row["Comments"]
+
+            e.bids_p[pbcid][bid] = True
+            e.boxid_pb[pbcid][bid] = boxid
+            e.position_pb[pbcid][bid] = position
+            e.stamp_pb[pbcid][bid] = stamp
+            if num != 1:
+                utils.myerror("number not equal to 1.")
+            e.required_gid_pb[pbcid][bid] = req
+            e.possible_gid_pb[pbcid][bid] = poss
+            e.comments_pb[pbcid][bid] = comments
+                          
 
 def read_reported_votes(e):
 
@@ -130,6 +166,7 @@ def finish_election_data(e):
     # and that e.votes_c[cid] contains all reported votes
     for cid in e.cids:
         for pbcid in e.possible_pbcid_c[cid]:
+            print("***", cid, e.possible_pbcid_c[cid])
             for bid in e.bids_p[pbcid]:
                 r = e.rv_cpb[cid][pbcid][bid]
                 e.votes_c[r] = True
