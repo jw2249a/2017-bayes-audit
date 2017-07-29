@@ -1,4 +1,4 @@
-# synth.py
+# syn.py
 # Ronald L. Rivest
 # July 7, 2017
 
