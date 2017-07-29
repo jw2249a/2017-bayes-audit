@@ -411,8 +411,8 @@ class Election(object):
         e.n_trials = 100000
         # number of trials used to estimate risk in compute_contest_risk
 
-        e.shuffled_indices_p = []
-        e.shuffled_bids_p = []
+        e.shuffled_indices_p = {}
+        e.shuffled_bids_p = {}
         # computed in audit_orders.py (but probably will be replaced)
         # sampling order for bids of each pbcid
 
