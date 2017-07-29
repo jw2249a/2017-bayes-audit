@@ -104,14 +104,15 @@ def write_audit_order(e, pbcid):
         file.write(",".join(fieldnames))
         file.write("\n")
         for i, index in enumerate(e.shuffled_indices_p[pbcid]):
-            file.write(pbcid+",")
+            bid = e.shuffled_bids_p[pbcid][i]
             file.write("{},".format(i))
             file.write("{},".format(pbcid))
-            file.write("{},".format(e.boxid[pbcid][bid]))
-            file.write("{},".format(e.position[pbcid][bid]))
-            file.write("{},".format(e.stamp[pbcid][bid]))
-            file.write("{},".format(e.shuffled_bids_p[pbcid][i]))
-            file.write("{},".format(e.comments_p[pbcid][index]))
+            file.write("{},".format(e.boxid_pb[pbcid][bid]))
+            file.write("{},".format(e.position_pb[pbcid][bid]))
+            file.write("{},".format(e.stamp_pb[pbcid][bid]))
+            file.write("{},".format(bid))
+            file.write("{},".format(e.comments_pb[pbcid][bid]))
+            file.write("\n")
 
 
 def test_audit_orders():
