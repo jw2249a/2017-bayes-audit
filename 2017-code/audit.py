@@ -183,7 +183,8 @@ def compute_measurement_and_election_statuses(e):
         # but not vice versa.
         e.status_tm[e.stage][mid] = e.status_tm[e.last_stage][mid]
         if e.status_tm[e.stage][mid] == "Open":
-            if all([e.rn_p[pbcid] == e.sn_tp[e.stage][pbcid] for pbcid in e.rel_cp[cid]]):
+            if all([e.rn_p[pbcid] == e.sn_tp[e.stage][pbcid]
+                    for pbcid in e.rel_cp[cid]]):
                 e.status_tm[e.stage][mid] = "Exhausted"
             elif e.risk_tm[e.stage][mid] < e.risk_limit_m[mid]:
                 e.status_tm[e.stage][mid] = "Passed"
@@ -293,11 +294,15 @@ def show_audit_parameters(e):
     utils.myprint("Seed for audit pseudorandom number generation (e.audit_seed):")
     utils.myprint("    {}".format(e.audit_seed))
 
-    utils.myprint("Risk Measurement ids (e.mids) with contest, method, risk limit, and risk upset threshold:")
+    utils.myprint(("Risk Measurement ids (e.mids) with contest,"
+                   "method, risk limit, and risk upset threshold:"))
     for mid in e.mids:
         utils.myprint("    {}: ({}, {}, {}, {})"
-                      .format(e.cid_m[mid], e.risk_method_m[mid], e.risk_limit_m[mid],
-                              e.risk_upset_m[mid], e.sampling_mode_m[mid]))
+                      .format(e.cid_m[mid],
+                              e.risk_method_m[mid],
+                              e.risk_limit_m[mid],
+                              e.risk_upset_m[mid],
+                              e.sampling_mode_m[mid]))
 
     utils.myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
     for pbcid in sorted(e.pbcids):
