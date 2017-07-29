@@ -18,8 +18,10 @@ the program:
 """
 
 import hashlib
+import os
 
 import multi
+import ids
 import utils
 
 
@@ -67,11 +69,12 @@ def compute_audit_orders(e):
 def compute_audit_order(e, pbcid):
 
     pairs = zip(list(range(1, 1+len(e.bids_p[pbcid]))),
-                ebids_p[pbcid])
+                e.bids_p[pbcid])
     shuffled_pairs = shuffle(pairs, str(e.audit_seed)+","+pbcid)
     e.shuffled_indices_p[pbcid] = [i for (i,b) in shuffled_pairs]
     e.shuffled_bids_p[pbcid] = [b for (i,b) in shuffled_pairs]
-
+    print("indices:", e.shuffled_indices_p[pbcid])
+    print("bids:", e.shuffled_bids_p[pbcid])
 
 def write_audit_orders(e):
 
@@ -84,7 +87,7 @@ def write_audit_orders(e):
 def write_audit_order(e, pbcid):
 
     print("write_audit_order", pbcid)
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname,
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname,
                            "3-audit", "32-audit-orders")
     os.makedirs(dirpath, exist_ok=True)
     ds = utils.date_string()
