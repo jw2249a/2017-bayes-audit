@@ -84,6 +84,7 @@ def process_args(e, args):
         audit.get_audit_parameters(e, args)
     elif args.make_orders:
         print("make_orders")
+        audit_orders.compute_audit_orders(e)
     elif args.read_audited:
         print("read_audited")
     elif args.stage:
