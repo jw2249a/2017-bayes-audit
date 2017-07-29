@@ -90,20 +90,45 @@ def mywarning(msg):
 # Input/output at the file-handling level
 ##############################################################################
 
-def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
+def greatest_name(dirpath,
+                  startswith,
+                  endswith,
+                  max_label=None,
+                  dir_wanted=False):
     """ 
+    Return greatest filename (or dirname) meeting given specs.
+
     Return the filename (or, optionally, directory name) in the given directory 
     that begins and ends with strings startswith and endswith, respectively.
+
     If there ts more than one such file, return the greatest (lexicographically)
     such filename.  Raise an error if there are no such files.
+
     The portion between the prefix startswith and the suffix endswith is called
     the version label in the documentation.
+
+    If max_label is given, only files or directories with a version label
+    at most the given max_label will be considered.
     If switch "dir_wanted" is True, then return greatest directory name, not filename.
-    Example:  greatest_name(".", "foo", ".csv")
-    will return "foo-11-09.csv" from a directory containing files
-    with names  "foo-11-09.csv", "foo-11-08.csv", and "zeb-12-12.csv".
+
+    Example:  greatest_name(".", "foo", ".csv", max_label="-11-10")
+    will return "foo-11-08.csv" from a directory containing files:
+
+        "foo-11-13.csv"
+        "foo-11-08.csv"
+        "foo-11-07.csv" , and
+        "zeb-12-12.csv" .
+
     """
 
+    print(dirpath)
+    print(startswith)
+    print(max_label)
+    print(endswith)
+    if max_label == None:
+        max_filename = None
+    else:
+        max_filename = os.path.join(dirpath, startswith, max_label, endswith)
     selected_filename = ""
     for filename in os.listdir(dirpath):
         full_filename = os.path.join(dirpath,filename)
@@ -111,14 +136,17 @@ def greatest_name(dirpath, startswith, endswith, dir_wanted=False):
             dir_wanted == True and not os.path.isfile(full_filename)) and \
            filename.startswith(startswith) and \
            filename.endswith(endswith) and \
-           filename > selected_filename:
+           filename > selected_filename and \
+           (max_filename == None or filename <= max_filename):
             selected_filename = filename
     if selected_filename == "":
         if dir_wanted == False:
-            myerror("No files in `{}` have a name starting with `{}` and ending with `{}`."
+            myerror(("No files in `{}` have a name starting with `{}`"
+                     "and ending with `{}`.")
                     .format(dirpath, startswith, endswith))
         else:
-            myerror ("No directories in `{}` have a name starting with `{}` and ending with `{}`."
+            myerror (("No directories in `{}` have a name starting with `{}`"
+                      "and ending with `{}`.")
                      .format(dirpath, startswith, endswith))
     return selected_filename
 
