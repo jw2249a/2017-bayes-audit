@@ -346,7 +346,12 @@ for details.
 
 The top-level directory might be named something like
 ``./elections/CO-2017-general-election``.  The contents
-of that directory might look as follows.
+of that directory might look as follows.  Here PCBID1 etc.
+would be the identifiers for paper ballot collections,
+perhaps as "DEN-A01".
+In addition, all of these files would likely have
+version labels that are date-time stamps, such as
+"-2017-11-08-10-14-23".
 
     1-election-specification
        11-general.csv
@@ -356,47 +361,35 @@ of that directory might look as follows.
 
     2-reported
        21-reported-ballot-manifests
-          reported-ballot-manifest-DEN-A01.csv
-          reported-ballot-manifest-DEN-A01.csv
-          reported-ballot-manifest-LOG-B13.csv
+          reported-ballot-manifest-PCBID1.csv
+          reported-ballot-manifest-PCBID2.csv
+          ...
        22-reported-cvrs
-          reported-cvrs-DEN-A01.csv
-          reported-cvrs-DEN-A02.csv
-          reported-cvrs-LOG-B13.csv
+          reported-cvrs-PCBID1.csv
+          reported-cvrs-PCBID2.csv
+          ...
        23-reported-outcomes.csv
 
     3-audit
-       31-audit-setup
-          311-audit-seed.csv
+       31-audit-specification
+          audit-specification-seed.csv
+          audit-specification-global.csv
+          audit-specification-contest.csv
+          audit-specification-collection.csv
        32-audit-orders
-          audit-order-DEN-A01.csv
-          audit-order-DEN-A02.csv
-          audit-order-LOG-B13.csv
+          audit-order-PCBID1.csv
+          audit-order-PCBID2.csv
+          ...
        33-audited-votes
-          audited-votes-DEN-A01.csv
-          audited-votes-DEN-A02.csv
-          audited-votes-LOG-B13.csv
-       34-audit-stages
-          audit-stage-000
-             10-audit-parameters-global.csv
-             11-audit-parameters-contest.csv
-             12-audit-parameters-collection.csv
-             20-audit-snapshot.csv
-             30-audit-output.csv
-          audit-stage-001
-             10-audit-parameters-global.csv
-             11-audit-parameters-contest.csv
-             12-audit-parameters-collection.csv
-             20-audit-snapshot.csv
-             30-audit-output.csv
-          audit-stage-002
-             10-audit-parameters-global.csv
-             11-audit-parameters-contest.csv
-             12-audit-parameters-collection.csv
-             20-audit-snapshot.csv
-             30-audit-output.csv
-          audit-stage-003
-             ...
+          audited-votes-PCBID1.csv
+          audited-votes-PCBID2.csv
+          ...
+       34-audit-output
+          audit-snapshot.csv
+          audit-status.csv
+          audit-output.csv
+          audit-plan.csv
+
  
 [Back to TOC](#table-of-contents)
 
