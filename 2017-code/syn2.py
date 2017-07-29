@@ -39,6 +39,7 @@ import numpy as np
 import os
 
 import multi
+import audit_orders
 import election_specification
 import ids
 import outcomes
@@ -622,9 +623,7 @@ def generate_audit_seed(se):
 
 def generate_audit_orders(se):
 
-    # see audit_orders.py
-
-    pass
+    audit_orders.compute_audit_orders(se)
 
 
 def generate_audited_votes(se):
@@ -669,7 +668,7 @@ def write_311_audit_seed_csv(se):
 def write_32_audit_orders_csv(se):
     """ Write 3-audit/32-audit-orders/audit_orders-PBCID.csv """
 
-    pass
+    audit_orders.write_audit_orders(se)
 
 
 def write_33_audited_votes_csv(se):
@@ -716,6 +715,7 @@ def test():
     generate_ballot_manifest(se)
 
     generate_audit_seed(se)
+    generate_audit_orders(se)
     generate_audited_votes(se)
 
     for key in sorted(vars(se)):
