@@ -72,14 +72,14 @@ def process_args(e, args):
 
     if args.read_specification:
         # print("read_specification")
-        election_specification.get_election_specification(e)
+        election_spec.get_election_spec(e)
     elif args.read_reported:
         print("read_reported")
-        election_specification.get_election_specification(e)
+        election_spec.get_election_spec(e)
         reported.get_election_data(e)
     elif args.read_seed:
         print("read_seed")
-        election_specification.get_election_specification(e)
+        election_spec.get_election_spec(e)
         reported.get_election_data(e)
         audit.get_audit_parameters(e, args)
     elif args.make_orders:
@@ -89,7 +89,7 @@ def process_args(e, args):
         print("read_audited")
     elif args.stage:
         print("stage", args.stage)
-        election_specification.get_election_specification(e)
+        election_spec.get_election_spec(e)
         reported.get_election_data(e)
         audit.get_audit_parameters(e, args)
         audit.audit(e, args)

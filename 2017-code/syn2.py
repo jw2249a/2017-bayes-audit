@@ -530,7 +530,7 @@ def write_21_ballot_manifests_csv(se):
         safe_pbcid = ids.filename_safe(pbcid)
         filename = os.path.join(dirpath, "manifest-"+safe_pbcid+".csv")
         with open(filename, "w") as file:
-            fieldnames = ["Collection id", "Box id", "Position",
+            fieldnames = ["Collection", "Box", "Position",
                           "Stamp", "Ballot id", "Number of ballots",
                           "Required Contests", "Possible Contests",
                           "Comments"]
@@ -565,7 +565,7 @@ def write_22_reported_cvrs_csv(se):
             filename = os.path.join(dirpath,
                                     "reported-cvrs-" + safe_pbcid+".csv")
             with open(filename, "w") as file:
-                fieldnames = ["Collection id", "Scanner", "Ballot id",
+                fieldnames = ["Collection", "Scanner", "Ballot id",
                               "Contest", "Selections"]
                 file.write(",".join(fieldnames))
                 file.write("\n")
@@ -686,7 +686,7 @@ def write_33_audited_votes_csv(se):
             safe_pbcid = ids.filename_safe(pbcid)
             filename = os.path.join(dirpath, "audited-votes-" + safe_pbcid+".csv")
             with open(filename, "w") as file:
-                fieldnames = ["Collection id", "Ballot id", "Contest", "Selections"]
+                fieldnames = ["Collection", "Ballot id", "Contest", "Selections"]
                 file.write(",".join(fieldnames))
                 file.write("\n")
                 for cid in se.av_cpb:

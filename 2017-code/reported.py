@@ -122,7 +122,7 @@ def read_reported_ballot_manifests(e):
     specification_pathname = os.path.join(election_pathname,
                                           "2-reported",
                                           "21-reported-ballot-manifests")
-    fieldnames = ["Collection id", "Box id", "Position", "Stamp", 
+    fieldnames = ["Collection", "Box", "Position", "Stamp", 
                   "Ballot id", "Number of ballots",
                   "Required Contests", "Possible Contests", "Comments"]
     for pbcid in e.pbcids:
@@ -133,8 +133,8 @@ def read_reported_ballot_manifests(e):
         file_pathname = os.path.join(specification_pathname, filename)
         rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
         for row in rows:
-            pbcid = row["Collection id"]
-            boxid = row["Box id"]
+            pbcid = row["Collection"]
+            boxid = row["Box"]
             position = row["Position"]
             stamp = row["Stamp"]
             bid = row["Ballot id"]
@@ -170,7 +170,7 @@ def read_reported_cvrs(e):
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     specification_pathname = os.path.join(election_pathname,
                                           "2-reported","22-reported-cvrs")
-    fieldnames = ["Collection id", "Scanner", "Ballot id",
+    fieldnames = ["Collection", "Scanner", "Ballot id",
                   "Contest", "Selections"]
     for pbcid in e.pbcids:
         safe_pbcid = ids.filename_safe(pbcid)
@@ -180,7 +180,7 @@ def read_reported_cvrs(e):
         file_pathname = os.path.join(specification_pathname, filename)
         rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
         for row in rows:
-            pbcid = row["Collection id"]
+            pbcid = row["Collection"]
             scanner = row["Scanner"]
             bid = row["Ballot id"]
             cid = row["Contest"]

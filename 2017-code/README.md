@@ -30,7 +30,7 @@ here.  At least not yet.**
   * [Contests file](#contests-file)
   * [Contest groups file](#contest-groups-file)
   * [Collections file](#collections-file)
-* [Reported data (CVRs, ballot manifests, and outcomes)](#reported-data-cvrs-ballot-manifests-and-outcomes)
+* [Reported data (ballot manifests, CVRs and outcomes)](#reported-data-ballot-manifests-cvrs-and-outcomes)
   * [Reported ballot manifest files](#reported-ballot-manifest-files)
   * [Reported CVRs file](#reported-cvrs-file)
   * [Reported outcomes file](#reported-outcomes-file)
@@ -498,7 +498,7 @@ such as IRV, will be supported as needed.
 
 A **contest groups specification file** has a file name of the form
 
-    ``1-election-spec/election-spec-contest-groups.csv
+    1-election-spec/election-spec-contest-groups.csv
 
 (possibly with a version label).
 
@@ -560,7 +560,7 @@ For example, one may specify a risk limit of five percent for all FEDERAL contes
 A **collections specification file**, defined by election officials,
 has a file name of the form
 
-    ``1-election-spec/election-spec-collections.csv
+    1-election-spec/election-spec-collections.csv
 
 (possibly with a version label).
 
@@ -610,7 +610,7 @@ the possible ballot styles).
 ## Reported data: (ballot manifests, CVRs, and outcomes)
 
 When the election is run, paper ballots are cast and scanned.  The
-electronic results are organized in "**reported vote files**".
+electronic results are organized in "**reported (data) files**".
 The paper ballots are organized into collections and stored.
 A "**ballot manifest**" is produced for each paper ballot collection,
 describing the collection and enabling random sampling from that
@@ -641,10 +641,10 @@ ballot (giving a box id and position within box), any "stamp" or other
 identification imprinted on the ballot, and any additional comments
 about specific ballots.
 
-The **``Collection id``** field specifies the collection id for the ballot manifest.
+The **``Collection``** field specifies the collection id for the ballot manifest.
 This should the same for all rows in the file.
 
-The **``Box id``** field gives the identifier for the box containing
+The **``Box``** field gives the box identifier for the box containing
 the ballot(s) described in that row.  The box id should be unique
 within the paper ballot collection.  If it is omitted, a box id is
 assumed to be equal to the collection id. (Maybe there are no "boxes"
@@ -718,7 +718,7 @@ ballot manifest file.
 
 Here is an example of a ballot manifest file.
 
-| Collection id | Box id    | Position  | Stamp     | Ballot id | Number of ballots | Required Contests | Possible Contests  | Comments      |
+| Collection    | Box       | Position  | Stamp     | Ballot id | Number of ballots | Required Contests | Possible Contests  | Comments      |
 |---            | --        | ---       | ---       | ---       | ---               | ---               | ---                | ---           |
 | LOG-B13       | B         | 1         | XY04213   | B-0001    |  1                |                   |                    |               |
 | LOG-B13       | B         | 2         | XY04214   | B-0002    |  1                |                   |                    |               |
@@ -744,16 +744,23 @@ ballot manifest might be easy to create by hand, thus removing the need to
 trust vendor software to create the ballot manifest.  The auditor will need
 to create one line of the ballot manifest file per box in the collection.
 
-The contest group ids ``ALL`` and ``NONE`` are predefined and reserved, referring
-to the set of all contests and the set of no contests.  If the ``Required`` field
-is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
-assumed.
+If the ``Required Contests`` field is missing,
+no contests are assumed to be required.
+If the ``Possible Contests`` field is missing, 
+all contests are assumed to be possible.
 
 
 [Back to TOC](#table-of-contents)
 
 
 ### Reported CVRs file
+
+A reported cvrs file will have a name of the form
+
+    2-reported/22-reported-cvrs/reported-cvrs-<pbcid>.csv
+
+possibly with a version label.  An example filename: ``reported-cvrs-DEN-A01.csv``.
+This file may be produced by the tabulation equipment.
 
 A **reported cvrs file** is a CSV format file containing a number of
 rows, where (for a CVR collection) each row represents a voter's choices for a
@@ -764,15 +771,17 @@ complex voting schemes, like approval or instant runoff (IRV).
 
 Here are the fields of a row of a reported cvrs file:
 
-1. **Paper Ballot Collection Identifier** (pbcid)
-   Typically, all rows in a vote file will have the same pbcid.
+1. **Collection** (pbcid)
+   Typically, all rows in a vote file will have the same paper ballot
+   collection identifer (pbcid).
 
 2. **Scanner**: Gives an id of the device that scanned this ballot.
    May be blank.
 
 2. **Ballot identifier** (bid)
 
-3. **Contest Identifier** (cid)
+3. **Contest** (cid) 
+   An identifier (cid) for the contest.)
 
 7. **Selections** (vote): Columns 4 and on are to record the voter's choices
    for that contest.  A typical plurality election will only have one
@@ -807,7 +816,7 @@ each row represents a single vote of a voter in a contest.  There are three vote
 contests.
 
 
-|Collection id   | Scanner  | Ballot id   | Contest        | Selections     |           |
+|Collection      | Scanner  | Ballot id   | Contest        | Selections     |           |
 |---             |---       | ---         | ---            | ---            | ---       |
 |DEN-A01         |FG231     | B-231       | Denver Prop 1  | Yes            |           |
 |DEN-A01         |FG231     | B-231       | Denver Prop 2  |                |           |
@@ -822,14 +831,10 @@ The second row is an undervote, and the third row is an overvote.  The sixth
 row has a write-in for qualified candidate Tom Cruz.  The last row represents a vote that
 is invalid for some unspecified reason.
 
-The reported vote file will have a name of the form
-``reported-cvrs-<pbcid>.csv``, possibly
-with a version label.  An example filename: ``reported-cvrs-DEN-A01.csv``.
-
 **Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
 column is replaced by a "Tally" column:
 
-|Collection id   | Scanner  | Tally       | Contest       | Selections     |           |
+|Collection      | Scanner  | Tally       | Contest       | Selections     |           |
 |---             |---       | ---         | ---           | ---            | ---       |
 |LOG-B13         |FG231     | 2034        | Logan Mayor   | Susan Hat      |           |
 |LOG-B13         |FG231     | 1156        | Logan Mayor   | Barry Su       |           |
@@ -850,11 +855,18 @@ collections.
 
 ### Reported outcomes file
 
+A reported outcomes file has a filename of the form
+
+     2-reported/23-reported-outcomes.csv
+
+(possibly with a version label).  This file may be produced by the
+tabulation equipment.
+
 A "**reported outcomes file**" gives the reported outcome for every
 contests.  It may indicate final vote tallies for the winner, and
 do the same for the losers.
 
-| Contest id      | Winner(s)  |            |           |             |
+| Contest         | Winner(s)  |            |           |             |
 | ---             |  -         | ---        |---        |---          |
 | Denver Prop 1   | Yes        |            |           |             |
 | Denver Prop 2   | No         |            |           |             |
@@ -871,10 +883,6 @@ computed (such as intermediate IRV round information, or tie-breaking
 decisions).  Additional output files may include this information.  But
 since this information is not relevant for the audit, we do not describe
 it here.
-
-A reported outcomes file has a filename of the form
-``23-reported-outcomes.csv``
-(possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 

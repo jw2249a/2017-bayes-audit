@@ -69,9 +69,9 @@ def read_election_spec_general(e, election_dirname):
     """
     
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-spec")
-    filename = utils.greatest_name(specification_pathname, "election-spec-general", ".csv")
-    file_pathname = os.path.join(specification_pathname, filename)
+    spec_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(spec_pathname, "election-spec-general", ".csv")
+    file_pathname = os.path.join(spec_pathname, filename)
     fieldnames = ["Attribute", "Value"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames)
     for row in rows:
@@ -110,9 +110,9 @@ def read_election_spec_contests(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-spec")
-    filename = utils.greatest_name(specification_pathname, "election-spec-contests", ".csv")
-    file_pathname = os.path.join(specification_pathname, filename)
+    spec_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(spec_pathname, "election-spec-contests", ".csv")
+    file_pathname = os.path.join(spec_pathname, filename)
     fieldnames = ["Contest", "Contest type", "Winners", "Write-ins",
                   "Selections"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
@@ -145,9 +145,9 @@ def read_election_spec_contest_groups(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-spec")
-    filename = utils.greatest_name(specification_pathname, "election-spec-contest-groups", ".csv")
-    file_pathname = os.path.join(specification_pathname, filename)
+    spec_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(spec_pathname, "election-spec-contest-groups", ".csv")
+    file_pathname = os.path.join(spec_pathname, filename)
     fieldnames = ["Contest group", "Contest(s) or group(s)"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
 
@@ -172,15 +172,15 @@ def read_election_spec_collections(e):
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(specification_pathname, "14-collections", ".csv")
-    file_pathname = os.path.join(specification_pathname, filename)
-    fieldnames = ["Collection id", "Manager", "CVR type",
+    spec_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(spec_pathname, "election-spec-collections", ".csv")
+    file_pathname = os.path.join(spec_pathname, filename)
+    fieldnames = ["Collection", "Manager", "CVR type",
                   "Required Contests", "Possible Contests"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
     for row in rows:
 
-        pbcid = row["Collection id"]
+        pbcid = row["Collection"]
         e.pbcids.append(pbcid)
         e.manager_p[pbcid] = row["Manager"]
         e.cvr_type_p[pbcid] = row["CVR type"]
@@ -304,7 +304,7 @@ def check_election_spec(e):
 
 
 def show_election_spec(e):
-    utils.myprint("====== Election specification ======")
+    utils.myprint("====== Election spec ======")
     utils.myprint("Election name: (e.election_name):")
     utils.myprint("    {}".format(e.election_name))
     utils.myprint("Election dirname (e.election_dirname):")
