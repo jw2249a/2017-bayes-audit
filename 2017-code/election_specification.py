@@ -78,7 +78,13 @@ def read_election_specification_general(e, election_dirname):
         if "Election name" == row["Attribute"]:
             e.election_name = row["Value"]
         elif "Election dirname" == row["Attribute"]:
-            e.election_dirname = row["Value"]
+            new_election_dirname = row["Value"]
+            if new_election_dirname != election_dirname:
+                utils.mywarning(("Inconsistent election_dirname {}"
+                                 "ignored in file {}.")
+                                 .format(new_election_dirname, file_pathname))
+            else:
+                pass # everything OK
         elif "Election date" == row["Attribute"]:
             e.election_date = row["Value"]
         elif "Election URL" == row["Attribute"]:
