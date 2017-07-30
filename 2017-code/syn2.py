@@ -40,7 +40,7 @@ import os
 
 import multi
 import audit_orders
-import election_specification
+import election_spec
 import ids
 import outcomes
 import random 
@@ -135,15 +135,17 @@ def generate_segments(se, low, high):
 ##############################################################################
 ## election specification
 
-def generate_election_specification(se=default_SynElection):
+def generate_election_spec(se=default_SynElection):
     """
     se has SynElection for the parameters noted above;
     add to se values that would be otherwise read in,
-    e.g. via election_specification.py (read_election_specification, 
-    read_election_specification_contests,
-    read_election_specification_contest_groups, 
-    read_election_specification_collections)
+    e.g. via election_spec.py (read_election_spec, 
+    read_election_spec_contests,
+    read_election_spec_contest_groups, 
+    read_election_spec_collections)
     """
+
+    print("generate_election_spec")
 
     # reset SynRandomState from synseed
     se.SynRandomState = np.random.RandomState(se.synseed)
@@ -236,23 +238,23 @@ def generate_collections(se):
             se.required_gid_p[pbcid] = ""
             se.possible_gid_p[pbcid] = ""
 
-    election_specification.finish_election_specification_contest_groups(se)
+    election_spec.finish_election_spec_contest_groups(se)
     
 
 
-def write_election_specification_csv(se):
+def write_election_spec_csv(se):
 
-    write_11_general_csv(se)
-    write_12_contests_csv(se)
-    write_13_contest_groups_csv(se)
-    write_14_collections_csv(se)
+    write_election_spec_general_csv(se)
+    write_election_spec_contests_csv(se)
+    write_election_spec_contest_groups_csv(se)
+    write_election_spec_collections_csv(se)
 
 
-def write_11_general_csv(se):
+def write_election_spec_general_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "11-general.csv")
+    filename = os.path.join(dirpath, "election-spec-general.csv")
 
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
@@ -262,14 +264,14 @@ def write_11_general_csv(se):
         file.write("Election URL,"+se.election_url+"\n")
 
 
-def write_12_contests_csv(se):
+def write_election_spec_contests_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "12-contests.csv")
+    filename = os.path.join(dirpath, "election-spec-contests.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins", "Selections"]
+        fieldnames = ["Contest", "Contest type", "Winners", "Write-ins", "Selections"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for cid in se.cids:
@@ -281,14 +283,14 @@ def write_12_contests_csv(se):
             file.write("\n")
         
 
-def write_13_contest_groups_csv(se):
+def write_election_spec_contest_groups_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "13-contest-groups.csv")
+    filename = os.path.join(dirpath, "election-spec-contest-groups.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Contest group id", "Contest or group id(s)"]
+        fieldnames = ["Contest group", "Contest(s) or group(s)"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for gid in se.gids:
@@ -297,14 +299,14 @@ def write_13_contest_groups_csv(se):
             file.write("\n")
 
 
-def write_14_collections_csv(se):
+def write_election_spec_collections_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-specification")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "14-collections.csv")
+    filename = os.path.join(dirpath, "election-spec-collections.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Collection id", "Manager", "CVR type", "Required Contests", "Possible Contests"]
+        fieldnames = ["Collection", "Manager", "CVR type", "Required Contests", "Possible Contests"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for pbcid in se.pbcids:
@@ -705,8 +707,8 @@ def test():
     se = SynElection()
     se.seed = 9
 
-    generate_election_specification(se)
-    election_specification.finish_election_specification(se)
+    generate_election_spec(se)
+    election_spec.finish_election_spec(se)
     generate_contests(se)
     generate_contest_groups(se)
     generate_collections(se)
@@ -723,10 +725,10 @@ def test():
         print("    ", vars(se)[key])
 
     print("Checking specification: ", end='')
-    election_specification.check_election_specification(se)
+    election_spec.check_election_spec(se)
     print("OK.")
     
-    write_election_specification_csv(se)
+    write_election_spec_csv(se)
     write_reported_csv(se)
     write_audit_csv(se)
 

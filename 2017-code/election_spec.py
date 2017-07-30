@@ -1,4 +1,4 @@
-# election_specification.py
+# election_spec.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
 # July 7, 2017
 # python3
@@ -61,16 +61,16 @@ import groups
 import utils
 
 
-def read_election_specification_general(e, election_dirname):
+def read_election_spec_general(e, election_dirname):
     """ 
-    Read file 1-election-specification/11-general.csv, put results into Election e.
+    Read file 1-election-spec/election-spec-general.csv, put results into Election e.
     election_dirname is the name of the directory for the election 
         (e.g. "CO-2017-11") with ELECTIONS_ROOT
     """
     
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(specification_pathname, "11-general", ".csv")
+    specification_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(specification_pathname, "election-spec-general", ".csv")
     file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Attribute", "Value"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames)
@@ -98,27 +98,27 @@ def read_election_specification_general(e, election_dirname):
         utils.myerror("Too many errors; terminating.")
 
 
-def test_read_election_specification_general(e):        
+def test_read_election_spec_general(e):        
 
-    print("test_read_election_specification_general")
-    read_election_specification_general(e, "ex1")
+    print("test_read_election_spec_general")
+    read_election_spec_general(e, "ex1")
 
 
-def read_election_specification_contests(e):
+def read_election_spec_contests(e):
     """
-    Read file 12-contests.csv, put results into Election e.
+    Read file election-spec-contests.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(specification_pathname, "12-contests", ".csv")
+    specification_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(specification_pathname, "election-spec-contests", ".csv")
     file_pathname = os.path.join(specification_pathname, filename)
-    fieldnames = ["Contest id", "Contest type", "Winners", "Write-ins",
+    fieldnames = ["Contest", "Contest type", "Winners", "Write-ins",
                   "Selections"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
 
-        cid = row["Contest id"]
+        cid = row["Contest"]
         
         e.cids.append(cid)
         
@@ -133,40 +133,40 @@ def read_election_specification_contests(e):
             e.selids_c[cid][selid] = True
 
 
-def test_read_election_specification_contests(e):
+def test_read_election_spec_contests(e):
 
-    print("test_read_election_specification_contests")
-    read_election_specification_contests(e)
+    print("test_read_election_spec_contests")
+    read_election_spec_contests(e)
 
 
-def read_election_specification_contest_groups(e):
+def read_election_spec_contest_groups(e):
     """
-    Read file 13-contest-groups.csv, put results into Election e.
+    Read file election-spec-contest-groups.csv, put results into Election e.
     """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
-    specification_pathname = os.path.join(election_pathname, "1-election-specification")
-    filename = utils.greatest_name(specification_pathname, "13-contest-groups", ".csv")
+    specification_pathname = os.path.join(election_pathname, "1-election-spec")
+    filename = utils.greatest_name(specification_pathname, "election-spec-contest-groups", ".csv")
     file_pathname = os.path.join(specification_pathname, filename)
-    fieldnames = ["Contest group id", "Contest or group id(s)"]
+    fieldnames = ["Contest group", "Contest(s) or group(s)"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
 
     for row in rows:
-        gid = row["Contest group id"]
+        gid = row["Contest group"]
         if gid in e.cids:
             utils.myerror("Contest group id {} must not also be a contest id."
                           .format(gid))
         e.gids.append(gid)
-        e.cgids_g[gid] = row["Contest or group id(s)"]
+        e.cgids_g[gid] = row["Contest(s) or group(s)"]
 
 
-def test_read_election_specification_contest_groups(e):    
+def test_read_election_spec_contest_groups(e):    
 
     print("test_read_contest_groups")
-    read_election_specification_contest_groups(e)
+    read_election_spec_contest_groups(e)
 
 
-def read_election_specification_collections(e):
+def read_election_spec_collections(e):
     """
     Read file 14-collections.csv, put results into Election e.
     """
@@ -188,30 +188,30 @@ def read_election_specification_collections(e):
         e.possible_gid_p[pbcid] = row["Possible Contests"]
 
 
-def test_read_election_specification_collections(e):
+def test_read_election_spec_collections(e):
 
     print("test_read_collections")
-    read_election_specification_collections(e)
+    read_election_spec_collections(e)
 
 
-def get_election_specification(e):
+def get_election_spec(e):
 
-    read_election_specification_general(e, e.election_dirname)
-    read_election_specification_contests(e)
-    read_election_specification_contest_groups(e)
-    read_election_specification_collections(e)
-    finish_election_specification(e)
-    check_election_specification(e)
-    show_election_specification(e)
+    read_election_spec_general(e, e.election_dirname)
+    read_election_spec_contests(e)
+    read_election_spec_contest_groups(e)
+    read_election_spec_collections(e)
+    finish_election_spec(e)
+    check_election_spec(e)
+    show_election_spec(e)
 
 
-def finish_election_specification(e):
+def finish_election_spec(e):
 
-    finish_election_specification_contest_groups(e)
-    finish_election_specification_votes(e)
+    finish_election_spec_contest_groups(e)
+    finish_election_spec_votes(e)
 
     
-def finish_election_specification_contest_groups(e):
+def finish_election_spec_contest_groups(e):
 
     groups.expand_contest_group_defs(e)
 
@@ -237,7 +237,7 @@ def finish_election_specification_contest_groups(e):
                 utils.nested_set(e.possible_pbcid_c, [cid, pbcid], "True")
 
 
-def finish_election_specification_votes(e):
+def finish_election_spec_votes(e):
 
     noCVRvote = ("-noCVR",)
     for cid in e.cids:
@@ -261,7 +261,7 @@ def check_id(id, check_for_whitespace=False):
                 break
 
 
-def check_election_specification(e):
+def check_election_spec(e):
 
     if not isinstance(e.cids, (list, tuple, set)):
         utils.myerror("e.cids is not a set.")
@@ -300,10 +300,10 @@ def check_election_specification(e):
                       .format(pbcid))
 
     if utils.warnings_given > 0:
-        utils.myerror("election_specification.check_election_specification: Too many errors or warnings; terminating.")
+        utils.myerror("election_spec.check_election_spec: Too many errors or warnings; terminating.")
 
 
-def show_election_specification(e):
+def show_election_spec(e):
     utils.myprint("====== Election specification ======")
     utils.myprint("Election name: (e.election_name):")
     utils.myprint("    {}".format(e.election_name))
@@ -344,10 +344,10 @@ def show_election_specification(e):
 def test():
     
     e = multi.Election()
-    test_read_election_specification_general(e)
-    test_read_election_specification_contests(e)
-    test_read_election_specification_contest_groups(e)
-    test_read_election_specification_collections(e)    
+    test_read_election_spec_general(e)
+    test_read_election_spec_contests(e)
+    test_read_election_spec_contest_groups(e)
+    test_read_election_spec_collections(e)    
 
 
 if __name__=="__main__":

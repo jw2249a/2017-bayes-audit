@@ -12,7 +12,7 @@ import argparse
 
 
 import multi
-import election_specification
+import election_spec
 import ids
 import audit
 import reported

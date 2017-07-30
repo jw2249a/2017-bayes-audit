@@ -469,7 +469,7 @@ write-ins are allowed (and if so, whether they may be arbitrary, or whether
 write-in candidates
 must be pre-qualified), and the officially allowed selections.
 
-| Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |            |
+| Contest         | Contest type | Winners   |Write-ins  | Selections |           |            |            |
 | ---             | ---          | ---       |---        | ---        | ---       |---         |---         |
 | Denver Prop 1   | Plurality    | 1         | No        | Yes        | No  
 | Denver Prop 2   | Plurality    | 1         | No        | Yes        | No   
@@ -531,14 +531,14 @@ The *order* of the definition is important, as it may reflect the order
 in which the contests are presented on a ballot; this order may be used
 in the user interface used by the auditors.
 
-| Contest group id | Contest or group id(s)  |               |                |                |         | 
+| Contest group    | Contest(s) or group(s)  |               |                |                |         | 
 | ---              | ---              | ---                  | ---            | ---            | ---     |
-| FEDERAL          |U.S. President   |U.S. Senate 1        |U.S. Senate 2
+| FEDERAL          |U.S. President    |U.S. Senate 1         |U.S. Senate 2
 | STATE            |CO Prop A
-| FED STATE        |FEDERAL          |STATE
-| DENVER LOCAL     |Denver Mayor     |Denver Clerk| Denver Prop 1| Denver Prop 2
-| DENVER           |FED STATE        |DENVER LOCAL
-| LOGAN REQ        |FED STATE        |Logan Mayor 
+| FED STATE        |FEDERAL           |STATE
+| DENVER LOCAL     |Denver Mayor      |Denver Clerk| Denver Prop 1| Denver Prop 2
+| DENVER           |FED STATE         |DENVER LOCAL
+| LOGAN REQ        |FED STATE         |Logan Mayor 
 | LOGAN POSS       |Logan Water
 
 In this example, ``FED STATE`` includes all of the contests in group
@@ -571,7 +571,7 @@ contest groups specifying which contests are required and which are
 possible for ballots in that collection.
 
 
-| Collection id | Manager          | CVR type  | Required Contests  | Possible Contests |
+| Collection    | Manager          | CVR type  | Required Contests  | Possible Contests |
 | ---           | ---              | ---       | ---                | ---               |
 | DEN-A01       | abe@co.gov       | CVR       | DENVER             | DENVER            |
 | DEN-A02       | bob@co.gov       | CVR       | DENVER             | DENVER            |
@@ -601,10 +601,11 @@ may hold ballots of several different ballot styles
 styles, then the ``Required Contests`` field may show a contest group giving
 the contests **common** to all possible ballots in the collection, while
 the ``Possible`` field may show a contest group listing the contests
-that may occur on any ballot in the collection (that is, the union of
+that may occur on **any* ballot in the collection (that is, the union of
 the possible ballot styles).
 
 [Back to TOC](#table-of-contents)
+
 
 ## Reported data: (ballot manifests, CVRs, and outcomes)
 

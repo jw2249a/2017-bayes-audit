@@ -33,7 +33,7 @@ import sys
 
 import audit
 import cli
-import election_specification
+import election_spec
 import outcomes
 import planner
 import reported
