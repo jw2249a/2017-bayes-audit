@@ -421,14 +421,19 @@ for the election itself.
 
 ### Election specification general file
 
-This is a CSV file, with the name
+The election specification general file is a CSV file, prepared by
+election officials, with the name
 
-    ``election-spec-general.csv``
+    1-election-spec/election-spec-general.csv
 
-(possibly with a version label).
+(possibly with a version label, such as a date-time stamp, as in
+
+    1-election-spec/election-spec-general-2017-09-08-12-00-00.csv
+
+See [``Appendix: File names](#appendix-file-names) for details on version labels.)
 
 An election specification
-**general file** gives some high-level attributes of the election.
+**general file** gives a few high-level attributes of the election.
 
 | Attribute         | Value                                   |
 | ---               | ---                                     |
@@ -441,15 +446,27 @@ An election specification
 The election dirname is the name of the directory where information
 about this election is held.  This directory is within some
 "standard directory where election information is held", such
-as "./elections".
+as "./elections".  In this example, the election data is held
+in the directory:
+
+    ./elections/CO-2017-11-07
 
 [Back to TOC](#table-of-contents)
 
+
 ### Contests file
 
-A **contests file** is needed to specify the contests
-of the election, their type (e.g. plurality), whether
-write-ins are allowed (and if so, whether they may be arbitrary, or whether they
+The **election spec contests file**
+is a CSV file, prepared by election officials, with the name
+
+    1-election-spec/election-spec-contests.csv
+
+(possibly with a version label).
+
+Such a **contests file** specifies the contests
+in the election, their type (e.g. plurality), whether
+write-ins are allowed (and if so, whether they may be arbitrary, or whether
+write-in candidates
 must be pre-qualified), and the officially allowed selections.
 
 | Contest id      | Contest type | Winners   |Write-ins  | Selections |           |            |            |
@@ -466,33 +483,41 @@ must be pre-qualified), and the officially allowed selections.
 | CO Prop A       | Plurality    | 1         | No        | Yes        | No
 
 
-If the contest only allows pre-qualified write-ins, then those pre-qualified
+If the contest only allows write-ins that are (pre-)qualified, then those qualified
 write-in names (with preceding "+" signs) are given on the contest row, but
-not printed on the ballot.
+not printed on the ballot.  Example: ``+Jack Frost`` for Denver Mayor
+above.
 
-Additional contest types may be supported as needed.
-
-This is a CSV file, with the name ``12-contests.csv`` (possibly with a version label).
+Although plurality is the only contest type shown here, additional contest types,
+such as IRV, will be supported as needed.
 
 [Back to TOC](#table-of-contents)
 
+
 ### Contest groups file
 
-The **contest groups file** is optional, but may be helpful in making
-the collections file more compact, and in making the audit more efficient.
+A **contest groups specification file** has a file name of the form
 
-A **contest group** is a set of contests. 
+    ``1-election-spec/election-spec-contest-groups.csv
 
-A contest group id should not be the same as any contest id.
-For clarity here, we always write a contest group id in caps,
-as in "**FEDERAL**" or "**STATEWIDE**".
+(possibly with a version label).
 
-Although ``multi.py`` does not directly support the abstraction of
-a "ballot style" (a set of contests that may occur on a ballot), the
-notion of "contest groups" fulfill most of the needs of the ballot
-style notion.  Moreover, if ballot styles are added at some later
-time to ``multi.py``, then ballot styles are easily defined in terms
-of contest groups.
+Such a contest groups file specifies a number of **``contest groups``**
+that may be used later to simplify the election specification.
+Contest groups are used to generalize the familiar notion of a ``ballot style``.
+
+A **contest group** has a name (id) and is defined as an (ordered) set
+of contests.
+
+A contest group id must not be the same as any contest id.
+For clarity, we always write a contest group id in caps,
+as in "**FEDERAL**" or "**STATEWIDE**", although this is not
+required.
+
+The ``multi.py`` program supports a generalization of the notion of
+a "ballot style" (a set of contests that may occur on a ballot)
+via the notion of "contest groups", and the notions of "required
+contests" and "possible contests."
 
 The use of contest groups may provide clarity, as it provides organization
 for the set of contests.  In many places, one may specify a contest
@@ -503,7 +528,8 @@ A contest group is defined by listing the contests it contains and/or the
 other groups it includes.
 
 The *order* of the definition is important, as it may reflect the order
-in which the contests are present on a ballot.
+in which the contests are presented on a ballot; this order may be used
+in the user interface used by the auditors.
 
 | Contest group id | Contest or group id(s)  |               |                |                |         | 
 | ---              | ---              | ---                  | ---            | ---            | ---     |
@@ -516,9 +542,9 @@ in which the contests are present on a ballot.
 | LOGAN POSS       |Logan Water
 
 In this example, ``FED STATE`` includes all of the contests in group
-``FEDERAL``, plus all contests in group ``STATE``.
+``FEDERAL``, plus (followed by) all contests in group ``STATE``.
 
-For Logan county, we define two contest groups: those that are required (``LOGAN REQ``),
+For Logan county, this example define two contest groups: those that are required (``LOGAN REQ``),
 and those that are possible (``LOGAN POSS``); the latter includes the former.  See
 the [Collections file](#collections-file) section for an example of their use.
 
@@ -526,29 +552,31 @@ In other input files, a contest group name
 may be used as shorthand for a set of alternative contests.
 For example, one may specify a risk limit of five percent for all FEDERAL contests.
 
-A contest group has a file name of the form
-``13-contest-groups.csv`` (possibly with a version label).
-
 [Back to TOC](#table-of-contents)
 
 
 ### Collections file
 
-A **collections file** is needed to specify the various
+A **collections specification file**, defined by election officials,
+has a file name of the form
+
+    ``1-election-spec/election-spec-collections.csv
+
+(possibly with a version label).
+
+Such a **collections file** specifies the various
 collections of paper ballots, contact info for the collection
 manager, collection type (CVR or noCVR),
-contest groups specifying what contests are required and possible
-on ballots in that collection.
+contest groups specifying which contests are required and which are
+possible for ballots in that collection.
 
 
 | Collection id | Manager          | CVR type  | Required Contests  | Possible Contests |
-| ---           | ---              | ---       | ---        | ---        |
-| DEN-A01       | abe@co.gov       | CVR       | DENVER|            DENVER
-| DEN-A02       | bob@co.gov       | CVR       | DENVER|            DENVER
-| LOG-B13       | carol@co.gov     | noCVR     | LOGAN REQ|         LOGAN POSS
+| ---           | ---              | ---       | ---                | ---               |
+| DEN-A01       | abe@co.gov       | CVR       | DENVER             | DENVER            |
+| DEN-A02       | bob@co.gov       | CVR       | DENVER             | DENVER            |
+| LOG-B13       | carol@co.gov     | noCVR     | LOGAN REQ          | LOGAN POSS        |
 
-This is a CSV file, with the name ``14-collections.csv`` (possibly with a version
-label).
 
 The possible ``ballot styles`` in a collection are constrained by the
 ``Required Contests`` and ``Possible Contests`` contest groups.  Every ballot in a collection
@@ -594,14 +622,23 @@ outcome for each contest.
 
 ### Reported ballot manifest files
 
-A **ballot manifest file** lists all of the ballot ids for a given collection.
-Each ballot id may be given explicitly, or, if some ballots are organized
-into a batch (box) with sequential ballot ids, the first ballot id of the batch and
-the size of the batch may be given.
+A ballot manifest file has a filename of the form
 
-It indicates the physical location of each ballot (giving a box id and
-position within box), any "stamp" or other identification imprinted on
-the ballot, and any additional comments about specific ballots.
+    21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv``
+
+where PBCID is replaced with the paper ballot collection id (e.g. DEN-A01).
+The file name may also include a version label.
+
+Such a **``ballot manifest file``** lists all of the ballots in a given collection.
+
+Each ballot may be described explicitly, or, if some ballots are organized
+into a batch (box) with sequential ballot ids, the first ballot id of the batch and
+the number of ballots in the batch may be given.
+
+The ballot manifest file indicates the physical location of each
+ballot (giving a box id and position within box), any "stamp" or other
+identification imprinted on the ballot, and any additional comments
+about specific ballots.
 
 The **``Collection id``** field specifies the collection id for the ballot manifest.
 This should the same for all rows in the file.
@@ -711,9 +748,6 @@ to the set of all contests and the set of no contests.  If the ``Required`` fiel
 is missing, ``NONE`` is assumed.  If the ``Possible`` field is missing, ``ALL`` is
 assumed.
 
-A ballot manifest file has a filename of the form
-``manifest-<pbcid>.csv``, e.g. ``manifest-LOG-B13.csv``
-(possibly with a version label).
 
 [Back to TOC](#table-of-contents)
 
