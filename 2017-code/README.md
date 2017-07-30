@@ -37,15 +37,14 @@ here.  At least not yet.**
 * [Audit](#audit)
   * [Audit setup](#audit-setup)
     * [Audit seed file](#audit-seed-file)
-    * [Dialogue between Audit Central and Collection Managers](#dialogue-between-audit-central-and-collection-managers)
+    * [Global audit parameters](#global-audit-parameters)
+    * [Contest audit parameters](#contest-audit-parameters)
+    * [Collection audit parameters](#collection-audit-parameters)
+  * [Dialogue between Audit Central and Collection Managers](#dialogue-between-audit-central-and-collection-managers)
     * [Audit order file](#audit-order-file)
-  * [Audited votes](#audited-votes)
-    * [Sample vote file (actual vote file)](#sample-vote-file-actual-vote-file)
+    * [Audited votes](#audited-votes)
   * [Audit stages](#audit-stages)
     * [Audit parameters files](#audit-parameters-files)
-      * [Global audit parameters](#global-audit-parameters)
-      * [Contest audit parameters](#contest-audit-parameters)
-      * [Collection audit parameters](#collection-audit-parameters)
     * [Output file formats (per stage](#output-file-formats-per-stage)
 * [Audit workflow](#audit-workflow)
   * [Pre-election](#pre-election)
@@ -1174,7 +1173,7 @@ wish, for example by combining requests for ballots from the same box.
 
 [Back to TOC](#table-of-contents)
 
-### Audit order file
+#### Audit order file
 
 An **audit order file** lists a sequence of ballots requested for audit
 from a collection.
@@ -1261,7 +1260,7 @@ file.
 
 [Back to TOC](#table-of-contents)
 
-### Audited votes
+#### Audited votes
 
 #### Audited votes file (actual vote file)
 
