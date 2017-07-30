@@ -353,11 +353,11 @@ In addition, all of these files would likely have
 version labels that are date-time stamps, such as
 "-2017-11-08-10-14-23".
 
-    1-election-specification
-       11-general.csv
-       12-contests.csv
-       13-contest-groups.csv
-       14-collections.csv
+    1-election-spec
+       election-spec-general.csv
+       election-spec-contests.csv
+       election-spec-contest-groups.csv
+       election-spec-collections.csv
 
     2-reported
        21-reported-ballot-manifests
@@ -371,11 +371,11 @@ version labels that are date-time stamps, such as
        23-reported-outcomes.csv
 
     3-audit
-       31-audit-specification
-          audit-specification-seed.csv
-          audit-specification-global.csv
-          audit-specification-contest.csv
-          audit-specification-collection.csv
+       31-audit-spec
+          audit-spec-seed.csv
+          audit-spec-global.csv
+          audit-spec-contest.csv
+          audit-spec-collection.csv
        32-audit-orders
           audit-order-PCBID1.csv
           audit-order-PCBID2.csv
@@ -385,10 +385,10 @@ version labels that are date-time stamps, such as
           audited-votes-PCBID2.csv
           ...
        34-audit-output
-          audit-snapshot.csv
-          audit-status.csv
-          audit-output.csv
-          audit-plan.csv
+          audit-output-status.csv
+          audit-output-snapshot.csv
+          audit-output-detail.csv
+          audit-output-plan.csv
 
  
 [Back to TOC](#table-of-contents)
@@ -413,13 +413,19 @@ an "**general file**",
 a "**contests file**", 
 a "**contest groups file**",
 and a "**collections file**".  
-It is likely that these four
-election-specification files are produced from similar files used
+These four
+election-specification files may be produced from similar files used
 for the election itself.
 
 [Back to TOC](#table-of-contents)
 
 ### Election specification general file
+
+This is a CSV file, with the name
+
+    ``election-spec-general.csv``
+
+(possibly with a version label).
 
 An election specification
 **general file** gives some high-level attributes of the election.
@@ -436,9 +442,6 @@ The election dirname is the name of the directory where information
 about this election is held.  This directory is within some
 "standard directory where election information is held", such
 as "./elections".
-
-This is a CSV file, with the name ``11-general.csv`` (possibly with a version
-label).
 
 [Back to TOC](#table-of-contents)
 
