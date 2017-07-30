@@ -37,7 +37,7 @@ here.  At least not yet.**
 * [Audit](#audit)
   * [Audit setup](#audit-setup)
     * [Audit seed file](#audit-seed-file)
-    * [Audit orders and audited-votes files](#audit-orders-and-audited-votes-files)
+    * [Dialogue between Audit Central and Collection Managers](#dialogue-between-audit-central-and-collection-managers)
     * [Audit order file](#audit-order-file)
   * [Audited votes](#audited-votes)
     * [Sample vote file (actual vote file)](#sample-vote-file-actual-vote-file)
@@ -894,24 +894,24 @@ it here.
 ## Audit
 
 The audit process begins with a single "audit setup" phase,
-in which a random "**audit seed**" is generated, and a
-"**sampling order**" is then produced for each collection.
+in which a random "**audit seed**" is generated, and an initial
+"**audit order**" is then produced for each collection.
 
 Following that is the actual audit, which involves coordinated
-work between the various collections and Audit Central.
+work between the various collection managers and Audit Central.
 
 The collection managers arrange for the retrieval of paper ballots in
-the order prescribed by the sampling order for their collection.  At
+the order prescribed by the audit order for their collection.  At
 predetermined times (or when possible or convenient) the collection
 manager will send to Audit Central an "**audited votes file**"
 describing (in a cumulative way) the hand-to-eye interpretations of
 all ballots retrieved so far in that collection.  Each new upload
-has a larger (later) version label.
+must have a larger (later) version label.
 
-Audit Central will process the uploaded sample data, and determine
-for each contest whether the audit is complete or not.  Audit Central
-then provides guidance to the collection mangers (in the form of a
-"**plan**") that details the work yet to be done.  
+Audit Central will process the uploaded sample data, and determine for
+each contest (measurement) whether the audit is complete or not.
+Audit Central then provides guidance to the collection mangers (in the
+form of a "**plan**") that details the work yet to be done.
 
 (For contests whose ballots are entirely within one collection, the
 ``multi.py`` software may in principle also be run by the collection manager,
@@ -920,14 +920,35 @@ votes data should nonetheless be uploaded to Audit Central.)
 
 [Back to TOC](#table-of-contents)
 
+
 ### Audit setup
 
 The audit setup determines the "**audit seed**", a long random number,
-and then from the audit seed a "**sampling order**" for each collection,
-listing the ballots of that collection in a scrambled order.
+and then from the audit seed an initial "**audit order**" for each collection,
+listing (some of) the ballots of that collection in a scrambled order.
+
+An **audit parameters** file gives parameters used in the audit.  
+There are *four* such files: one for the audit seed,
+one for global parameters, one for
+parameters by contest, and one for parameters by collection.
+
+These audit parameters files are **per stage**, since they may
+be updated from stage to stage.  Typically, however, they will not
+change, and the audit parameters for one stage will just be a
+copy of the audit parameters from the previous stage.
+
+[Back to TOC](#table-of-contents)
 
 #### Audit seed file
-The **audit seed file** contains the audit seed used to control the random
+
+The **audit seed file** has a filename of the form
+
+    3-audit/31-audit-spec/audit-spec-seed-2017-11-20.csv
+
+This example shows a version label to record the date, but the audit
+seed should only be determined once.
+
+The audit seed file gives the audit seed used to control the random
 sampling of the audit.
 
 | Audit seed           |
@@ -939,180 +960,10 @@ times.  **It is important that this be done *after* the reported votes have been
 collected and published by Audit Central.**  The generation of the audit
 seed should preferably be done in a videotaped public ceremony.  
 
-The audit seed file has a filename of the form
-``311-audit-seed-2017-11-20.csv`` or the like.
-(This example shows a version label to record the date, but the audit
-seed should only be made once.)
 
 [Back to TOC](#table-of-contents)
 
-#### Audit orders and audited-votes files
-
-We envision an ongoing two-way dialogue between AC (Audit Central) and
-the various collection managers (CMs, one per collection) during the audit.
-
-The AC provides a sequence of specific auditing requests: ballots to
-be pulled, and contests from those pulled ballots for which the 
-collection manager (or her delegate) should record the voter's selection(s).
-
-A CM responds with the requested information, in the order requested.
-
-For each paper ballot collection, the
-**audit order file** is an append-only list of the audit requests
-made by AC for ballots in that collection.  This list will grow
-longer as the audit proceeds.
-
-Correspondingly, for each paper ballot collection the **audited votes**
-file gives the records provided by the CM to AC for the requested records.
-This is an append-only file.
-
-We can view the two files as *transcripts* of the two-way dialogue between
-AC and the CM.  
-
-The conversation is **asynchronous**; either party may add additional
-information to its file at any time.
-
-The **``audit-orders``** file may be dynamically computed as the audit
-progress, which is why it need not be specified "all at once" before the audit
-begins.  For example, it may be determined that a particular scanner has
-a high error rate, and so later sampling may emphasize ballots scanned
-with that scanner.  All the same, the AC should provide sufficient
-"advance notice" of auditing requests that CMs can "work ahead" if they
-wish, for example by combining requests for ballots from the same box.
-
-
-[Back to TOC](#table-of-contents)
-
-#### Audit order file
-
-A **audit order file** lists a sequence of ballots requested for audit
-from a collection.
-
-The audit order file may become longer as the audit progresses.  If so,
-new requests are added to the end; the file is append-only.
-
-The order of the requests is a random order determined
-cryptographically, depending the audit seed.  The order should be
-unpredictable to an adversary, which is why the audit seed should be
-determined only **after** the reported votes for all the collections
-are recorded and filed.
-
-The sample order field indicates the order in which they must be
-examined during the audit.  Ballots may not be skipped during the
-audit.  (Technically, it is OK if the ballots audited may be re=ordered
-to form the order given in the audit order file.  That is, the auditor
-should make sure to audit any skipped ballots before reporting the results
-of the audit to AC.)
-
-When a ballot is audited, the auditor should report the voter's selection(s)
-for all contests that are open status and either active or opportunistic sampling
-mode.  Other contests should not be reported.
-
-The audit order file can be viewed as an initial segment of a permuted
-ballot manifest file.  The differences are that
-* The ballots are given numbers giving their positions in the audit order.
-* Each line represents a single ballot; no batching of lines is allowed.
-* AC may determine the order dynamically, depending on what is seen during
-  the audit.  While AC could in principle and perhaps in fact just be requesting ballots that
-  form an initial segment of some fixed predetermined scrambled ballot
-  manifest file, the AC could alternatively dynamically determine how to
-  extend the audit order file as the audit progresses.
-
-Here is an example audit order file, specifying the first seven ballots to be
-audited from collection LOG-B13.
-
-|Ballot order | Collection    | Box       | Position  | Stamp     | Ballot id |  Comments |
-|---          |---            | --        | ---       | ---       | ---       |  ---      |
-| 1           | LOG-B13       | B         | 3         | XY04213   | B-0003    |           |
-| 2           | LOG-B13       | C         | 2         | QE55312   | C-0002    |           |
-| 3           | LOG-B13       | F         | 1         | JS23334   | F-0001    | See Doc #211 |
-| 4           | LOG-B13       | D         | 7         |           | D-0007    |           |
-| 5           | LOG-B13       | B         | 1         | XY04211   | B-0001    |           |
-| 6           | LOG-B13       | D         | 39        |           | D-0039    |           |
-
-
-The auditor may naturally group the requests for ballots from box B, and those from
-box D.
-
-Sampling is done without replacement.  Each ballot in the collection
-appears at most once in the audit order file.  The audit order file
-may grow to include all ballots in the collection.
-
-To produce the audit order, ``multi.py`` feeds the audit seed,
-followed by a comma, the collection id, another comma, and a decimal
-counter value, into a cryptographic random number function
-(specifically, SHA256 used in counter mode, starting with counter
-value 1).  The Fisher-Yates algorithm is then used to produce a random
-permutation of the ballots, using these random numbers.  This reference
-random order is what is used if no dynamic determination of audit order
-is used.  Otherwise, the order used will be a subsequence or otherwise
-closely related to this random order.
-
-An audit order file has a filename of the form
-``audit-order-<pbcid>.csv``.  Example:
-``audit-order-DEN-A01.csv`` (possibly with a version label).
-
-The audit order file and the reported cvrs file may be used
-with an appropriate UI interface to generate the audited votes
-file. 
-
-
-[Back to TOC](#table-of-contents)
-
-### Audited votes
-
-#### Sample vote file (actual vote file)
-
-A **sample vote file** represents a set of votes that have been
-sampled during an audit.  It is similar to a reported vote file (for a CVR
-collection), but the scanner field is omitted.
-
-Here is an example of a sample vote file for the ``DEN-A01`` collection, for
-two ballots and three contests each.
- 
- 
-|Collection id   | Ballot id   | Contest        | Selections     |           |
-|---             | ---         | ---            | ---            | ---       |
-|DEN-A01         | B-231       | Denver Prop 1  | Yes            |           |
-|DEN-A01         | B-231       | Denver Prop 2  | No             |           |
-|DEN-A01         | B-231       | U.S. Senate 1  | Rhee Pub       | Val Green |
-|DEN-A01         | B-777       | Denver Prop 1  | No             |           |
-|DEN-A01         | B-777       | Denver Prop 2  | Yes            |           |
-|DEN-A01         | B-777       | U.S. Senate 1  | +Tom Cruz      |           |
-
-Compared to the reported vote file above, we note a discrepancy in the
-interpretation of contest ``Denver Prop 2`` for ballot ``B-231``: the scanner showed
-an undervote, while the hand examination showed a ``No`` vote.
-
-The sample vote file will have a name of the form ``audited-votes-<pbcid>.csv``, possibly
-with a version label.  An example filename: ``audited-votes-DEN-A01.csv``.
-
-As noted, if the sample is expanded, then the new sample vote file will
-contain records for not only the newly examined ballots, but also for the previously
-examined ballots.
-For example, the file ``audited-votes-DEN-A01-2017-11-22.csv`` will be an augmented version of the file
-``audited-votes-DEN-A01-2017-11-21.csv`` (shown here with dates as version labels).
-
-[Back to TOC](#table-of-contents)
-
-### Audit stages
-
-[Back to TOC](#table-of-contents)
-
-#### Audit parameters files
-
-An **audit parameters** file gives parameters used in the audit.  
-There are *three* such files: one for global parameters, one for
-parameters by contest, and one for parameters by collection.
-
-These audit parameters files are **per stage**, since they may
-be updated from stage to stage.  Typically, however, they will not
-change, and the audit parameters for one stage will just be a
-copy of the audit parameters from the previous stage.
-
-[Back to TOC](#table-of-contents)
-
-##### Global audit parameters
+#### Global audit parameters
 
 The **global audit parameters file** is simple.
 
@@ -1126,7 +977,7 @@ The filename is of the form
 
 [Back to TOC](#table-of-contents)
 
-##### Contest audit parameters
+#### Contest audit parameters
 
 The **contest audit parameters file** shows the audit measurements
 and risk limits that will be applied to contests.  
@@ -1245,7 +1096,7 @@ The filename for a contest audit parameters file is of the form
 
 [Back to TOC](#table-of-contents)
 
-##### Collection audit parameters
+#### Collection audit parameters
 
 A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
@@ -1263,6 +1114,205 @@ ballots that can be examined in one stage for that collection.
 The filename for a collection audit parameters file is of the form
 ``12-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
+
+[Back to TOC](#table-of-contents)
+
+
+### Dialogue between Audit Central and Collection Managers
+
+After the initial audit setup, we view the actual audit as a two-way
+dialogue between AC (Audit Central) and the various collection
+managers (CMs, one per collection) during the audit.
+
+AC provides a sequence of specific auditing requests (orders): ballots
+to be pulled, and contests from those pulled ballots for which the
+collection manager (or her delegate) should record the voter's
+selection(s).
+
+A CM responds with the requested information, in the order requested.
+
+For each paper ballot collection, an **audit order file** gives the
+cumulative list of the audit requests made by AC for ballots in that
+collection.
+
+AC thus sends each CM a sequence of audit order files; each of which is
+progressively longer than the previous one, as each is a cumulative list
+of all auditing requests made so far to that CM.
+
+Each audit order file will have a version label (date-time stamp) that is
+greater than the version label of the previous audit order.
+
+Correspondingly, the collection manager will transmit every so often to AC an
+**audited votes file** giving the details of what was found on the
+audited votes examined so far.
+
+Each audited votes file is an extension of the previously-sent audited votes
+file: new records will be added to the end, but the previously-sent records
+will be repeated in the new file.
+
+The new audited votes filel will have a greater version label than the previously-sent
+audited votes file.
+
+(While have the audit orders and audited votes files cumulative may seem wasteful;
+the audit will normally terminate before these files get very large.)
+
+We can view the two sorts of files as giving one side of a *transcript* (or logs) of the
+two-way dialogue between AC and the CM.
+
+The conversation is **asynchronous**; either party may add additional
+records to its log, and transmit the resulting file to the other party
+at any time.
+
+The **``audit-order``** file may be dynamically computed as the audit
+progress, which is why it need not be specified "all at once" before the audit
+begins.  For example, it may be determined that a particular scanner has
+a high error rate, and so later sampling may emphasize ballots scanned
+with that scanner.  All the same, the AC should provide sufficient
+"advance notice" of auditing requests that CMs can "work ahead" if they
+wish, for example by combining requests for ballots from the same box.
+
+
+[Back to TOC](#table-of-contents)
+
+### Audit order file
+
+An **audit order file** lists a sequence of ballots requested for audit
+from a collection.
+
+An audit order file has a filename of the form
+
+   3-audit/32-audit-orders/audit-order-<pbcid><version-label>.csv``
+
+where ``<pbcid>`` is replaced with the paper ballot collection id, and
+``<version-label>`` is replaced with a version label (e.g. a date-time
+stamp).   An example of an audit order file name for collection ``DEN-A01``
+is:
+
+    audit-order-DEN-A01-2017-11-20-13-05-47.csv
+
+Audit Central may send a collection manager a sequence of such audit
+order files; each such file is a cumulative summary of all ballots requested
+to be audited.  Each audit order file is an append-only list of requests
+made so far by AC to that CM.
+
+The audit order files thus become longer as the audit progresses. 
+
+The order of the requests is a random order determined
+cryptographically, depending the audit seed.  The order should be
+unpredictable to an adversary, which is why the audit seed should be
+determined only **after** the reported votes for all the collections
+are recorded and filed.
+
+The sample order field indicates the order in which they must be
+examined during the audit.  Ballots may not be skipped during the
+audit.  (Technically, it is OK if the ballots audited may be re=ordered
+to form the order given in the audit order file.  That is, the auditor
+should make sure to audit any skipped ballots before reporting the results
+of the audit to AC.)
+
+When a ballot is audited, the auditor should report the voter's selection(s)
+for all contests that are open status and either active or opportunistic sampling
+mode.  Other contests should not be reported.
+
+The audit order file can be viewed as an initial segment of a permuted
+ballot manifest file.  The differences are that
+* The ballots are given numbers giving their positions in the audit order.
+* Each line represents a single ballot; no batching of lines is allowed.
+* AC may determine the order dynamically, depending on what is seen during
+  the audit.  While AC could in principle and perhaps in fact just be requesting ballots that
+  form an initial segment of some fixed predetermined scrambled ballot
+  manifest file, the AC could alternatively dynamically determine how to
+  extend the audit order file as the audit progresses.
+
+Here is an example audit order file, specifying the first seven ballots to be
+audited from collection LOG-B13.
+
+|Ballot order | Collection    | Box       | Position  | Stamp     | Ballot id |  Comments |
+|---          |---            | --        | ---       | ---       | ---       |  ---      |
+| 1           | LOG-B13       | B         | 3         | XY04213   | B-0003    |           |
+| 2           | LOG-B13       | C         | 2         | QE55312   | C-0002    |           |
+| 3           | LOG-B13       | F         | 1         | JS23334   | F-0001    | See Doc #211 |
+| 4           | LOG-B13       | D         | 7         |           | D-0007    |           |
+| 5           | LOG-B13       | B         | 1         | XY04211   | B-0001    |           |
+| 6           | LOG-B13       | D         | 39        |           | D-0039    |           |
+
+
+The auditor may naturally group the requests for ballots from box B,
+and those from box D.
+
+Sampling is done without replacement.  Each ballot in the collection
+appears at most once in the audit order file.  The audit order file
+may grow to include all ballots in the collection.
+
+To produce the audit order, ``multi.py`` feeds the audit seed,
+followed by a comma, the collection id, another comma, and a decimal
+counter value, into a cryptographic random number function
+(specifically, SHA256 used in counter mode, starting with counter
+value 1).  The Fisher-Yates algorithm is then used to produce a random
+permutation of the ballots, using these random numbers.  This reference
+random order is what is used if no dynamic determination of audit order
+is used.  Otherwise, the order used will be a subsequence or otherwise
+closely related to this random order.
+
+The audit order file and the reported cvrs file may be used
+with an appropriate UI interface to generate the audited votes
+file. 
+
+
+[Back to TOC](#table-of-contents)
+
+### Audited votes
+
+#### Audited votes file (actual vote file)
+
+An **``audited votes file``** will have a name of the form
+
+    3-audit/33-audited-votes/audited-votes-<pbcid><version-label>.csv
+
+where ``<pbcid>`` is replaced with the paper ballot collection is, and
+``<version-label>`` is replaced with a version label, such as a date-time
+stampe.  An example audited votes filename for collection ``DEN-A01`` is
+
+    audited-votes-DEN-A01-2017-11-21-09-30-55.csv
+
+As noted, if the sample is expanded, then the new sample vote file will
+contain records for not only the newly examined ballots, but also for the previously
+examined ballots.
+
+For example, the file
+
+    audited-votes-DEN-A01-2017-11-22-10-14-21.csv
+
+will be an augmented version of the previously show file.
+
+An **audited votes file** represents a set of votes that have been
+sampled and audited during an audit.  It is similar in format to a
+reported vote file (for a CVR collection), but the scanner field is
+omitted.
+
+Here is an example of a sample vote file for the ``DEN-A01`` collection, for
+two ballots and three contests each.
+ 
+ 
+|Collection      | Ballot id   | Contest        | Selections     |           |
+|---             | ---         | ---            | ---            | ---       |
+|DEN-A01         | B-231       | Denver Prop 1  | Yes            |           |
+|DEN-A01         | B-231       | Denver Prop 2  | No             |           |
+|DEN-A01         | B-231       | U.S. Senate 1  | Rhee Pub       | Val Green |
+|DEN-A01         | B-777       | Denver Prop 1  | No             |           |
+|DEN-A01         | B-777       | Denver Prop 2  | Yes            |           |
+|DEN-A01         | B-777       | U.S. Senate 1  | +Tom Cruz      |           |
+
+
+Compared to the reported vote file above, we note a discrepancy in the
+interpretation of contest ``Denver Prop 2`` for ballot ``B-231``: the scanner showed
+an undervote, while the hand examination showed a ``No`` vote.
+
+
+[Back to TOC](#table-of-contents)
+
+
+### Audit stages
 
 [Back to TOC](#table-of-contents)
 
