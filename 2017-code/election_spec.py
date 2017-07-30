@@ -150,11 +150,13 @@ def read_election_specification_contest_groups(e):
     file_pathname = os.path.join(specification_pathname, filename)
     fieldnames = ["Contest group id", "Contest or group id(s)"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
-    for row in rows:
 
+    for row in rows:
         gid = row["Contest group id"]
+        if gid in e.cids:
+            utils.myerror("Contest group id {} must not also be a contest id."
+                          .format(gid))
         e.gids.append(gid)
-        
         e.cgids_g[gid] = row["Contest or group id(s)"]
 
 
