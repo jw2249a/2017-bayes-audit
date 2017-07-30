@@ -1457,11 +1457,11 @@ Here we assume that the election data is in the directory
 
 | Command                                  | Action                              |
 |---                                       |---                                  |
-| ``python --read-structure CO-2017-11``   | Reads and checks structure          |
-| ``python --read-reported CO-2017-11``    | Reads and checks reported data      |
-| ``python --read-seed CO-2017-11``        | Reads and checks audit seed         |
-| ``python --make-audit orders CO-2017-11``| Produces initial audit order files  |
-| ``python --read-audited CO-2017-11``     | Reads and checks audited votes      |
+| ``python --read_structure CO-2017-11``   | Reads and checks structure          |
+| ``python --read_reported CO-2017-11``    | Reads and checks reported data      |
+| ``python --read_seed CO-2017-11``        | Reads and checks audit seed         |
+| ``python --make_audit orders CO-2017-11``| Produces initial audit order files  |
+| ``python --read_audited CO-2017-11``     | Reads and checks audited votes      |
 | ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
 
 The program ``multi.py`` will be run by Audit Central for each stage.
