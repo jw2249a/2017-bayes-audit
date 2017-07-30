@@ -632,6 +632,11 @@ The file name may also include a version label.
 
 Such a **``ballot manifest file``** lists all of the ballots in a given collection.
 
+It should be produced in a trustworthy manner (e.g. manually by
+election officials), as it is used to define the "sample space" for
+the audit, and its accuracy is critical for the trustworthiness of the
+audit.
+
 Each ballot may be described explicitly, or, if some ballots are organized
 into a batch (box) with sequential ballot ids, the first ballot id of the batch and
 the number of ballots in the batch may be given.
@@ -778,18 +783,18 @@ Here are the fields of a row of a reported cvrs file:
 2. **Scanner**: Gives an id of the device that scanned this ballot.
    May be blank.
 
-2. **Ballot identifier** (bid)
+3. **Ballot identifier** (bid)
 
-3. **Contest** (cid) 
+4. **Contest** (cid) 
    An identifier (cid) for the contest.)
 
-7. **Selections** (vote): Columns 4 and on are to record the voter's choices
+5. **Selections** (vote): Columns 5 and on are to record the voter's choices
    for that contest.  A typical plurality election will only have one
    choice, so the selection id (selid) is entered in column 4 and the later
    columns are blank.
 
    For other contest types (e.g. approval voting) there may be more than
-   one selection, so they are listed in columns 4, 5, ...
+   one selection, so they are listed in columns 5, 6, ...
    In general, each selection id corresponds to a single bubble that
    the voter has filled in on the paper ballot.
 
