@@ -91,8 +91,8 @@ def write_audit_order(e, pbcid):
     filename = os.path.join(dirpath, "audit-order-"+safe_pbcid+"-"+ds+".csv")
     with open(filename, "w") as file:
         fieldnames = ["Ballot order",
-                      "Collection id",
-                      "Box id",
+                      "Collection",
+                      "Box",
                       "Position",
                       "Stamp",
                       "Ballot id",

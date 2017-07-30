@@ -1021,7 +1021,7 @@ ballot manifest file.  The differences are that
 Here is an example audit order file, specifying the first seven ballots to be
 audited from collection LOG-B13.
 
-|Ballot order | Collection id | Box id    | Position  | Stamp     | Ballot id |  Comments |
+|Ballot order | Collection    | Box       | Position  | Stamp     | Ballot id |  Comments |
 |---          |---            | --        | ---       | ---       | ---       |  ---      |
 | 1           | LOG-B13       | B         | 3         | XY04213   | B-0003    |           |
 | 2           | LOG-B13       | C         | 2         | QE55312   | C-0002    |           |
@@ -1293,10 +1293,10 @@ observer).
 
 ### Pre-election
 
-Define election structure, global parameters, contests, and collections.
-Put this information into directory:
+Define election specification, global parameters, contests, and collections.
+Put all this information into directory:
 
-    1-election-specification
+    1-election-spec
 
 [Back to TOC](#table-of-contents)
 
@@ -1304,26 +1304,30 @@ Put this information into directory:
 
 Gather cast vote records, organize paper ballots into collections,
 and produce ballot manifests.
-Put this information into directories:
+Put this information into directories and files
 
     2-reported
       21-reported-ballot-manifests
       22-reported-cvrs
-      23-reported-outcomes
+      23-reported-outcomes.csv
 
 [Back to TOC](#table-of-contents)
+
 
 ### Setup audit
 
 Produce random audit seed with a public ceremony.
+
+
+
 Produce initial random audit orders from the audit seed
 and the ballot manifests.
 Put these into the audit seed file and
 the audit-orders directory.
 
     3-audit
-       31-audit-setup
-          311-audit-seed.csv
+       31-audit-spec
+          audit-spec-seed.csv
        32-audit-orders
           audit-order-DEN-A01.csv
           audit-order-DEN-A02.csv
@@ -1348,15 +1352,16 @@ for your collection, and put
 the resulting information into the directory:
 
     3-audit
-       32-audited-votes
+       33-audited-votes
 
 From a collection managers point of view, the process
 is **asynchronous** with the operations of Audit Central.
 A collection manager can update
 her audited votes file whenever she is ready to do so.
 
-These updates do **not** need to be synchronized on a
-per-stage basis.  (Note again that each updated audited-votes
+These updates do **not** need to be synchronized with the
+operations of Audit Central.
+(Note again that each updated audited-votes
 file contains *all* of the audited votes from the collection;
 they are cumulative.) (For non-Bayesian risk measurement
 methods, the uploads may need to be synchronized.)
