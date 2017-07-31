@@ -121,10 +121,6 @@ def greatest_name(dirpath,
 
     """
 
-    print(dirpath)
-    print(startswith)
-    print(max_label)
-    print(endswith)
     if max_label == None:
         max_filename = None
     else:

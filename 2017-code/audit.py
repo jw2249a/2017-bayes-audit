@@ -10,6 +10,7 @@ Routines to work with multi.py on post-election audits.
 
 import numpy as np
 
+import multi
 import outcomes
 import utils
 
@@ -240,18 +241,35 @@ def set_audit_seed(e, new_audit_seed):
     # parameters (via np.random.RandomState)
 
 
-def get_audit_parameters(e, args):
+def read_audit_spec(e, args):
 
     # this should NOT overwrite e.audit_seed if it was non-None
     # because it was already set from the command line
 
-    # now obsolete:
-    # load_part_from_json(e, "audit_parameters.js")
-
-    check_audit_parameters(e)
+    check_audit_spec(e)
 
 
-def check_audit_parameters(e):
+def read_audit_spec_seed(e, args):
+
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT,
+                                     e.election_dirname)
+    audit_spec_pathname = os.path.join(election_pathname,
+                                       "3-audit",
+                                       "31-audit-spec")
+    filename = utils.greatest_name(audit_spec_pathname,
+                                   "audit-spec-seed",
+                                   ".csv")
+    file_pathname = os.path.join(auit_spec_pathname, filename)
+    fieldnames = ["Audit seed"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+    for row in rows:
+        cid = row["Contest"]
+        winners = row["Winner(s)"]
+        utils.nested_set(e.ro_c, [cid], winners)
+
+
+
+def check_audit_spec(e):
 
     if not isinstance(e.risk_limit_c, dict):
         utils.myerror("e.risk_limit_c is not a dict.")

@@ -107,10 +107,9 @@ def process_args(e, args):
         audit_orders.compute_audit_orders(e)
 
     elif args.read_audited:
-        print("read_audited")
+        print("read_audited--NO-OP-TBD")
 
     elif args.audit:
-        print("audit", args.audit)
         election_spec.read_election_spec(e)
         reported.read_reported(e)
         audit.read_audit_spec(e, args)
