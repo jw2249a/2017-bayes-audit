@@ -205,7 +205,8 @@ observer).
 ### Pre-election
 
 On the  Audit Central file system, create a directory (folder) for
-this election.
+this election.  This directory may be on a server that is publicly readable, but
+only writable by Audit Central.
 
 Give the election specification in four files, one for each of:
 
@@ -241,7 +242,7 @@ scanned:
   Otherwise, produce one file for each collection
   giving the tally of votes in that collection.
 
-* Audit Central collect the reported outcome for each contest.
+* Audit Central collects the reported outcome for each contest.
 
   Audit Central puts this information into directories and files:
 
@@ -249,6 +250,7 @@ scanned:
         21-reported-ballot-manifests
         22-reported-cvrs
         23-reported-outcomes.csv
+
 
 ### Audit
 
@@ -272,28 +274,28 @@ scanned:
 
   * Put this information into directories and files:
 
-    3-audit
-       31-audit-spec
-          audit-spec-global.csv
-          audit-spec-contest.csv
-          audit-spec-collection.csv
-          audit-spec-seed.csv
-
-       32-audit-orders
-          audit-order-PBCID1.csv
-          audit-order-PBCID12.csv
-          ...
+      3-audit
+         31-audit-spec
+            audit-spec-global.csv
+            audit-spec-contest.csv
+            audit-spec-collection.csv
+            audit-spec-seed.csv
+  
+         32-audit-orders
+            audit-order-PBCID1.csv
+            audit-order-PBCID12.csv
+            ...
 
 * Each collection manager begins auditing the
   ballots specified in his "audit order" file, and
   shipped the results back to Audit Central, who
   stores them in directory:
 
-      3-audit
-         33-audited-votes
-           audited-votes-PBCID1.csv
-           audited-votes-PBCID2.csv
-           ...
+        3-audit
+           33-audited-votes
+             audited-votes-PBCID1.csv
+             audited-votes-PBCID2.csv
+             ...
 
 * Audit Central will process the received audited
   votes files, and frequently send back to each
