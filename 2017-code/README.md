@@ -23,11 +23,9 @@ here.  At least not yet.**
 * [Audit workflow](#audit-workflow)
   * [Pre-election](#pre-election)
   * [Election](#election)
+  # [Audit](#audit)
   * [Setup audit](#setup-audit)
   * [Start audit](#start-audit)
-  * [Audit snapshot file](#audit-snapshot-file)
-  * [Audit output file(s)](#audit-output-file-s)
-  * [Audit plan file](#audit-plan-file)
 * [Implementation notes: identifiers, votes, file names, and directory structure](#implementation-notes-identifiers-votes-file0names-and-directory-structure)
   * [Identifiers](#identifiers)
   * [Votes](#votes)
@@ -42,16 +40,19 @@ here.  At least not yet.**
   * [Reported ballot manifest files](#reported-ballot-manifest-files)
   * [Reported CVRs file](#reported-cvrs-file)
   * [Reported outcomes file](#reported-outcomes-file)
-* [Audit](#audit)
+* [Audit details](#audit-details)
   * [Audit setup](#audit-setup)
-    * [Audit seed file](#audit-seed-file)
     * [Global audit parameters](#global-audit-parameters)
     * [Contest audit parameters](#contest-audit-parameters)
     * [Collection audit parameters](#collection-audit-parameters)
+    * [Audit seed file](#audit-seed-file)
   * [Dialogue between Audit Central and Collection Managers](#dialogue-between-audit-central-and-collection-managers)
     * [Audit order file](#audit-order-file)
     * [Audited votes](#audited-votes)
     * [Output file formats (per stage](#output-file-formats-per-stage)
+      * [Audit snapshot file](#audit-snapshot-file)
+      * [Audit output file(s)](#audit-output-file-s)
+      * [Audit plan file](#audit-plan-file)
 * [Command-line interface to ``multi.py``](#command-line-interface-to-multi-py)
 * [Appendix: File names](#appendix-file-names)
 * [Appendix (Possible future work)](#appendix-possible-future-work)
@@ -283,7 +284,7 @@ scanned:
     
            32-audit-orders
               audit-order-PBCID1.csv
-              audit-order-PBCID12.csv
+              audit-order-PBCID2.csv
               ...
 
 * Each collection manager begins auditing the
@@ -1011,7 +1012,7 @@ it here.
 
 [Back to TOC](#table-of-contents)
 
-## Audit
+## Audit details
 
 The audit process begins with a single "audit setup" phase,
 in which a random "**audit seed**" is generated, and an initial
@@ -1059,30 +1060,6 @@ copy of the audit parameters from the previous stage.
 
 [Back to TOC](#table-of-contents)
 
-#### Audit seed file
-
-The **audit seed file** has a filename of the form
-
-    3-audit/31-audit-spec/audit-spec-seed-2017-11-20.csv
-
-This example shows a version label to record the date, but the audit
-seed should only be determined once.
-
-The audit seed file gives the audit seed used to control the random
-sampling of the audit.
-
-| Audit seed           |
-|---                   | 
-| 13456201235197891138 |
-
-The audit seed should be made by rolling a decimal die twenty or more
-times.  **It is important that this be done *after* the reported votes have been
-collected and published by Audit Central.**  The generation of the audit
-seed should preferably be done in a videotaped public ceremony.  
-
-
-[Back to TOC](#table-of-contents)
-
 #### Global audit parameters
 
 The **global audit parameters file** is simple.
@@ -1099,7 +1076,14 @@ The filename is of the form
 
 #### Contest audit parameters
 
-The **contest audit parameters file** shows the audit measurements
+A **``contest audit parameters file``**
+has a filename of the form
+
+    3-audit/31-audit-spec/audit-spec-contest-2017-11-22.csv
+
+This example shows a version label that is a date-time stamp.
+
+The **``contest audit parameters file``** shows the audit measurements
 and risk limits that will be applied to contests.  
 
 Each row specifies a risk measurement specific to a particular contest.
@@ -1107,7 +1091,7 @@ The measured risk quantifies, on a scale from 0.0 (no risk) to 1.0
 (extreme risk), the risk associated with stopping the audit now and
 accepting the reported election outcome as correct.
 
-At the end of each stage, each risk measurement is performed.
+Audit Central determines when each risk measurement is performed.
 
 The measured risk is compared against a specified **risk limi** (such as 0.05);
 if the measured risk is less than the specified risk limit, we say
@@ -1130,20 +1114,20 @@ is perhaps most useful for research purposes, but is noted here.)
 
 Here is a sample contest audit parameters file:
 
-| Measurement id | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Status | Param 1 | Param 2 |
-|---             | ---                  | ---                     | ---        | ---                        |---            | ---    | ---     | ---     |
-| 1              | Denver Prop 1           | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
-| 2              | Denver Prop 2           | Bayes                   | 1.00       | 1.00                       | Opportunistic | Passed |         |         |
-| 3              | DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open   |         |         |
-| 4              | LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off    |         |         |
-| 5              | U.S. Senate 1          | Bayes                   | 0.05       | 0.99                       | Active        | Upset  |         |         |
-| 6              | Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
-| 7              | Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open   |         |         |
-| 8              | Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open   |         |         |
+| Measurement id | Contest              | Risk Measurement Method | Risk Limit | Risk Upset Threshold       | Sampling Mode | Initial Status | Param 1 | Param 2 |
+|---             | ---                  | ---                     | ---        | ---                        |---            | ---            | ---     | ---     |
+| 1              | Denver Prop 1        | Bayes                   | 0.05       | 0.99                       | Active        | Open           |         |         |
+| 2              | Denver Prop 2        | Bayes                   | 1.00       | 1.00                       | Opportunistic | Open           |         |         |
+| 3              | DEN-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Open           |         |         |
+| 4              | LOG-mayor            | Bayes                   | 0.05       | 0.99                       | Active        | Off            |         |         |
+| 5              | U.S. Senate 1        | Bayes                   | 0.05       | 0.99                       | Active        | Open           |         |         |
+| 6              | Boulder-clerk        | Bayes                   | 1.00       | 0.99                       | Active        | Open           |         |         |
+| 7              | Boulder-council      | Bayes                   | 1.00       | 0.99                       | Active        | Open           |         |         |
+| 8              | Boulder-council      | Frequentist             | 0.05       | 1.00                       | Opportunistic | Open           |         |         |
 
 
-Each row describes a risk measurement that will be done on the specified contest
-(given in the second column) at the end of each stage.  
+Each row describes a risk measurement that will be done on the
+specified contest (given in the second column).
 
 The third column specifies the risk measurement method.  The example
 shows using ``Bayes`` and ``Frequentist`` as risk measurement methods.
@@ -1178,20 +1162,28 @@ sample data will be obtained only by "piggybacking" on active sampling done
 for other tests, since a pulled ballot may have the votes for several
 contests recorded.
 
-The seventh column specifes the **status** of the test, which should be
-one of ``Open``, ``Passed``, ``Upset``, ``Exhausted``, or ``Off``.  The status
-describes the status of this test, from the last stage risk
-measurements.  This is the only column that we expect to change from
-stage to stage of the audit.  Normally all tests start with an
-``Open`` status, and the audit proceeds to sample for the still-open
-``Active`` tests until they are all ``Passed`` or ``Upset``.  
-The ``Exhausted`` status means that all relevant ballots have been audited.
-The ``Off``
-status is for administrative use, to designate and turn off tests that
+The seventh column specifes the **initial status** of the test.
+The status of a test will always be one of
+* ``Open``
+* ``Off``.  
+* ``Passed``
+* ``Upset``
+* ``Exhausted``
+In general, The status of a test describes depends upon the most recent risk
+measurement.  
+
+Normally all tests start with an ``Open`` or ``Off`` status, and the audit proceeds to
+sample for the still-open ``Active`` tests until they are all ``Passed``, ``Upset``,
+or ``Exhausted``.
+(The ``Exhausted`` status means that all relevant ballots have been audited.)
+The ``Off`` status is for administrative use, to designate and turn off tests that
 aren't being exercised in the current audit; a test that is ``Off``
-isn't measured and remains off.  For example, when running an audit in
+isn't measured and remains off.  An uncontested contest may also have an initial
+status of ``Off``.
+
+(For example, when running an audit in
 a county only on local contests, only the local contests may be
-specified as ``Open``; others are turned ``Off``.
+specified as ``Open``; others are turned ``Off``.)
 
 The audit may stop when no ``Active`` tests remain ``Open``.
 
@@ -1210,10 +1202,6 @@ This feature may also enable the simultaneous use of different Bayesian
 priors (say one for each candidate), as explained in
 [Rivest and Shen (2012)](http://people.csail.mit.edu/rivest/pubs.html#RS12z).
 
-The filename for a contest audit parameters file is of the form
-``11-audit-parameters-contest-2017-11-22.csv``
-(showing a year-month-day version label).
-
 [Back to TOC](#table-of-contents)
 
 #### Collection audit parameters
@@ -1221,19 +1209,46 @@ The filename for a contest audit parameters file is of the form
 A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
 
+
 | Collection     | max audit rate  |
 |---             |---              |
 |  DEN-A01       | 50              |
 |  DEN-A02       | 50              |
 |  LOG-B13       | 30              |
 
+
 At this point, we only have one collection-specific audit parameter:
 the *max audit rate*, which is the maximum number of
-ballots that can be examined in one stage for that collection.
+ballots that can be examined per day for that collection.
 
 The filename for a collection audit parameters file is of the form
 ``12-audit-parameters-collection-2017-11-22.csv``
 (showing a year-month-day version label).
+
+[Back to TOC](#table-of-contents)
+
+
+#### Audit seed file
+
+The **audit seed file** has a filename of the form
+
+    3-audit/31-audit-spec/audit-spec-seed-2017-11-20.csv
+
+This example shows a version label to record the date, but the audit
+seed should only be determined once.
+
+The audit seed file gives the audit seed used to control the random
+sampling of the audit.
+
+| Audit seed           |
+|---                   | 
+| 13456201235197891138 |
+
+The audit seed should be made by rolling a decimal die twenty or more
+times.  **It is important that this be done *after* the reported votes have been
+collected and published by Audit Central.**  The generation of the audit
+seed should preferably be done in a videotaped public ceremony.  
+
 
 [Back to TOC](#table-of-contents)
 
@@ -1383,8 +1398,6 @@ file.
 
 #### Audited votes
 
-#### Audited votes file (actual vote file)
-
 An **``audited votes file``** will have a name of the form
 
     3-audit/33-audited-votes/audited-votes-<pbcid><version-label>.csv
@@ -1432,24 +1445,18 @@ an undervote, while the hand examination showed a ``No`` vote.
 [Back to TOC](#table-of-contents)
 
 
-### Audit stages
+#### Output file formats
 
-[Back to TOC](#table-of-contents)
-
-#### Output file formats (per stage)
-
-The outputs include a file ``20-audit-snapshot.csv`` that gives the SHA256
+The outputs include a file ``audit-snapshot.csv`` that gives the SHA256
 hashes of the files used as inputs to the computations of that stage.
 This is a "snapshot" of the current directory structure.  It is used
 if/when re-running a audit stage computation.
 
-The output file ``30-audit-outputs.csv`` gives the detailed audit outputs
-for the stage.
+The output file ``audit-output-detail.csv`` gives the detailed audit outputs
+for the most recent audit computation.
 
-The file ``40-audit-plan.csv`` gives the workload estimates and auditing
+The file ``audit-output-plan.csv`` gives the workload estimates and auditing
 plan (broken down by collection) for the next stage.
-
-(More details to be determined.)
 
 [Back to TOC](#table-of-contents)
 
