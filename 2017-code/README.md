@@ -235,29 +235,33 @@ scanned:
   paper ballots are stored (e.g. in boxes).
 
 * If the scanners produced a cast vote record for each
-  ballot, produce a "reported-cvrs" CSV file for each
+  ballot, collection managers (or the tabulation equipment)
+  produces a "reported-cvrs" CSV file for each
   collection, having one row for each vote.
   Otherwise, produce one file for each collection
   giving the tally of votes in that collection.
 
-* Collect the reported outcome for each contest.
+* Audit Central collect the reported outcome for each contest.
 
-  Put this information into directories and files
+  Audit Central puts this information into directories and files:
 
       2-reported
         21-reported-ballot-manifests
         22-reported-cvrs
         23-reported-outcomes.csv
 
-[Back to TOC](#table-of-contents)
+### Audit
 
-* Produce an "audit specification".
+* Audit Central produces an "audit specification".
 
   * Produce any necessary global audit parameters.
 
   * Produce a detailed list of which contests will be
-    audited, and to what risk limits.  Give the initial
+    audited, and to what risk limits.  
+    Give the initial
     status for each contest audit.
+    (Arguably, this should be done before the election
+    itself.)
 
   * Produce a random audit seed (say by rolling dice at a
     public ceremony).
@@ -280,8 +284,6 @@ scanned:
           audit-order-PBCID12.csv
           ...
 
-[Back to TOC](#table-of-contents)
-
 * Each collection manager begins auditing the
   ballots specified in his "audit order" file, and
   shipped the results back to Audit Central, who
@@ -292,8 +294,6 @@ scanned:
            audited-votes-PBCID1.csv
            audited-votes-PBCID2.csv
            ...
-
-[Back to TOC](#table-of-contents)
 
 * Audit Central will process the received audited
   votes files, and frequently send back to each
