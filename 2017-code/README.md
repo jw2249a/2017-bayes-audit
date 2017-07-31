@@ -240,16 +240,14 @@ scanned:
   Otherwise, produce one file for each collection
   giving the tally of votes in that collection.
 
-[Back to TOC](#table-of-contents)
-
 * Collect the reported outcome for each contest.
 
   Put this information into directories and files
 
-    2-reported
-      21-reported-ballot-manifests
-      22-reported-cvrs
-      23-reported-outcomes.csv
+      2-reported
+        21-reported-ballot-manifests
+        22-reported-cvrs
+        23-reported-outcomes.csv
 
 [Back to TOC](#table-of-contents)
 
