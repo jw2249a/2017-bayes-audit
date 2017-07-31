@@ -100,7 +100,7 @@ def read_election_spec_general(e, election_dirname):
 
 def test_read_election_spec_general(e):        
 
-    print("test_read_election_spec_general")
+    # print("test_read_election_spec_general")
     read_election_spec_general(e, "ex1")
 
 
@@ -135,7 +135,7 @@ def read_election_spec_contests(e):
 
 def test_read_election_spec_contests(e):
 
-    print("test_read_election_spec_contests")
+    # print("test_read_election_spec_contests")
     read_election_spec_contests(e)
 
 
@@ -162,7 +162,7 @@ def read_election_spec_contest_groups(e):
 
 def test_read_election_spec_contest_groups(e):    
 
-    print("test_read_contest_groups")
+    # print("test_read_contest_groups")
     read_election_spec_contest_groups(e)
 
 
@@ -190,11 +190,11 @@ def read_election_spec_collections(e):
 
 def test_read_election_spec_collections(e):
 
-    print("test_read_collections")
+    # print("test_read_collections")
     read_election_spec_collections(e)
 
 
-def get_election_spec(e):
+def read_election_spec(e):
 
     read_election_spec_general(e, e.election_dirname)
     read_election_spec_contests(e)

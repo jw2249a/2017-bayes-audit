@@ -94,10 +94,7 @@ import utils
 ##############################################################################
 
 
-def get_election_data(e):
-
-    # next line needs to be replaced!
-    # load_part_from_json(e, "data.js")
+def read_reported(e):
 
     read_reported_ballot_manifests(e)
     read_reported_cvrs(e)
