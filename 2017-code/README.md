@@ -20,6 +20,14 @@ here.  At least not yet.**
 * [Election and audit](#election-and-audit)
 * [Scanning of cast paper ballots](#scanning-of-cast-paper-ballots)
 * [Auditing](#auditing)
+* [Audit workflow](#audit-workflow)
+  * [Pre-election](#pre-election)
+  * [Election](#election)
+  * [Setup audit](#setup-audit)
+  * [Start audit](#start-audit)
+  * [Audit snapshot file](#audit-snapshot-file)
+  * [Audit output file(s)](#audit-output-file-s)
+  * [Audit plan file](#audit-plan-file)
 * [Implementation notes: identifiers, votes, file names, and directory structure](#implementation-notes-identifiers-votes-file0names-and-directory-structure)
   * [Identifiers](#identifiers)
   * [Votes](#votes)
@@ -43,20 +51,7 @@ here.  At least not yet.**
   * [Dialogue between Audit Central and Collection Managers](#dialogue-between-audit-central-and-collection-managers)
     * [Audit order file](#audit-order-file)
     * [Audited votes](#audited-votes)
-  * [Audit stages](#audit-stages)
-    * [Audit parameters files](#audit-parameters-files)
     * [Output file formats (per stage](#output-file-formats-per-stage)
-* [Audit workflow](#audit-workflow)
-  * [Pre-election](#pre-election)
-  * [Election](#election)
-  * [Setup audit](#setup-audit)
-  * [Start audit](#start-audit)
-  * [Audit stages](#audit-stages)
-    * [Per-stage audit files](#per-stage-audit-files)
-      * [Audit parameters files](#audit-parameters-files)
-      * [Audit snapshot file](#audit-snapshot-file)
-      * [Audit output file(s)](#audit-output-file-s)
-      * [Audit plan file](#audit-plan-file)
 * [Command-line interface to ``multi.py``](#command-line-interface-to-multi-py)
 * [Appendix: File names](#appendix-file-names)
 * [Appendix (Possible future work)](#appendix-possible-future-work)
@@ -196,6 +191,132 @@ very reasonable) computation during the audit.
 We assume the existence of an **Audit Coordinator** who coordinates
 the audit in collaboration with the collection managers (the
 Coordinator might be from the Secretary of State's office).
+
+[Back to TOC](#table-of-contents)
+
+## Audit workflow
+
+This section describes the audit workflow, from the point of
+view of the audit participants (AC coordinator, collection manager,
+observer).
+
+[Back to TOC](#table-of-contents)
+
+### Pre-election
+
+On the  Audit Central file system, create a directory (folder) for
+this election.
+
+Give the election specification in four files, one for each of:
+
+* **global parameters** (such as the name and date of the election)
+
+* **contests** (describing the contests in this election)
+
+* **contest groups** (giving some organization to the contests)
+
+* **paper ballot collections** (saying how the paper ballots will be collected and organized).
+
+Put these four files into the subdirectory:
+
+    1-election-spec
+
+within the directory for this election.
+
+[Back to TOC](#table-of-contents)
+
+### Election
+
+After the election has closed, and paper ballot have been
+scanned:
+
+* Organize the paper ballots in each collections, 
+  and produce ballot manifests describing how the
+  paper ballots are stored (e.g. in boxes).
+
+* If the scanners produced a cast vote record for each
+  ballot, produce a "reported-cvrs" CSV file for each
+  collection, having one row for each vote.
+  Otherwise, produce one file for each collection
+  giving the tally of votes in that collection.
+
+[Back to TOC](#table-of-contents)
+
+* Collect the reported outcome for each contest.
+
+  Put this information into directories and files
+
+    2-reported
+      21-reported-ballot-manifests
+      22-reported-cvrs
+      23-reported-outcomes.csv
+
+[Back to TOC](#table-of-contents)
+
+* Produce an "audit specification".
+
+  * Produce any necessary global audit parameters.
+
+  * Produce a detailed list of which contests will be
+    audited, and to what risk limits.  Give the initial
+    status for each contest audit.
+
+  * Produce a random audit seed (say by rolling dice at a
+    public ceremony).
+
+  * Produce an initial "audit order" for each paper ballot
+    collection, saying what randomly-chosen ballots should
+    be audited first.
+
+  * Put this information into directories and files:
+
+    3-audit
+       31-audit-spec
+          audit-spec-global.csv
+          audit-spec-contest.csv
+          audit-spec-collection.csv
+          audit-spec-seed.csv
+
+       32-audit-orders
+          audit-order-PBCID1.csv
+          audit-order-PBCID12.csv
+          ...
+
+[Back to TOC](#table-of-contents)
+
+* Each collection manager begins auditing the
+  ballots specified in his "audit order" file, and
+  shipped the results back to Audit Central, who
+  stores them in directory:
+
+      3-audit
+         33-audited-votes
+           audited-votes-PBCID1.csv
+           audited-votes-PBCID2.csv
+           ...
+
+[Back to TOC](#table-of-contents)
+
+* Audit Central will process the received audited
+  votes files, and frequently send back to each
+  collection manager additional audit orders and status
+  reports on how each contest audit is progress (including
+  an estimate as to how much work remains to be done).  
+
+  Audit Central will announce when each contest has been
+  sufficiently audited, and when the overall audit is complete.
+
+  From a collection manager's point of view, the process
+  is **asynchronous** with the operations of Audit Central.
+  A collection manager can update
+  her audited votes file whenever she is ready to do so.
+
+  These updates do **not** need to be synchronized with the
+  operations of Audit Central.
+  (Note that each updated audited-votes
+  file contains *all* of the audited votes from the collection;
+  they are cumulative.) (For non-Bayesian risk measurement
+  methods, the uploads may need to be synchronized.)
 
 [Back to TOC](#table-of-contents)
 
@@ -1329,117 +1450,6 @@ The file ``40-audit-plan.csv`` gives the workload estimates and auditing
 plan (broken down by collection) for the next stage.
 
 (More details to be determined.)
-
-[Back to TOC](#table-of-contents)
-
-## Audit workflow
-
-This section describes the audit workflow, from the point of
-view of the audit participants (AC coordinator, collection manager,
-observer).
-
-[Back to TOC](#table-of-contents)
-
-### Pre-election
-
-Define election specification, global parameters, contests, and collections.
-Put all this information into directory:
-
-    1-election-spec
-
-[Back to TOC](#table-of-contents)
-
-### Election
-
-Gather cast vote records, organize paper ballots into collections,
-and produce ballot manifests.
-Put this information into directories and files
-
-    2-reported
-      21-reported-ballot-manifests
-      22-reported-cvrs
-      23-reported-outcomes.csv
-
-[Back to TOC](#table-of-contents)
-
-
-### Setup audit
-
-Produce random audit seed with a public ceremony.
-
-
-
-Produce initial random audit orders from the audit seed
-and the ballot manifests.
-Put these into the audit seed file and
-the audit-orders directory.
-
-    3-audit
-       31-audit-spec
-          audit-spec-seed.csv
-       32-audit-orders
-          audit-order-DEN-A01.csv
-          audit-order-DEN-A02.csv
-          audit-order-LOG-B13.csv
-
-
-Produce first *plan* for the audit, and put this information
-into the stage "000" directory in the audit-plan file.
-
-    3-audit
-      34-audit-stages
-         audit-stage-000
-             40-audit-plan.csv
-
-[Back to TOC](#table-of-contents)
-
-### Start audit
-
-If you are a collection manager,
-start auditing the  ballots specified in the audit plan
-for your collection, and put
-the resulting information into the directory:
-
-    3-audit
-       33-audited-votes
-
-From a collection managers point of view, the process
-is **asynchronous** with the operations of Audit Central.
-A collection manager can update
-her audited votes file whenever she is ready to do so.
-
-These updates do **not** need to be synchronized with the
-operations of Audit Central.
-(Note again that each updated audited-votes
-file contains *all* of the audited votes from the collection;
-they are cumulative.) (For non-Bayesian risk measurement
-methods, the uploads may need to be synchronized.)
-
-[Back to TOC](#table-of-contents)
-
-### Audit stages
-
-Audit Central determines when a new audit stage starts.
-
-A new ``stage-nnn`` subdirectory is created, where ``nnn`` is
-the stage number as a three-digit decimal,
-and the audit computations begin, based on all available sampling data
-(from ``32-audited-votes``) at the time the stage begins.
-
-[Back to TOC](#table-of-contents)
-
-#### Per-stage audit files
-
-[Back to TOC](#table-of-contents)
-
-##### Audit parameters files
-
-The **audit parameters files** for a stage may be copied from the
-previous stage, and possibly adjusted by hand by Audit
-Central to reflect pending deadlines, additional resources now available,
-etc.
-
-Formats are as specified above.
 
 [Back to TOC](#table-of-contents)
 
