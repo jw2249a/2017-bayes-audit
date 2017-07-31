@@ -274,17 +274,17 @@ scanned:
 
   * Put this information into directories and files:
 
-      3-audit
-         31-audit-spec
-            audit-spec-global.csv
-            audit-spec-contest.csv
-            audit-spec-collection.csv
-            audit-spec-seed.csv
-  
-         32-audit-orders
-            audit-order-PBCID1.csv
-            audit-order-PBCID12.csv
-            ...
+        3-audit
+           31-audit-spec
+              audit-spec-global.csv
+              audit-spec-contest.csv
+              audit-spec-collection.csv
+              audit-spec-seed.csv
+    
+           32-audit-orders
+              audit-order-PBCID1.csv
+              audit-order-PBCID12.csv
+              ...
 
 * Each collection manager begins auditing the
   ballots specified in his "audit order" file, and
