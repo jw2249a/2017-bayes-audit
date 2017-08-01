@@ -506,10 +506,19 @@ version labels that are date-time stamps, such as
           audited-votes-PCBID2.csv
           ...
        34-audit-output
-          audit-output-status.csv
+          audit-output-contest-status.csv
+          audit-output-collection-status.csv
           audit-output-snapshot.csv
           audit-output-detail.csv
           audit-output-plan.csv
+          audit-output-saved-state.json
+
+Typically these files may have several **versions**, not shown
+here, but distinguished by a datetime-stamp version labels as in
+
+    audit-output-saved-state-2017-11-20-11-08-13.json
+
+See [``Appendix: File names](#appendix-file-names) for details on version labels.
 
  
 [Back to TOC](#table-of-contents)
