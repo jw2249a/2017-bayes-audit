@@ -17,7 +17,6 @@ import sys
 # datetime
 ##############################################################################
 
-
 def datetime_string():
     """ Return current datetime as string e.g. '2017-06-26-21-18-30' 
         Year-Month-Day-Hours-Minutes-Seconds
@@ -38,6 +37,8 @@ def date_string():
     t = datetime.datetime.now()
     return t.strftime("%Y-%m-%d")
 
+# Global variable for other modules to reference
+start_datetime_string = datetime_string()
 
 
 ##############################################################################

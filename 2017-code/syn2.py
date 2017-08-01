@@ -153,7 +153,7 @@ def generate_election_spec(se=default_SynElection):
     dts = utils.datetime_string()
     se.election_name = "TestElection-"+dts
     se.election_dirname = "TestElection-"+dts
-    se.election_date = dts                     # FIX ??
+    se.election_date = dts                  
     se.election_url = "None"            
 
 
@@ -648,20 +648,21 @@ def generate_audited_votes(se):
 
 def write_audit_csv(se):
 
-    write_311_audit_seed_csv(se)
+    write_audit_spec_seed_csv(se)
     write_32_audit_orders_csv(se)
     write_33_audited_votes_csv(se)
 
 
-def write_311_audit_seed_csv(se):
-    """ Write 3-audit/31-audit-setup/311-audit-seed.csv """
+def write_audit_spec_seed_csv(se):
+    """ Write 3-audit/31-audit-spec/audit-spec-seed.csv """
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
                            se.election_dirname,
                            "3-audit",
-                           "31-audit-setup")
+                           "31-audit-spec")
     os.makedirs(dirpath, exist_ok=True)
-    filename = os.path.join(dirpath, "311-audit-seed.csv")
+    filename = os.path.join(dirpath,
+                            "audit-spec-seed-"+utils.start_datetime_string+".csv")
     with open(filename, "w") as file:
         file.write("Audit seed\n")
         file.write("{}\n".format(se.audit_seed))
