@@ -86,7 +86,7 @@ def draw_sample(e):
     for cid in e.cids:
         e.sn_tcpra[e.stage][cid] = {}
         e.sn_tcpr[e.stage][cid] = {}
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             e.sn_tcpr[e.stage][cid][pbcid] = {}
             avs = [e.av_cpb[cid][pbcid][bid]
                    for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]]  # actual
@@ -104,7 +104,7 @@ def show_sample_counts(e):
     utils.myprint("    Total sample counts by Contest.PaperBallotCollection[reported selection]"
             "and actual selection:")
     for cid in e.cids:
-        for pbcid in sorted(e.rel_cp[cid]):
+        for pbcid in sorted(e.possible_pbcid_c[cid]):
             tally2 = e.sn_tcpra[e.stage][cid][pbcid]
             for r in sorted(tally2.keys()):  # r = reported vote
                 utils.myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
@@ -139,7 +139,7 @@ def compute_risk(e, mid, st):
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
         test_tally = {vote: 0 for vote in e.rn_cr[cid]}
-        for pbcid in e.rel_cp[cid]:
+        for pbcid in e.possible_pbcid_c[cid]:
             # draw from posterior for each paper ballot collection, sum them
             # stratify by reported selection
             for r in e.sn_tcpra[e.stage][cid][pbcid]:
@@ -187,7 +187,7 @@ def compute_measurement_and_election_statuses(e):
         e.status_tm[e.stage][mid] = e.status_tm[e.last_stage][mid]
         if e.status_tm[e.stage][mid] == "Open":
             if all([e.rn_p[pbcid] == e.sn_tp[e.stage][pbcid]
-                    for pbcid in e.rel_cp[cid]]):
+                    for pbcid in e.possible_pbcid_c[cid]]):
                 e.status_tm[e.stage][mid] = "Exhausted"
             elif e.risk_tm[e.stage][mid] < e.risk_limit_m[mid]:
                 e.status_tm[e.stage][mid] = "Passed"
@@ -450,7 +450,7 @@ def stop_audit(e):
 
 def audit(e, args):
 
-    read_audit_spec_seed(e, args)
+    read_audit_spec(e, args)
     initialize_audit(e)
     show_audit_spec(e)
 
