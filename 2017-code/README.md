@@ -493,10 +493,10 @@ version labels that are date-time stamps, such as
 
     3-audit
        31-audit-spec
-          audit-spec-seed.csv
           audit-spec-global.csv
           audit-spec-contest.csv
           audit-spec-collection.csv
+          audit-spec-seed.csv
        32-audit-orders
           audit-order-PCBID1.csv
           audit-order-PCBID2.csv
@@ -1053,14 +1053,14 @@ There are *four* such files: one for the audit seed,
 one for global parameters, one for
 parameters by contest, and one for parameters by collection.
 
-These audit parameters files are **per stage**, since they may
-be updated from stage to stage.  Typically, however, they will not
-change, and the audit parameters for one stage will just be a
-copy of the audit parameters from the previous stage.
-
 [Back to TOC](#table-of-contents)
 
 #### Global audit parameters
+
+The filename is of the form (showing a year-month-day version label):
+
+    audit-spec-global-2017-11-22.csv
+
 
 The **global audit parameters file** is simple.
 
@@ -1068,9 +1068,8 @@ The **global audit parameters file** is simple.
 | ---                    | ---   |
 | max audit stages       | 20    |
 
-The filename is of the form
-``10-audit-parameters-global-2017-11-22.csv``
-(showing a year-month-day version label).
+(FIX: the notion of ``stages`` no longer exists!)
+
 
 [Back to TOC](#table-of-contents)
 
