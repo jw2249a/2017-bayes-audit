@@ -218,7 +218,7 @@ def show_risks_and_statuses(e):
 
 
 ##############################################################################
-# Audit parameters
+# Audit spec
 
 
 def set_audit_seed(e, new_audit_seed):
@@ -246,8 +246,69 @@ def set_audit_seed(e, new_audit_seed):
 def read_audit_spec(e, args):
 
 
+    read_audit_spec_global(e, args)
     read_audit_spec_seed(e, args)
+    read_audit_spec_contest(e, args)
+    read_audit_spec_collection(e, args)
+
     check_audit_spec(e)
+
+
+def read_audit_spec_global(e, args):
+
+    pass
+
+
+def read_audit_spec_contest(e, args):
+
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT,
+                                     e.election_dirname)
+    audit_spec_pathname = os.path.join(election_pathname,
+                                       "3-audit",
+                                       "31-audit-spec")
+    filename = utils.greatest_name(audit_spec_pathname,
+                                   "audit-spec-contest",
+                                   ".csv")
+    file_pathname = os.path.join(audit_spec_pathname, filename)
+    fieldnames = ["Measurement id",
+                  "Contest",
+                  "Risk Measurement Method",
+                  "Risk Limit",
+                  "Risk Upset Threshold",
+                  "Sampling Mode",
+                  "Initial Status",
+                  "Param 1",
+                  "Param 2"]          
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+    for row in rows:
+        mid = row["Measurement id"]
+        e.mids.append(mid)
+        e.cid_m[mid] = row["Contest"]
+        e.risk_method_m[mid] = row["Risk Measurement Method"]
+        e.risk_limit_m[mid] = row["Risk Limit"]
+        e.risk_upset_m[mid] = row["Risk Upset Threshold"]
+        e.sampling_mode_m[mid] = row["Sampling Mode"]
+        e.initial_status_m[mid] = row["Initial Status"]
+        e.risk_measurement_parameters[mid] = (row["Param 1"], row["Param 2"])
+
+
+def read_audit_spec_collection(e, args):
+
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT,
+                                     e.election_dirname)
+    audit_spec_pathname = os.path.join(election_pathname,
+                                       "3-audit",
+                                       "31-audit-spec")
+    filename = utils.greatest_name(audit_spec_pathname,
+                                   "audit-spec-collection",
+                                   ".csv")
+    file_pathname = os.path.join(audit_spec_pathname, filename)
+    fieldnames = ["Collection",
+                  "Max audit rate"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+    for row in rows:
+        pbcid = row["Collection"]
+        e.max_audit_rate_p[pbcid] = row["Max audit rate"]
 
 
 def read_audit_spec_seed(e, args):
@@ -286,22 +347,22 @@ def check_audit_spec(e):
         if not (0.0 <= e.risk_limit_m[mid] <= 1.0):
             utils.mywarning("e.risk_limit_m[{}] not in interval [0,1]".format(mid))
 
-    if not isinstance(e.audit_rate_p, dict):
-        utils.myerror("e.audit_rate_p is not a dict.")
-    for pbcid in e.audit_rate_p:
+    if not isinstance(e.max_audit_rate_p, dict):
+        utils.myerror("e.max_audit_rate_p is not a dict.")
+    for pbcid in e.max_audit_rate_p:
         if pbcid not in e.pbcids:
-            utils.mywarning("pbcid `{}` is a key for e.audit_rate_p but not in e.pbcids."
+            utils.mywarning("pbcid `{}` is a key for e.max_audit_rate_p but not in e.pbcids."
                       .format(pbcid))
-        if not 0 <= e.audit_rate_p[pbcid]:
-            utils.mywarning("e.audit_rate_p[{}] must be nonnegative.".format(pbcid))
+        if not 0 <= int(e.max_audit_rate_p[pbcid]):
+            utils.mywarning("e.max_audit_rate_p[{}] must be nonnegative.".format(pbcid))
 
     if utils.warnings_given > 0:
         utils.myerror("Too many errors; terminating.")
 
 
-def show_audit_parameters(e):
+def show_audit_spec(e):
 
-    utils.myprint("====== Audit parameters ======")
+    utils.myprint("====== Audit spec ======")
 
     utils.myprint("Seed for audit pseudorandom number generation (e.audit_seed):")
     utils.myprint("    {}".format(e.audit_seed))
@@ -316,9 +377,9 @@ def show_audit_parameters(e):
                               e.risk_upset_m[mid],
                               e.sampling_mode_m[mid]))
 
-    utils.myprint("e.audit_rate_p (max number of ballots audited/day per pbcid):")
+    utils.myprint("e.max_audit_rate_p (max number of ballots audited/day per pbcid):")
     for pbcid in sorted(e.pbcids):
-        utils.myprint("    {}:{}".format(pbcid, e.audit_rate_p[pbcid]))
+        utils.myprint("    {}:{}".format(pbcid, e.max_audit_rate_p[pbcid]))
 
     utils.myprint("e.max_stages (max number of audit stages allowed):")
     utils.myprint("    {}".format(e.max_stages))
@@ -342,7 +403,7 @@ def initialize_audit(e):
         e.sn_tp["0"][pbcid] = 0
     # Initial plan size is just audit rate, for each pbcid.
     e.plan_tp["0"] = {pbcid: min(
-        e.rn_p[pbcid], e.audit_rate_p[pbcid]) for pbcid in e.pbcids}
+        e.rn_p[pbcid], int(e.max_audit_rate_p[pbcid])) for pbcid in e.pbcids}
 
 
 def show_audit_stage_header(e):
@@ -391,7 +452,7 @@ def audit(e, args):
 
     read_audit_spec_seed(e, args)
     initialize_audit(e)
-    show_audit_parameters(e)
+    show_audit_spec(e)
 
     utils.myprint("====== Audit ======")
 

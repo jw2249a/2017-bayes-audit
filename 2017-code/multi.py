@@ -346,52 +346,53 @@ class Election(object):
         # input (31-audit-spec/audit-spec-seed.csv)
         # seed for pseudo-random number generation for audit
 
-        # *** Audit orders
-
-        # TBD
-
-        # *** Contest audit parameters
-
         e.mids = []
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
-        # list of measurement ids (typically one/contest being audited)
+        # input (31-audit-spec/audit-spec-contest.csv)
+        # list of measurement ids (typically one per contest being audited)
 
         e.cid_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
+        # input (31-audit-spec/audit-spec-contest.csv)
         # The contest being measured in a given measurement.
 
         e.risk_method_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
+        # input (31-audit-spec/audit-spec-contest.csv)
         # mid->{"Bayes", "Frequentist"}
         # The risk-measurement method used for a given measurement.
         # Right now, the options are "Bayes" and "Frequentist", but this may
         # change.
 
-        e.risk_measurement_parameters_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
-        # additional parameters that may be needed by the risk measurement method
-        # These are are represented as a *tuple* for each measurement.
-
         e.risk_limit_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
+        # input (31-audit-spec/audit-spec-contest.csv)
         # mid->reals
         # risk limit for each measurement (from [0,1])
 
         e.risk_upset_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
+        # input (31-audit-spec/audit-spec-contest.csv)
         # mid->reals
         # risk upset threshold for each measurement (from [0,1])
 
         e.sampling_mode_m = {}
-        # input (33-audit-stages/audit-stage-nnn/11-audit-parameters-contest.csv)
+        # input (31-audit-spec/audit-spec-contest.csv)
         # mid->{"Active", "Opportunistic"}
 
-        # *** Collection audit parameters
+        e.initial_status_m = {}
+        # initial status of test, should be one of
+        #    "Open", "Off"
+        # (Later they may change to "Passed" or "Upset" or "Exhausted".)
 
-        e.audit_rate_p = {}
-        # input (33-audit-stages/audit-stage-nnn/12-audit-parameters-collection.csv)
+        e.risk_measurement_parameters_m = {}
+        # input (31-audit-spec/audit-spec-contest.csv)
+        # additional parameters that may be needed by the risk measurement method
+        # These are are represented as a *tuple* for each measurement.
+
+        e.max_audit_rate_p = {}
+        # input (31-audit-spec/audit-spec-collection.csv)
         # pbcid->int
-        # number of ballots that can be audited per stage in a pcb
+        # max number of ballots that can be audited per day in a pcb
+
+        # *** Audit orders
+
+        # TBD
 
         # *** Fixed audit parameters
 

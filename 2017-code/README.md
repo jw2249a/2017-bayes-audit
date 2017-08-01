@@ -23,7 +23,7 @@ here.  At least not yet.**
 * [Audit workflow](#audit-workflow)
   * [Pre-election](#pre-election)
   * [Election](#election)
-  # [Audit](#audit)
+  * [Audit](#audit)
   * [Setup audit](#setup-audit)
   * [Start audit](#start-audit)
 * [Implementation notes: identifiers, votes, file names, and directory structure](#implementation-notes-identifiers-votes-file0names-and-directory-structure)
@@ -1209,7 +1209,7 @@ A **collection audit parameters file** gives audit parameters that
 are specific to each collection.
 
 
-| Collection     | max audit rate  |
+| Collection     | Max audit rate  |
 |---             |---              |
 |  DEN-A01       | 50              |
 |  DEN-A02       | 50              |

@@ -611,6 +611,7 @@ def write_23_reported_outcomes_csv(se):
 def generate_audit(se):
 
     generate_audit_seed(se)
+
     generate_audit_orders(se)
     generate_audited_votes(se)
 
@@ -648,9 +649,76 @@ def generate_audited_votes(se):
 
 def write_audit_csv(se):
 
-    write_audit_spec_seed_csv(se)
+    write_31_audit_spec_csv(se)
     write_32_audit_orders_csv(se)
     write_33_audited_votes_csv(se)
+    # write_34_audit_output_csv(se)  # needed ??
+
+
+def write_31_audit_spec_csv(se):
+
+    write_audit_spec_global_csv(se)
+    write_audit_spec_contest_csv(se)
+    write_audit_spec_collection_csv(se)
+    write_audit_spec_seed_csv(se)
+    
+
+def write_audit_spec_global_csv(se):
+
+    pass
+
+
+def write_audit_spec_contest_csv(se):
+
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "31-audit-spec")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath,
+                            "audit-spec-contest-"+utils.start_datetime_string+".csv")
+    with open(filename, "w") as file:
+        fieldnames = ["Measurement id",
+                      "Contest",
+                      "Risk Measurement Method",
+                      "Risk Limit",
+                      "Risk Upset Threshold",
+                      "Sampling Mode",
+                      "Initial Status",
+                      "Param 1",
+                      "Param 2"]
+        file.write(",".join(fieldnames))
+        for mid in se.mids:
+            file.write("{},".format(mid))
+            file.write("{},".format(se.cid_m[mid]))
+            file.write("{},".format(se.risk_method_m[mid]))
+            file.write("{},".format(se.risk_limit_m[mid]))
+            file.write("{},".format(se.risk_upset_m[mid]))
+            file.write("{},".format(se.sampling_mode_m[mid]))
+            file.write("{},".format(se.initial_status_m[mid]))
+            file.write("{},".format(se.risk_measurement_parameters[mid][0]))
+            file.write("{}".format(se.risk_measurement_parameters[mid][1]))
+            file.write("\n")
+
+
+def write_audit_spec_collection_csv(se):
+
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "31-audit-spec")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath,
+                            "audit-spec-collection-"+utils.start_datetime_string+".csv")
+    with open(filename, "w") as file:
+        fieldnames = ["Collection",
+                      "Max audit rate"]
+        file.write(",".join(fieldnames))
+        file.write("\n")
+        for pbcid in se.pbcids:
+            file.write("{},".format(pbcid))
+            file.write("{},".format(40))
+            file.write("\n")
 
 
 def write_audit_spec_seed_csv(se):
@@ -701,6 +769,9 @@ def write_33_audited_votes_csv(se):
                                 file.write("{}".format(vote))
                                 file.write("\n")
 
+def write_34_audit_output_csv(se):
+
+    pass
 
 
 def test():
