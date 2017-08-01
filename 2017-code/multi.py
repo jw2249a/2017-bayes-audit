@@ -115,7 +115,7 @@ class Election(object):
         # r = reported vote (rv)
         # a = actual vote (av)
         # b = ballot id (bid)
-        # t = audit stage number
+        # t = audit stage_time (time audit started, used as stage id)
         # m = risk measurement id (mid) from audit_parameters_contest
 
         # and where de may be something like:
@@ -418,39 +418,43 @@ class Election(object):
         # sampling order for bids of each pbcid
 
         # stage-related items
+        # We don't give sequence numbers to stages; we just identify
+        # them by their "stage_time" (when they started, as in
+        # "2017-11-10-14-03-21" )
 
-        e.stage = "0"
-        # current audit stage number (in progress) or last stage completed
-        # note that stage is a string representing an integer.
+        e.stage_time = "0000-00-00-00-00-01"
+        # Current audit stage time (in progress) or last stage completed.
+        # Note that stage is a string representing a datetime string.
+        # Stage time identifies the audit stage.
 
-        e.last_stage = "-1"
-        # previous stage (just one less, in string form)
+        e.last_stage_time = "0000-00-00-00-00-00"
+        # previous stage_time (FIX: STILL NEEDED??)
 
-        e.max_stages = 20
-        # maximum number of stages allowed in audit
+        e.max_stage_time = "9999-12-31-23-59-59"
+        # maximum stage time allowed for any audit
 
-        # stage number input is stage when computed
-        # stage is denoted t here
+        # stage time input is stage time when value or file is computed
+        # stage time is denoted t here
 
         e.status_tm = {}
         # mid->{"Open", "Passed", "Upset", "Exhasuted", "Off"}
         # status for a measurement for a given stage
 
         e.plan_tp = {}
-        # stage->pbcid->reals
+        # stage_time->pbcid->reals
         # sample size wanted after next draw
 
         e.risk_tm = {}
-        # stage->measurement->reals
+        # stage_time->measurement->reals
         # risk = probability that e.ro_c[e.cid[mid]] is wrong
 
         e.election_status_t = {}
-        # stage->list of measurement statuses, at most once each
+        # stage_time->list of measurement statuses, at most once each
 
         # sample info
 
         e.sn_tp = {}
-        # stage->pbcid->ints
+        # stage_time->pbcid->ints
         # number of ballots sampled so far
 
         e.av_cpb = {}
@@ -460,12 +464,12 @@ class Election(object):
         # computed from the above sample data
 
         e.sn_tcpra = {}
-        # sampled number: stage->cid->pbcid->rvote->avote->count
+        # sampled number: stage_time->cid->pbcid->rvote->avote->count
         # first vote r is reported vote, second vote a is actual vote
 
         e.sn_tcpr = {}
-        # sampled number stage->cid->pbcid->vote->count
-        # sampled number by stage, contest, pbcid, and reported vote
+        # sampled number stage_time->cid->pbcid->vote->count
+        # sampled number by stage_time, contest, pbcid, and reported vote
 
 
 def main():

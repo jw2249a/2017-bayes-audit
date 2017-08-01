@@ -10,6 +10,7 @@ Routines to work with multi.py on post-election audits.
 
 import numpy as np
 import os
+import time
 
 import multi
 import csv_readers
@@ -69,33 +70,33 @@ def dirichlet(tally):
 
 def draw_sample(e):
     """ 
-    "Draw sample", tally it, save sample tally in e.sn_tcpra[stage][cid][pbcid]. 
+    "Draw sample", tally it, save sample tally in e.sn_tcpra[stage_time][cid][pbcid]. 
     Update e.sn_tcpr
 
     Draw sample is in quotes since it just looks at the first
-    e.sn_tp[stage][pbcid] elements of e.av_cpb[cid][pbcid].
-    Code sets e.sn_tcpr[e.stage][cid][pbcid][r] to number in sample with reported vote r.
+    e.sn_tp[stage_time][pbcid] elements of e.av_cpb[cid][pbcid].
+    Code sets e.sn_tcpr[e.stage_time][cid][pbcid][r] to number in sample with reported vote r.
 
     Code sets e.sn_tp to number of ballots sampled in each pbc (equal to plan).
     Note that in real life actual sampling number might be different than planned;
     here it will be the same.  But code elsewhere allows for such differences.
     """
 
-    e.sn_tp[e.stage] = e.plan_tp[e.last_stage]
-    e.sn_tcpr[e.stage] = {}
+    e.sn_tp[e.stage_time] = e.plan_tp[e.last_stage_time]
+    e.sn_tcpr[e.stage_time] = {}
     for cid in e.cids:
-        e.sn_tcpra[e.stage][cid] = {}
-        e.sn_tcpr[e.stage][cid] = {}
+        e.sn_tcpra[e.stage_time][cid] = {}
+        e.sn_tcpr[e.stage_time][cid] = {}
         for pbcid in e.possible_pbcid_c[cid]:
-            e.sn_tcpr[e.stage][cid][pbcid] = {}
+            e.sn_tcpr[e.stage_time][cid][pbcid] = {}
             avs = [e.av_cpb[cid][pbcid][bid]
-                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]]  # actual
+                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage_time][pbcid]]]  # actual
             rvs = [e.rv_cpb[cid][pbcid][bid]
-                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage][pbcid]]]  # reported
+                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage_time][pbcid]]]  # reported
             arvs = list(zip(avs, rvs))  # list of (actual, reported) vote pairs
-            e.sn_tcpra[e.stage][cid][pbcid] = outcomes.compute_tally2(arvs)
+            e.sn_tcpra[e.stage_time][cid][pbcid] = outcomes.compute_tally2(arvs)
             for r in e.rn_cpr[cid][pbcid]:
-                e.sn_tcpr[e.stage][cid][pbcid][r] = len(
+                e.sn_tcpr[e.stage_time][cid][pbcid][r] = len(
                     [rr for rr in rvs if rr == r])
 
 
@@ -105,12 +106,12 @@ def show_sample_counts(e):
             "and actual selection:")
     for cid in e.cids:
         for pbcid in sorted(e.possible_pbcid_c[cid]):
-            tally2 = e.sn_tcpra[e.stage][cid][pbcid]
+            tally2 = e.sn_tcpra[e.stage_time][cid][pbcid]
             for r in sorted(tally2.keys()):  # r = reported vote
                 utils.myprint("      {}.{}[{}]".format(cid, pbcid, r), end='')
                 for a in sorted(tally2[r].keys()):
                     utils.myprint("  {}:{}".format(a, tally2[r][a]), end='')
-                utils.myprint("  total:{}".format(e.sn_tcpr[e.stage][cid][pbcid][r]))
+                utils.myprint("  total:{}".format(e.sn_tcpr[e.stage_time][cid][pbcid][r]))
 
 
 ##############################################################################
@@ -142,8 +143,8 @@ def compute_risk(e, mid, st):
         for pbcid in e.possible_pbcid_c[cid]:
             # draw from posterior for each paper ballot collection, sum them
             # stratify by reported selection
-            for r in e.sn_tcpra[e.stage][cid][pbcid]:
-                tally = e.sn_tcpra[e.stage][cid][pbcid][r].copy()
+            for r in e.sn_tcpra[e.stage_time][cid][pbcid]:
+                tally = e.sn_tcpra[e.stage_time][cid][pbcid][r].copy()
                 # for a in tally:
                 #    tally[a] = tally.get(a, 0)
                 for a in tally:
@@ -153,16 +154,16 @@ def compute_risk(e, mid, st):
                         tally[a] += e.pseudocount_match
                 dirichlet_dict = dirichlet(tally)
                 nonsample_size = e.rn_cpr[cid][pbcid][r] - \
-                    e.sn_tcpr[e.stage][cid][pbcid][r]
+                    e.sn_tcpr[e.stage_time][cid][pbcid][r]
                 for a in tally:
                     # increment actual tally for (actual vote a with reported
                     # vote r)
                     test_tally[a] += tally[a]
-                    if e.sn_tcpr[e.stage][cid][pbcid][r] > 0:
+                    if e.sn_tcpr[e.stage_time][cid][pbcid][r] > 0:
                         test_tally[a] += dirichlet_dict[a] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
-    e.risk_tm[e.stage][mid] = wrong_outcome_count / e.n_trials
+    e.risk_tm[e.stage_time][mid] = wrong_outcome_count / e.n_trials
 
 
 def compute_risks(e, st):
@@ -175,27 +176,27 @@ def compute_risks(e, st):
 # Compute status of each contest and of election
 
 
-def compute_measurement_and_election_statuses(e):
+def compute_statuses(e):
     """ 
     Compute status of each measurement and of election, from 
     already-computed measurement risks.
     """
 
     for mid in e.mids:
-        # Measurement transition from Open to any of Exhausted, Passed, or Upset,
-        # but not vice versa.
-        e.status_tm[e.stage][mid] = e.status_tm[e.last_stage][mid]
-        if e.status_tm[e.stage][mid] == "Open":
-            if all([e.rn_p[pbcid] == e.sn_tp[e.stage][pbcid]
+        # Measurement transition from Open to any of
+        # Exhausted, Passed, or Upset, but not vice versa.
+        e.status_tm[e.stage_time][mid] = e.status_tm[e.last_stage_time][mid]
+        if e.status_tm[e.stage_time][mid] == "Open":
+            if all([e.rn_p[pbcid] == e.sn_tp[e.stage_time][pbcid]
                     for pbcid in e.possible_pbcid_c[cid]]):
-                e.status_tm[e.stage][mid] = "Exhausted"
-            elif e.risk_tm[e.stage][mid] < e.risk_limit_m[mid]:
-                e.status_tm[e.stage][mid] = "Passed"
-            elif e.risk_tm[e.stage][mid] > e.risk_upset_m[mid]:
-                e.status_tm[e.stage][mid] = "Upset"
+                e.status_tm[e.stage_time][mid] = "Exhausted"
+            elif e.risk_tm[e.stage_time][mid] < e.risk_limit_m[mid]:
+                e.status_tm[e.stage_time][mid] = "Passed"
+            elif e.risk_tm[e.stage_time][mid] > e.risk_upset_m[mid]:
+                e.status_tm[e.stage_time][mid] = "Upset"
 
-    e.election_status_t[e.stage] = \
-        sorted(list(set([e.status_tm[e.stage][mid]
+    e.election_status_t[e.stage_time] = \
+        sorted(list(set([e.status_tm[e.stage_time][mid]
                          for mid in e.mids])))
 
 
@@ -213,8 +214,8 @@ def show_risks_and_statuses(e):
                       e.sampling_mode_m[mid],
                       e.risk_tm[e.stage][mid],
                       "(limits {},{})".format(e.risk_limit_m[mid], e.risk_upset_m[mid]),
-                      e.status_tm[e.stage][mid])
-    utils.myprint("    Election status:", e.election_status_t[e.stage])
+                      e.status_tm[e.stage_time][mid])
+    utils.myprint("    Election status:", e.election_status_t[e.stage_time])
 
 
 ##############################################################################
@@ -247,9 +248,9 @@ def read_audit_spec(e, args):
 
 
     read_audit_spec_global(e, args)
-    read_audit_spec_seed(e, args)
     read_audit_spec_contest(e, args)
     read_audit_spec_collection(e, args)
+    read_audit_spec_seed(e, args)
 
     check_audit_spec(e)
 
@@ -260,6 +261,7 @@ def read_audit_spec_global(e, args):
 
 
 def read_audit_spec_contest(e, args):
+    """ Read 3-audit/31-audit-spec/audit-spec-contest.csv """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT,
                                      e.election_dirname)
@@ -293,6 +295,7 @@ def read_audit_spec_contest(e, args):
 
 
 def read_audit_spec_collection(e, args):
+    """ Read 3-audit/31-audit-spec/audit-spec-collection.csv """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT,
                                      e.election_dirname)
@@ -315,7 +318,7 @@ def read_audit_spec_seed(e, args):
     """
     Read audit seed from 3-audit/31-audit-spec/audit-spec-seed.csv
 
-    But does not overwrite e.audit_seed if it was non-None
+    Do not overwrite e.audit_seed if it was non-None
     because this means it was already set from the command line.
     """
 
@@ -381,8 +384,8 @@ def show_audit_spec(e):
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {}:{}".format(pbcid, e.max_audit_rate_p[pbcid]))
 
-    utils.myprint("e.max_stages (max number of audit stages allowed):")
-    utils.myprint("    {}".format(e.max_stages))
+    utils.myprint("e.max_stage_time (max allowed start time of any audit):")
+    utils.myprint("    {}".format(e.max_stage_time))
 
     utils.myprint("e.n_trials (number of trials used to estimate risk "
             "in compute_contest_risk):")
@@ -408,39 +411,116 @@ def initialize_audit(e):
 
 def show_audit_stage_header(e):
 
-    utils.myprint("audit stage", e.stage)
+    utils.myprint("audit stage time", e.stage_time)
     utils.myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
-        last_s = e.sn_tp[e.last_stage]
+        last_s = e.sn_tp[e.last_stage_time]
         utils.myprint("      {}: {} (+{})"
                 .format(pbcid,
-                        e.plan_tp[e.last_stage][pbcid],
-                        e.plan_tp[e.last_stage][pbcid] - last_s[pbcid]))
+                        e.plan_tp[e.last_stage_time][pbcid],
+                        e.plan_tp[e.last_stage_time][pbcid] - last_s[pbcid]))
 
 
-def audit_stage(e, stage):
+def audit_stage(e, stage_time):
+    """
+    Perform audit stage for the stage_time given.
 
-    # we represent stage number with a string, as json requires
-    # keys to be strings.  We aren't using json now, but we might again later.
-    e.last_stage = "{}".format(stage - 1)
-    e.stage = "{}".format(stage)
+    We represent stage with a datetime string
+    (Historically, we used strings since json
+    requires keys to be strings.  We aren't using
+    json now, but we might again later.)
+    """
 
-    e.risk_tm[e.stage] = {}
-    e.status_tm[e.stage] = {}
-    e.sn_tp[e.stage] = {}
-    e.sn_tcpra[e.stage] = {}
+    ### TBD: filter file inputs by e.stage_time
+
+    # e.last_stage = "{}".format(stage - 1)          # fix!
+
+    e.stage_time = "{}".format(stage_time)
+
+    e.risk_tm[e.stage_time] = {}
+    e.status_tm[e.stage_time] = {}
+    e.sn_tp[e.stage_time] = {}
+    e.sn_tcpra[e.stage_time] = {}
 
     draw_sample(e)
     compute_risks(e, e.sn_tcpra)
-    compute_contest_and_election_statuses(e)
+    compute_statuses(e)
+
+    write_audit_output_contest_status(e)
+    write_audit_output_collection_status(e)
 
     show_audit_stage_header(e)
     show_sample_counts(e)
     show_risks_and_statuses(e)
 
 
+def write_audit_output_contest_status(e):
+    """
+    Write audit_output_contest_status; same format as audit_spec_contest,
+    except for status field.
+    """
+
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "34-audit-output")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath,
+                            "audit-output-contest-status-"+e.stage_time+".csv")
+    with open(filename, "w") as file:
+        fieldnames = ["Measurement id",
+                      "Contest",
+                      "Risk Measurement Method",
+                      "Risk Limit",
+                      "Risk Upset Threshold",
+                      "Sampling Mode",
+                      "Status",
+                      "Param 1",
+                      "Param 2"]
+        file.write(",".join(fieldnames))
+        for mid in e.mids:
+            file.write("{},".format(mid))
+            file.write("{},".format(e.cid_m[mid]))
+            file.write("{},".format(e.risk_method_m[mid]))
+            file.write("{},".format(e.risk_limit_m[mid]))
+            file.write("{},".format(e.risk_upset_m[mid]))
+            file.write("{},".format(e.sampling_mode_m[mid]))
+            file.write("{},".format(e.status_tm[e.stage_time][mid]))
+            file.write("{},".format(e.risk_measurement_parameters[mid][0]))
+            file.write("{}".format(e.risk_measurement_parameters[mid][1]))
+            file.write("\n")
+
+def write_audit_output_collection_status(e):
+    """ Write 3-audit/34-audit-output/audit_output_collection_status.csv """
+
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "3-audit",
+                           "34-audit-output")
+    os.makedirs(dirpath, exist_ok=True)
+    filename = os.path.join(dirpath,
+                            "audit-output-collection-status-"+e.stage_time+".csv")
+    with open(filename, "w") as file:
+        fieldnames = ["Collection",
+                      "Number of ballots",
+                      "Number of allots sampled total",
+                      "Number of ballots sample this stage."]
+        file.write(",".join(fieldnames))
+        for pbcid in e.pbcids:
+            file.write("{},".format(pbcid))
+            file.write("{},".format(len(e.bids_p[pbcid])))
+            file.write("{},".format(e.sn_tp[stage_time][pbcid]))
+            if e.last_stage_time in e.sn_tp:
+                file.write("??? TBD ???".format())
+            file.write("\n")            
+
+
 def stop_audit(e):
-    """Return True if we should stop audit (some measurement is Open and Active)."""
+    """
+    Return True if we should stop audit.
+
+    (I.e., if some measurement is Open and Active).
+    """
 
     for m in e.mids:
         if e.status_m[mid]=="Open" and e.sampling_mode=="Active":
@@ -456,11 +536,17 @@ def audit(e, args):
 
     utils.myprint("====== Audit ======")
 
-    for stage in range(1, e.max_stages + 1):
-        audit_stage(e, stage)
+    while True:
+        stage_time = utils.datetime_string()
+        if stage_time > e.max_stage_time:
+            break
+        audit_stage(e, stage_time)
         if stop_audit(e):
             break
         compute_plan(e)
+        if not input("Begin new audit stage? (y or n):").startswith('y'):
+            break
+        time.sleep(2)              # to ensure next stage_time is new
     show_audit_summary(e)
 
 
