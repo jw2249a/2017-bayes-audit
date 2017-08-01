@@ -9,8 +9,10 @@ Routines to work with multi.py on post-election audits.
 
 
 import numpy as np
+import os
 
 import multi
+import csv_readers
 import outcomes
 import utils
 
@@ -243,13 +245,18 @@ def set_audit_seed(e, new_audit_seed):
 
 def read_audit_spec(e, args):
 
-    # this should NOT overwrite e.audit_seed if it was non-None
-    # because it was already set from the command line
 
+    read_audit_spec_seed(e, args)
     check_audit_spec(e)
 
 
 def read_audit_spec_seed(e, args):
+    """
+    Read audit seed from 3-audit/31-audit-spec/audit-spec-seed.csv
+
+    But does not overwrite e.audit_seed if it was non-None
+    because this means it was already set from the command line.
+    """
 
     election_pathname = os.path.join(multi.ELECTIONS_ROOT,
                                      e.election_dirname)
@@ -259,26 +266,25 @@ def read_audit_spec_seed(e, args):
     filename = utils.greatest_name(audit_spec_pathname,
                                    "audit-spec-seed",
                                    ".csv")
-    file_pathname = os.path.join(auit_spec_pathname, filename)
+    file_pathname = os.path.join(audit_spec_pathname, filename)
     fieldnames = ["Audit seed"]
-    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
     for row in rows:
-        cid = row["Contest"]
-        winners = row["Winner(s)"]
-        utils.nested_set(e.ro_c, [cid], winners)
-
+        new_audit_seed = row["Audit seed"]
+        if e.audit_seed == None:
+            set_audit_seed(e, new_audit_seed)
 
 
 def check_audit_spec(e):
 
-    if not isinstance(e.risk_limit_c, dict):
-        utils.myerror("e.risk_limit_c is not a dict.")
-    for cid in e.risk_limit_c:
-        if cid not in e.cids:
-            utils.mywarning("e.risk_limit_c cid key `{}` is not in e.cids."
-                      .format(cid))
-        if not (0.0 <= e.risk_limit_c[cid] <= 1.0):
-            utils.mywarning("e.risk_limit_c[{}] not in interval [0,1]".format(cid))
+    if not isinstance(e.risk_limit_m, dict):
+        utils.myerror("e.risk_limit_m is not a dict.")
+    for mid in e.risk_limit_m:
+        if mid not in e.mids:
+            utils.mywarning("e.risk_limit_m mid key `{}` is not in e.mids."
+                      .format(mid))
+        if not (0.0 <= e.risk_limit_m[mid] <= 1.0):
+            utils.mywarning("e.risk_limit_m[{}] not in interval [0,1]".format(mid))
 
     if not isinstance(e.audit_rate_p, dict):
         utils.myerror("e.audit_rate_p is not a dict.")
@@ -288,18 +294,6 @@ def check_audit_spec(e):
                       .format(pbcid))
         if not 0 <= e.audit_rate_p[pbcid]:
             utils.mywarning("e.audit_rate_p[{}] must be nonnegative.".format(pbcid))
-
-    if not isinstance(e.contest_status_tc, dict):
-        utils.myerror("e.contest_status_tc is not a dict.")
-    if "0" not in e.contest_status_tc:
-        utils.myerror("e.contest_status_tc must have `0` as a key.")
-    for cid in e.contest_status_tc["0"]:
-        if cid not in e.cids:
-            utils.mywarning("cid `{}` is key in e.contest_status_tc but not in e.cids"
-                      .format(cid))
-        if e.contest_status_tc["0"][cid] not in ["Auditing", "Just Watching"]:
-            utils.mywarning("e.contest_status_tc['0'][{}] must be `Auditing` or `Just Watching`."
-                      .format(cid))
 
     if utils.warnings_given > 0:
         utils.myerror("Too many errors; terminating.")
@@ -395,7 +389,7 @@ def stop_audit(e):
 
 def audit(e, args):
 
-    get_audit_seed(e, args)
+    read_audit_spec_seed(e, args)
     initialize_audit(e)
     show_audit_parameters(e)
 
