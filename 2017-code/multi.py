@@ -471,6 +471,10 @@ class Election(object):
         # sampled number stage_time->cid->pbcid->vote->count
         # sampled number by stage_time, contest, pbcid, and reported vote
 
+        # *** saved-state ***
+        # see saved-state.py
+        e.saved_state = {}
+
 
 def main():
 
