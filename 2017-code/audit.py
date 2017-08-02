@@ -82,7 +82,11 @@ def draw_sample(e):
     here it will be the same.  But code elsewhere allows for such differences.
     """
 
-    e.sn_tp[e.stage_time] = e.plan_tp[e.last_stage_time]
+    if "plan_tp" in e.saved_state:
+        e.sn_tp[e.stage_time] = e.saved_state["plan_tp"][e.saved_state["stage_time"]]
+    else:
+        e.sn_tp[e.stage_time] = e.max_audit_rate_p
+        
     e.sn_tcpr[e.stage_time] = {}
     for cid in e.cids:
         e.sn_tcpra[e.stage_time][cid] = {}
@@ -185,7 +189,8 @@ def compute_statuses(e):
     for mid in e.mids:
         # Measurement transition from Open to any of
         # Exhausted, Passed, or Upset, but not vice versa.
-        e.status_tm[e.stage_time][mid] = e.status_tm[e.last_stage_time][mid]
+        e.status_tm[e.stage_time][mid] = \
+            e.saved_state["status_tm"][e.saved_state["stage_time"]][mid]
         if e.status_tm[e.stage_time][mid] == "Open":
             if all([e.rn_p[pbcid] == e.sn_tp[e.stage_time][pbcid]
                     for pbcid in e.possible_pbcid_c[cid]]):
@@ -414,11 +419,12 @@ def show_audit_stage_header(e):
     utils.myprint("audit stage time", e.stage_time)
     utils.myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
-        last_s = e.sn_tp[e.last_stage_time]
+        last_s = e.saved_state["sn_tp"][e.saved_state["stage_time"]]
         utils.myprint("      {}: {} (+{})"
                 .format(pbcid,
-                        e.plan_tp[e.last_stage_time][pbcid],
-                        e.plan_tp[e.last_stage_time][pbcid] - last_s[pbcid]))
+                        e.saved_state["plan_tp"][e.saved_state["stage_time"]][pbcid],
+                        e.saved_state["plan_tp"][e.saved_state["stage_time"]][pbcid] - \
+                            last_s[pbcid]))
 
 
 def audit_stage(e, stage_time):
@@ -432,8 +438,6 @@ def audit_stage(e, stage_time):
     """
 
     ### TBD: filter file inputs by e.stage_time
-
-    # e.last_stage = "{}".format(stage - 1)          # fix!
 
     e.stage_time = "{}".format(stage_time)
 
@@ -510,8 +514,12 @@ def write_audit_output_collection_status(e):
             file.write("{},".format(pbcid))
             file.write("{},".format(len(e.bids_p[pbcid])))
             file.write("{},".format(e.sn_tp[stage_time][pbcid]))
-            if e.last_stage_time in e.sn_tp:
-                file.write("??? TBD ???".format())
+            if "sn_tp" in e.saved_state:
+                new_sample_size = e.sn_tp[e.stage_time][pbcid]
+                old_sample_size = e.saved_state["sn_tp"] \
+                                    [e.saved_state["stage_time"]][pbcid]
+                diff_sample_size = new_sample_size - old_sample_size
+                file.write({}.format(diff_sample_size))
             file.write("\n")            
 
 
