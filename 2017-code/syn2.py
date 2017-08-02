@@ -59,8 +59,8 @@ class SynElection(multi.Election):
         self.max_n_selids_per_cid = 5
         self.n_pbcids = 2
         self.n_pbcids_nocvr = 0
-        self.min_n_bids_per_pbcid = 10
-        self.max_n_bids_per_pbcid = 20
+        self.min_n_bids_per_pbcid = 200
+        self.max_n_bids_per_pbcid = 200
         self.box_size = 100
         self.min_pbcids_per_cid = 1
         self.max_pbcids_per_cid = self.n_pbcids
@@ -307,7 +307,8 @@ def write_election_spec_collections_csv(se):
     filename = os.path.join(dirpath, "election-spec-collections.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Collection", "Manager", "CVR type", "Required Contests", "Possible Contests"]
+        fieldnames = ["Collection", "Manager", "CVR type",
+                      "Required Contests", "Possible Contests"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for pbcid in se.pbcids:
@@ -675,7 +676,6 @@ def generate_audited_votes(se):
                     if rv in selids:    
                         selids.remove(rv)
                     av = (se.SynRandomState.choice(selids),)
-                print(">><<>>", rv, av)
                 utils.nested_set(se.av_cpb, [cid, pbcid, bid], av)
 
 

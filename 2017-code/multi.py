@@ -455,6 +455,8 @@ class Election(object):
         e.plan_tp = {}
         # stage_time->pbcid->float
         # sample size wanted after next draw
+        # note stage_time is time stage is computed, not stage
+        # time when it will be effective.
         # dict mapping stage_time and pbcid to floats
 
         e.risk_tm = {}

@@ -38,10 +38,26 @@ def write_initial_saved_state(e):
     ss["status_tm"] = e.status_tm     # measurement statuses, by stage and mid
     ss["plan_tp"] = e.plan_tp         # plan for next stage of audit
 
-    write_saved_state(e, ss)
+    write_state(e, ss)
 
 
-def write_saved_state(e, ss):
+def write_intermediate_saved_state(e):
+    """
+    Write an intermediate saved-state, 
+    after the election-spec has been read and the first audit stage done.
+    """
+
+    ss = {}                 # saved state dict, to be written out
+
+    ss["stage_time"] = e.stage_time
+    ss["sn_tp"] = e.sn_tp             # sample sizes, by stage and pbcid
+    ss["status_tm"] = e.status_tm     # measurement statuses, by stage and mid
+    ss["plan_tp"] = e.plan_tp         # plan for next stage of audit
+
+    write_state(e, ss)
+
+
+def write_state(e, ss):
     """ 
     Save some state to 3-audit/34-audit-output/audit-output-saved-state.json 
 

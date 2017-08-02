@@ -16,6 +16,7 @@ import multi
 import csv_readers
 import ids
 import outcomes
+import planner
 import saved_state
 import utils
 
@@ -356,7 +357,7 @@ def read_audit_spec_collection(e, args):
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
     for row in rows:
         pbcid = row["Collection"]
-        e.max_audit_rate_p[pbcid] = row["Max audit rate"]
+        e.max_audit_rate_p[pbcid] = int(row["Max audit rate"])
 
 
 def read_audit_spec_seed(e, args):
@@ -433,7 +434,7 @@ def show_audit_spec(e):
     utils.myprint("    {}".format(e.max_stage_time))
 
     utils.myprint("Number of trials used to estimate risk"
-                  "in compute_contest_risk (e.n_trials):")
+                  " in compute_contest_risk (e.n_trials):")
     utils.myprint("    {}".format(e.n_trials))
 
     utils.myprint("Dirichlet hyperparameter for base case or non-matching reported/actual votes")
@@ -606,11 +607,6 @@ def stop_audit(e):
     return True
 
 
-def compute_plan(e):
-
-    pass
-
-
 def audit(e, args):
 
     read_audit_spec(e, args)
@@ -627,9 +623,10 @@ def audit(e, args):
         audit_stage(e, stage_time)
         if stop_audit(e):
             break
-        compute_plan(e)
+        planner.compute_plan(e)
         if not input("Begin new audit stage? (y or n):").startswith('y'):
             break
+        saved_state.write_intermediate_saved_state(e)
         time.sleep(2)              # to ensure next stage_time is new
     show_audit_summary(e)
 
@@ -648,7 +645,8 @@ def show_audit_summary(e):
     if ("Active", "Upset") in \
        [(e.sampling_mode_m[mid], e.status_tm[e.stage_time][mid])
         for mid in e.mids]:
-        utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
+        utils.myprint(("At least one `Active' measurement signals"
+                       " `Upset' (full recount needed)."))
     if e.stage_time > e.max_stage_time:
         utils.myprint("Maximum audit stage time ({}) reached."
                 .format(e.max_stage_time))
