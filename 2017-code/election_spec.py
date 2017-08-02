@@ -1,53 +1,56 @@
 # election_spec.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# July 7, 2017
+# August 2, 2017
 # python3
 
 """
 Routines to work with multi.py, to read in the
 CSV files containing information about the specification
-of an election:
-   11-general.csv
-   12-contests.csv
-   13-contest-groups.csv
-   14-collections.csv
-with structures represented by csv files of the form:
+of an election.  They are in the directory
+   1-election-spec
+with filenames:
+   election-spec-general.csv
+   election-spec-contests.csv
+   election-spec-contest-groups.csv
+   elections-spec-collections.csv
 
-11-general.csv:
-Attribute     , Value                                   
-Election name , Colorado general election               
-Election dirname , CO-2017-11-07,
-Election date , 2017-11-07                              
-Election URL  , https://sos.co.gov/election/2017-11-07/ 
+They represent information with csv files of the form (examples):
 
-12-contests.csv
-Contest id      , Contest type , Winners   ,Write-ins  , Selections 
-Denver Prop 1   , Plurality    , 1         , No        , Yes        , No  
-Denver Prop 2   , Plurality    , 1         , No        , Yes        , No   
-Denver Mayor    , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
-Denver Clerk    , Plurality    , 1         , No        , Yet Again  , New Guy
-Logan Mayor     , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
-Logan Water     , Plurality    , 1         , No        , Yes        , No
-U.S. President  , Plurality    , 1         , Arbitrary , Don Brown  , Larry Pew
-U.S. Senate 1   , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
-U.S. Senate 2   , Plurality    , 1         , Qualified , Term Three , Old Guy   , +Hot Stuff
-CO Prop A       , Plurality    , 1         , No        , Yes        , No
+election-spec-general.csv:
+  Attribute        , Value                                   
+  Election name    , Colorado general election               
+  Election dirname , CO-2017-11-07,
+  Election date    , 2017-11-07                              
+  Election URL     , https://sos.co.gov/election/2017-11-07/ 
 
-13-contest-groups.csv
-Contest group id ,Contest or group id(s)
-FEDERAL          ,U.S. President   ,U.S. Senate 1        ,U.S. Senate 2
-STATE            ,CO Prop A
-FED STATE        ,FEDERAL          ,STATE
-DENVER LOCAL     ,Denver Mayor     ,Denver Clerk, Denver Prop 1, Denver Prop 2
-DENVER           ,FED STATE        ,DENVER LOCAL
-LOGAN REQ        ,FED STATE        ,Logan Mayor 
-LOGAN POSS       ,Logan Water
+elections-spec-contests.csv:
+   Contest         , Contest type , Winners   ,Write-ins  , Selections 
+   Denver Prop 1   , Plurality    , 1         , No        , Yes        , No  
+   Denver Prop 2   , Plurality    , 1         , No        , Yes        , No   
+   Denver Mayor    , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
+   Denver Clerk    , Plurality    , 1         , No        , Yet Again  , New Guy
+   Logan Mayor     , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
+   Logan Water     , Plurality    , 1         , No        , Yes        , No
+   U.S. President  , Plurality    , 1         , Arbitrary , Don Brown  , Larry Pew
+   U.S. Senate 1   , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
+   U.S. Senate 2   , Plurality    , 1         , Qualified , Term Three , Old Guy   , +Hot Stuff
+   CO Prop A       , Plurality    , 1         , No        , Yes        , No
 
-14-collections.csv
-Collection id , Manager          , CVR type  , Required Contests, Possible Contests
-DEN-A01       , abe@co.gov       , CVR       , DENVER,            DENVER
-DEN-A02       , bob@co.gov       , CVR       , DENVER,            DENVER
-LOG-B13       , carol@co.gov     , noCVR     , LOGAN REQ,         LOGAN POSS
+election-spec-contest-groups.csv
+   Contest group id , Contest(s) or group(s)
+   FEDERAL          , U.S. President   , U.S. Senate 1        ,U.S. Senate 2
+   STATE            , CO Prop A
+   FED STATE        , FEDERAL          , STATE
+   DENVER LOCAL     , Denver Mayor     , Denver Clerk, Denver Prop 1, Denver Prop 2
+   DENVER           , FED STATE        , DENVER LOCAL
+   LOGAN REQ        , FED STATE        , Logan Mayor 
+   LOGAN POSS       , Logan Water
+
+election-spec-collections.csv
+Collection , Manager          , CVR type  , Required Contests, Possible Contests
+DEN-A01    , abe@co.gov       , CVR       , DENVER,            DENVER
+DEN-A02    , bob@co.gov       , CVR       , DENVER,            DENVER
+LOG-B13    , carol@co.gov     , noCVR     , LOGAN REQ,         LOGAN POSS
 
 The values are sanity checked, and put into the Election data structure (e)
 from multi.py
