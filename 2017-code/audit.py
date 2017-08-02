@@ -423,7 +423,7 @@ def show_audit_spec(e):
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {}:{}".format(pbcid, e.max_audit_rate_p[pbcid]))
 
-    utils.myprint("Maxx allowed start time for any stage (e.max_stage_time):")
+    utils.myprint("Max allowed start time for any stage (e.max_stage_time):")
     utils.myprint("    {}".format(e.max_stage_time))
 
     utils.myprint("Number of trials used to estimate risk"
