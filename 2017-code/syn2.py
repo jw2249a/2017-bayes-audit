@@ -637,13 +637,13 @@ def generate_audit_spec_contest(se):
 
     for i, cid in enumerate(se.cids):
         mid = "mid{}".format(i)
-        e.cid_m[mid] = cid
-        e.risk_method_m[mid] = "Bayes"
-        e.risk_limit_m[mid] = 0.05
-        e.risk_upset_m[mid] = 0.98
-        e.sampling_mode[mid] = "Active"
-        e.initial_status_m[mid] = "Open"
-        e.risk_measurement_parameters_m = (,)
+        se.cid_m[mid] = cid
+        se.risk_method_m[mid] = "Bayes"
+        se.risk_limit_m[mid] = 0.05
+        se.risk_upset_m[mid] = 0.98
+        se.sampling_mode_m[mid] = "Active"
+        se.initial_status_m[mid] = "Open"
+        se.risk_measurement_parameters_m[mid] = ()
 
 
 def generate_audit_spec_collection(se):
@@ -707,7 +707,7 @@ def write_audit_spec_global_csv(se):
                             "audit-spec-global-"+utils.start_datetime_string+".csv")
     with open(filename, "w") as file:
         fieldnames = ["Global Audit Parameter",
-                      "Value]
+                      "Value"]
         file.write(",".join(fieldnames))
         file.write("\n")
         file.write("Max audit stage time,")
@@ -835,7 +835,7 @@ def test():
     generate_reported(se)
     generate_ballot_manifest(se)
 
-    generate_audit_seed(se)
+    generate_audit_spec(se)
     generate_audit_orders(se)
     generate_audited_votes(se)
 
