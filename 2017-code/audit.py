@@ -16,6 +16,7 @@ import multi
 import csv_readers
 import ids
 import outcomes
+import saved_state
 import utils
 
 
@@ -76,7 +77,8 @@ def draw_sample(e):
 
     Draw sample is in quotes since it just looks at the first
     e.sn_tp[stage_time][pbcid] elements of e.av_cpb[cid][pbcid].
-    Code sets e.sn_tcpr[e.stage_time][cid][pbcid][r] to number in sample with reported vote r.
+    Code sets e.sn_tcpr[e.stage_time][cid][pbcid][r] to number 
+    in sample with reported vote r.
 
     Code sets e.sn_tp to number of ballots sampled in each pbc (equal to plan).
     Note that in real life actual sampling number might be different than planned;
@@ -432,6 +434,7 @@ def show_audit_stage_header(e):
     utils.myprint("audit stage time", e.stage_time)
     utils.myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
+        print("*** e.saved_state:", e.saved_state)
         last_s = e.saved_state["sn_tp"][e.saved_state["stage_time"]]
         utils.myprint("      {}: {} (+{})"
                 .format(pbcid,
@@ -480,9 +483,12 @@ def audit_stage(e, stage_time):
 
     e.stage_time = "{}".format(stage_time)
 
-    e.risk_tm[e.stage_time] = {}
+    saved_state.read_saved_state(e)
+
     e.status_tm[e.stage_time] = {}
     e.sn_tp[e.stage_time] = {}
+
+    e.risk_tm[e.stage_time] = {}
     e.sn_tcpra[e.stage_time] = {}
 
     # this is global read, not just per stage, for now
@@ -524,6 +530,7 @@ def write_audit_output_contest_status(e):
                       "Param 1",
                       "Param 2"]
         file.write(",".join(fieldnames))
+        file.write("\n")
         for mid in e.mids:
             file.write("{},".format(mid))
             file.write("{},".format(e.cid_m[mid]))
@@ -552,6 +559,7 @@ def write_audit_output_collection_status(e):
                       "Number of allots sampled total",
                       "Number of ballots sample this stage."]
         file.write(",".join(fieldnames))
+        file.write("\n")
         for pbcid in e.pbcids:
             file.write("{},".format(pbcid))
             file.write("{},".format(len(e.bids_p[pbcid])))

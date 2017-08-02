@@ -417,18 +417,15 @@ class Election(object):
         # computed in audit_orders.py (but probably will be replaced)
         # sampling order for bids of each pbcid
 
-        # stage-related items
+        # *** stage-related items
         # We don't give sequence numbers to stages; we just identify
         # them by their "stage_time" (when they started, as in
         # "2017-11-10-14-03-21" )
 
-        e.stage_time = "0000-00-00-00-00-01"
+        e.stage_time = "0000-00-00-00-00-00"
         # Current audit stage time (in progress) or last stage completed.
         # Note that stage is a string representing a datetime string.
         # Stage time identifies the audit stage.
-
-        e.last_stage_time = "0000-00-00-00-00-00"
-        # previous stage_time (FIX: STILL NEEDED??)
 
         e.max_stage_time = "9999-12-31-23-59-59"
         # maximum stage time allowed for any audit
