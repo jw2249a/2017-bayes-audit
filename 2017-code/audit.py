@@ -14,6 +14,7 @@ import time
 
 import multi
 import csv_readers
+import ids
 import outcomes
 import utils
 
@@ -85,7 +86,8 @@ def draw_sample(e):
     if "plan_tp" in e.saved_state:
         e.sn_tp[e.stage_time] = e.saved_state["plan_tp"][e.saved_state["stage_time"]]
     else:
-        e.sn_tp[e.stage_time] = e.max_audit_rate_p
+        e.sn_tp[e.stage_time] = { pbcid: int(e.max_audit_rate_p[pbcid])
+                                  for pbcid in e.pbcids }
         
     e.sn_tcpr[e.stage_time] = {}
     for cid in e.cids:
@@ -93,10 +95,21 @@ def draw_sample(e):
         e.sn_tcpr[e.stage_time][cid] = {}
         for pbcid in e.possible_pbcid_c[cid]:
             e.sn_tcpr[e.stage_time][cid][pbcid] = {}
-            avs = [e.av_cpb[cid][pbcid][bid]
-                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage_time][pbcid]]]  # actual
-            rvs = [e.rv_cpb[cid][pbcid][bid]
-                   for bid in e.bids_p[pbcid][:e.sn_tp[e.stage_time][pbcid]]]  # reported
+            sample_size = e.sn_tp[e.stage_time][pbcid]
+            sample_bids = e.bids_p[pbcid][:sample_size]
+            avs = []
+            rvs = []
+            for bid in sample_bids:
+                # actual
+                if bid in e.av_cpb[cid][pbcid]:
+                    avs.append(e.av_cpb[cid][pbcid][bid])
+                else:
+                    avs.append(("-NoSuchContest",))
+                # reported
+                if bid in e.rv_cpb[cid][pbcid]:
+                    rvs.append(e.rv_cpb[cid][pbcid][bid])
+                else:
+                    rvs.append(("-NoSuchContest",))
             arvs = list(zip(avs, rvs))  # list of (actual, reported) vote pairs
             e.sn_tcpra[e.stage_time][cid][pbcid] = outcomes.compute_tally2(arvs)
             for r in e.rn_cpr[cid][pbcid]:
@@ -427,6 +440,32 @@ def show_audit_stage_header(e):
                             last_s[pbcid]))
 
 
+def read_audited_votes(e):
+    """ 
+    Read audited votes from 3-audit/33-audited-votes/audited-votes-PBCID.csv 
+    """
+
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT,
+                                     e.election_dirname)
+    audited_votes_pathname = os.path.join(election_pathname,
+                                          "3-audit",
+                                          "33-audited-votes")
+    for pbcid in e.pbcids:
+        safe_pbcid = ids.filename_safe(pbcid)
+        filename = utils.greatest_name(audited_votes_pathname,
+                                       "audited-votes-"+safe_pbcid,
+                                       ".csv")
+        file_pathname = os.path.join(audited_votes_pathname, filename)
+        fieldnames = ["Collection", "Ballot id", "Contest", "Selections"]
+        rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
+        for row in rows:
+            pbcid = row["Collection"]
+            bid = row["Ballot id"]
+            cid = row["Contest"]
+            vote = row["Selections"]
+            utils.nested_set(e.av_cpb, [cid, pbcid, bid], vote)
+
+
 def audit_stage(e, stage_time):
     """
     Perform audit stage for the stage_time given.
@@ -445,6 +484,9 @@ def audit_stage(e, stage_time):
     e.status_tm[e.stage_time] = {}
     e.sn_tp[e.stage_time] = {}
     e.sn_tcpra[e.stage_time] = {}
+
+    # this is global read, not just per stage, for now
+    read_audited_votes(e)
 
     draw_sample(e)
     compute_risks(e, e.sn_tcpra)
@@ -465,7 +507,7 @@ def write_audit_output_contest_status(e):
     """
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
-                           se.election_dirname,
+                           e.election_dirname,
                            "3-audit",
                            "34-audit-output")
     os.makedirs(dirpath, exist_ok=True)
@@ -498,7 +540,7 @@ def write_audit_output_collection_status(e):
     """ Write 3-audit/34-audit-output/audit_output_collection_status.csv """
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
-                           se.election_dirname,
+                           e.election_dirname,
                            "3-audit",
                            "34-audit-output")
     os.makedirs(dirpath, exist_ok=True)
@@ -513,7 +555,7 @@ def write_audit_output_collection_status(e):
         for pbcid in e.pbcids:
             file.write("{},".format(pbcid))
             file.write("{},".format(len(e.bids_p[pbcid])))
-            file.write("{},".format(e.sn_tp[stage_time][pbcid]))
+            file.write("{},".format(e.sn_tp[e.stage_time][pbcid]))
             if "sn_tp" in e.saved_state:
                 new_sample_size = e.sn_tp[e.stage_time][pbcid]
                 old_sample_size = e.saved_state["sn_tp"] \

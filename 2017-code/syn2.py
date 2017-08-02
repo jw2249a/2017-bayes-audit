@@ -637,14 +637,15 @@ def generate_audited_votes(se):
             for bid in se.rv_cpb[cid][pbcid]:
                 for vote in se.rv_cpb[cid][pbcid][bid]:
                     if (se.SynRandomState.uniform() <= se.error_rate):
-                        #then choose a different selection other than the one on reported
-                        selids = list(se.selids_c[cid].keys())
+                        selids = list(se.selids_c[cid])
+                        # following skipped -- seems not strong need to do so
+                        # then choose a different selection other than
+                        # the one on reported
                         # selids.remove(se.rv_cpb[contest][pbcid][bid])
                     else:
-                        selids = list(se.selids_c[cid].keys())
+                        selids = list(se.selids_c[cid])
                     selection = se.SynRandomState.choice(selids)
-                    # FIX: this should be a vote, not just a selection
-                    utils.nested_set(se.av_cpb, [cid, pbcid, bid], selection)
+                    utils.nested_set(se.av_cpb, [cid, pbcid, bid], (selection,))
 
 
 def write_audit_csv(se):
@@ -802,6 +803,7 @@ def test():
     
     write_election_spec_csv(se)
     write_reported_csv(se)
+
     write_audit_csv(se)
 
     # audit stages

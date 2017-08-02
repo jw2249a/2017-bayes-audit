@@ -75,6 +75,7 @@ def compute_tally2(vec):
     tally2 = {}
     for (a, r) in vec:
         if r not in tally2:
-            tally2[r] = compute_tally([aa for (aa, rr) in vec if r == rr])
+            tally2[r] = compute_tally([aa for (aa, rr)
+                                       in vec if r == rr])
     return tally2
 

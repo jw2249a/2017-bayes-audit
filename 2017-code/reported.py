@@ -150,7 +150,10 @@ def read_reported_ballot_manifests(e):
             positions = utils.count_on(position, num)
 
             for i in range(num):
-                utils.nested_set(e.bids_p, [pbcid, bids[i]], True)
+                # utils.nested_set(e.bids_p, [pbcid, bids[i]], True)
+                if pbcid not in e.bids_p:
+                    e.bids_p[pbcid] = []
+                e.bids_p[pbcid].append(bids[i])
                 utils.nested_set(e.boxid_pb, [pbcid, bids[i]], boxid)
                 utils.nested_set(e.position_pb, [pbcid, bids[i]], position[i])
                 utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamp[i])
@@ -342,8 +345,10 @@ def check_election_data(e):
     if not isinstance(e.bids_p, dict):
         utils.myerror("e.bids_p is not a dict.")
     for pbcid in e.pbcids:
-        if not isinstance(e.bids_p[pbcid], dict):
-            utils.myerror("e.bids_p[{}] is not a dict.".format(pbcid))
+        # if not isinstance(e.bids_p[pbcid], dict):
+        #     utils.myerror("e.bids_p[{}] is not a dict.".format(pbcid))
+        if not isinstance(e.bids_p[pbcid], list):
+            utils.myerror("e.bids_p[{}] is not a list.".format(pbcid))
 
     if not isinstance(e.rv_cpb, dict):
         utils.myerror("e.rv_cpb is not a dict.")

@@ -50,8 +50,8 @@ ELECTIONS_ROOT = "./elections"
 class Election(object):
 
     """
-    All relevant attributes of an election are stored within an Election 
-    object.
+    All relevant attributes of an election and an audit are stored within 
+    an Election object.
 
     For compatibility with json, an Election object should be viewed as 
     the root of a tree of dicts, where all keys are strings, and the leaves are
@@ -252,10 +252,10 @@ class Election(object):
         e.bids_p = {}
         # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
         # pbcid->[bids]
-        # list of ballot ids (bids) for each pcbid
+        # e.bids_p[pbcid] is list of ballot ids (bids) in that pbcid
         # from ballot manifest "Ballot id" column (as expanded for batches)
-        # order is preserved from ballot manifest file, so no need for
-        # "Number of ballots" field (always implicitly 1 now).
+        # order is preserved from ballot manifest file.
+        # No need for "Number of ballots" field (always implicitly 1 now).
 
         e.boxid_pb = {}
         # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
