@@ -145,47 +145,45 @@ def show_sample_counts(e):
 def compute_risk(e, mid, st):
     """ 
     Compute Bayesian risk (chance that reported outcome is wrong 
-    for e.cid_m[mid]).
+    for contest e.cid_m[mid]).
     We take st here as argument rather than e.sn_tcpra so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later, when optimizing
     workload.)
 
-    This is the heart of the Bayesian post-election audit method.
+    This method is the heart of the Bayesian post-election audit method.
     But it could be replaced by a frequentist approach instead, at
     least for those outcome rules and mixes of collection types for
     which a frequentist method is known.
 
     The comparison and ballot-polling audits are blended here; the
-    election data just records an ("-noCVR",) vote for the reported vote
+    election data just records a ("-noCVR",) vote for the reported vote
     in a noCVR paper ballot collection.
     """
 
     cid = e.cid_m[mid]
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
-        test_tally = {vote: 0 for vote in e.rn_cr[cid]}
+        test_tally = {vote: 0 for vote in e.votes_c[cid]}
         for pbcid in e.possible_pbcid_c[cid]:
-            # draw from posterior for each paper ballot collection, sum them
-            # stratify by reported selection
-            for r in e.sn_tcpra[e.stage_time][cid][pbcid]:
-                tally = e.sn_tcpra[e.stage_time][cid][pbcid][r].copy()
-                # for a in tally:
-                #    tally[a] = tally.get(a, 0)
-                for a in tally:
-                    if r!=a:
-                        tally[a] += e.pseudocount_base
+            # Draw from posterior for each paper ballot collection, sum them.
+            # Stratify by reported vote.
+            for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
+                tally = e.sn_tcpra[e.stage_time][cid][pbcid][rv].copy()
+                for av in e.votes_c[cid]:
+                    if av not in tally:
+                        tally[av] = 0
+                    if av == rv:
+                        tally[av] += e.pseudocount_match
                     else:
-                        tally[a] += e.pseudocount_match
+                        tally[av] += e.pseudocount_base
                 dirichlet_dict = dirichlet(tally)
-                nonsample_size = e.rn_cpr[cid][pbcid][r] - \
-                    e.sn_tcpr[e.stage_time][cid][pbcid][r]
-                for a in tally:
-                    # increment actual tally for (actual vote a with reported
-                    # vote r)
-                    test_tally[a] += tally[a]
-                    if e.sn_tcpr[e.stage_time][cid][pbcid][r] > 0:
-                        test_tally[a] += dirichlet_dict[a] * nonsample_size
+                nonsample_size = e.rn_cpr[cid][pbcid][rv] - \
+                    e.sn_tcpr[e.stage_time][cid][pbcid][rv]
+                for av in tally:
+                    test_tally[av] += tally[av]
+                    if e.sn_tcpr[e.stage_time][cid][pbcid][rv] > 0:
+                        test_tally[av] += dirichlet_dict[av] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
     e.risk_tm[e.stage_time][mid] = wrong_outcome_count / e.n_trials
@@ -240,7 +238,7 @@ def show_risks_and_statuses(e):
                       e.cid_m[mid],
                       e.risk_method_m[mid],
                       e.sampling_mode_m[mid],
-                      e.risk_tm[e.stage_time][mid],
+                      "Risk={}".format(e.risk_tm[e.stage_time][mid]),
                       "(limits {},{})".format(e.risk_limit_m[mid],
                                               e.risk_upset_m[mid]),
                       e.status_tm[e.stage_time][mid])
@@ -602,9 +600,15 @@ def stop_audit(e):
     """
 
     for mid in e.mids:
-        if e.status_tm[e.stage_time][mid]=="Open" and e.sampling_mode=="Active":
+        if e.status_tm[e.stage_time][mid]=="Open" and \
+           e.sampling_mode_m[mid]=="Active":
             return False
     return True
+
+
+def compute_plan(e):
+
+    pass
 
 
 def audit(e, args):

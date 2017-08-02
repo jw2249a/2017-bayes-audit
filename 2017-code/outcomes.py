@@ -33,22 +33,23 @@ def plurality(e, cid, tally):
     """
     Return, for input dict tally mapping votes to (int) counts, 
     vote with largest count.  (Tie-breaking done arbitrarily here.)
-    Winning vote must be a valid winner.
+    Winning vote must be a valid winner 
+    (e.g. not ("-Invalid",) or ("-NoSuchContest",) )
     an Exception is raised if this is not possible.
     An undervote or an overvote can't win.
     """
 
     max_cnt = -1e90
-    max_selid = None
+    max_vote = None
     for vote in tally:
         if tally[vote] > max_cnt and \
            len(vote) == 1 and \
            not ids.is_error_selid(vote[0]):
             max_cnt = tally[vote]
-            max_selid = vote[0]
-    assert "No winner allowed in plurality contest.", tally
-    return (max_selid,)
-
+            max_vote = vote
+    if max_vote==None:
+        assert "No winner allowed in plurality contest.", tally
+    return max_vote
 
 
 def compute_outcome(e, cid, tally):
@@ -59,7 +60,8 @@ def compute_outcome(e, cid, tally):
         return plurality(e, cid, tally)
     else:
         # TBD: IRV, etc...
-        multi.myerror("Non-plurality outcome rule {} for contest {} not yet implemented!"
+        multi.myerror(("Non-plurality outcome rule {} for contest {}"
+                       "not yet implemented!")
                       .format(e.contest_type_c[cid], cid))
 
 
@@ -67,15 +69,15 @@ def compute_tally2(vec):
     """
     Input vec is an iterable of (a, r) pairs. 
     (i.e., (actual vote, reported vote) pairs).
-    Return dict giving mapping from r to dict
-    giving tally of a's that appear with that r.
+    Return dict giving mapping from rv to dict
+    giving tally of av's that appear with that rv.
     (Used for comparison audits.)
     """
 
     tally2 = {}
-    for (a, r) in vec:
-        if r not in tally2:
-            tally2[r] = compute_tally([aa for (aa, rr)
-                                       in vec if r == rr])
+    for (av, rv) in vec:
+        if rv not in tally2:
+            tally2[rv] = compute_tally([aa for (aa, rr)
+                                        in vec if rv == rr])
     return tally2
 

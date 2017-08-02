@@ -172,11 +172,12 @@ def generate_contests(se):
         se.write_ins_c[cid] = "no"
 
     # check number of cids with wrong reported outcome
-    assert isinstance(se.n_cids_wrong, int) and 0 <= se.n_cids_wrong <= se.n_cids
-    # determine which cids have wrong reported outcome
-    se.cids_wrong = []
-    while len(se.cids_wrong) < se.n_cids_wrong:
-        se.cids_wrong.append(se.SynRandomState.choice(se.cids))
+    assert isinstance(se.n_cids_wrong, int)
+    assert 0 <= se.n_cids_wrong <= se.n_cids
+    # determine which, if any, cids have wrong reported outcome
+    cids_list = list(se.cids)
+    se.SynRandomState.shuffle(cids_list)    # in-place
+    se.cids_wrong = cids_list[:se.n_cids_wrong]
 
     # generate selids for each cid
     se.n_selids_c = {}
@@ -474,10 +475,9 @@ def generate_reported(se):
 
     se.ro_c = dict()
     for cid in rn_cv:
-        outcome = max(rn_cv[cid], key=rn_cv[cid].get)
-        se.ro_c[cid] = outcome
         tally = rn_cv[cid]
         se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
+        print(">>> se.ro_c[{}] = {}".format(cid, se.ro_c[cid]))
 
     return se
 
@@ -831,6 +831,7 @@ def test():
 
     generate_election_spec(se)
     election_spec.finish_election_spec(se)
+
     generate_contests(se)
     generate_contest_groups(se)
     generate_collections(se)
@@ -854,9 +855,6 @@ def test():
     write_reported_csv(se)
 
     write_audit_csv(se)
-
-    # audit stages
-    pass # TBD
 
 
 if __name__=="__main__":
