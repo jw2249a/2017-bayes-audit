@@ -398,6 +398,7 @@ class Election(object):
 
         e.pseudocount_base = 0.5
         # Fixed parameter
+
         # base-level pseudocount (hyperparameter)
         # to use for Bayesian priors
         # (0.5 for Jeffrey's distribution)
@@ -428,7 +429,7 @@ class Election(object):
         # Stage time identifies the audit stage.
 
         e.max_stage_time = "9999-12-31-23-59-59"
-        # maximum stage time allowed for any audit
+        # maximum stage time (starting time) allowed for any audit
 
         # stage time input is stage time when value or file is computed
         # stage time is denoted t here

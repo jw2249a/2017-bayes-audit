@@ -1073,11 +1073,10 @@ The filename is of the form (showing a year-month-day version label):
 
 The **global audit parameters file** is simple.
 
-| Global Audit Parameter | Value |
-| ---                    | ---   |
-| max audit stages       | 20    |
+| Global Audit Parameter | Value               |
+| ---                    | ---                 |
+| Max audit stage time   | 9999-12-31-23-59-59 |
 
-(FIX: the notion of ``stages`` no longer exists!)
 
 
 [Back to TOC](#table-of-contents)

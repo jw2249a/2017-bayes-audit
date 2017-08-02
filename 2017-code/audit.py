@@ -276,8 +276,25 @@ def read_audit_spec(e, args):
 
 
 def read_audit_spec_global(e, args):
+    """ Read 3-audit/31-audit-spec/audit-spec-global.csv """
 
-    pass
+    election_pathname = os.path.join(multi.ELECTIONS_ROOT,
+                                     e.election_dirname)
+    audit_spec_pathname = os.path.join(election_pathname,
+                                       "3-audit",
+                                       "31-audit-spec")
+    filename = utils.greatest_name(audit_spec_pathname,
+                                   "audit-spec-global",
+                                   ".csv")
+    file_pathname = os.path.join(audit_spec_pathname, filename)
+    fieldnames = ["Global Audit Parameter",
+                  "Value"]
+    rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+    for row in rows:
+        parameter = row["Global Audit Parameter"]
+        value = row["Value"]
+        if parameter == "Max audit stage time":
+            e.max_stage_time = value
 
 
 def read_audit_spec_contest(e, args):
