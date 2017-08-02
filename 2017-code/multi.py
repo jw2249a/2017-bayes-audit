@@ -327,11 +327,13 @@ class Election(object):
         # Computed from e.rn_cpr.
         # cid->int
         # reported number of votes cast in contest
+        # dict mapping cid to int (reported number of votes cast in contest)
 
         e.rn_cr = {}
         # Computed from e.rn_cpr.
         # cid->votes->int
         # reported number of votes for each reported vote in cid
+        # dict mapping cid and reported vote to int (reported number)
 
         # *** Reported outcomes
 
@@ -339,12 +341,14 @@ class Election(object):
         # input (23-reported-outcomes.csv)
         # cid->outcome
         # reported outcome by contest
+        # dict mapping cid to outcome (which is arbitrary hashable object)
 
         # *** Audit setup
 
         e.audit_seed = None
         # input (31-audit-spec/audit-spec-seed.csv)
         # seed for pseudo-random number generation for audit
+        # string or int
 
         e.mids = []
         # input (31-audit-spec/audit-spec-contest.csv)

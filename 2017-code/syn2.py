@@ -668,17 +668,15 @@ def generate_audited_votes(se):
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
-                for vote in se.rv_cpb[cid][pbcid][bid]:
-                    if (se.SynRandomState.uniform() <= se.error_rate):
-                        selids = list(se.selids_c[cid])
-                        # following skipped -- seems not strong need to do so
-                        # then choose a different selection other than
-                        # the one on reported
-                        # selids.remove(se.rv_cpb[contest][pbcid][bid])
-                    else:
-                        selids = list(se.selids_c[cid])
-                    selection = se.SynRandomState.choice(selids)
-                    utils.nested_set(se.av_cpb, [cid, pbcid, bid], (selection,))
+                rv = se.rv_cpb[cid][pbcid][bid]
+                av = se.rv_cpb[cid][pbcid][bid]  # default no error
+                if (se.SynRandomState.uniform() <= se.error_rate):
+                    selids = list(se.selids_c[cid])     
+                    if rv in selids:    
+                        selids.remove(rv)
+                    av = (se.SynRandomState.choice(selids),)
+                print(">><<>>", rv, av)
+                utils.nested_set(se.av_cpb, [cid, pbcid, bid], av)
 
 
 def write_audit_csv(se):
@@ -794,7 +792,6 @@ def write_32_audit_orders_csv(se):
 def write_33_audited_votes_csv(se):
     """ Write 3-audit/33-audited-votes/audited-votes-PBCID.csv """
 
-    print("syn2.py write_33_audited_votes_csv")
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
                            se.election_dirname,
                            "3-audit",
