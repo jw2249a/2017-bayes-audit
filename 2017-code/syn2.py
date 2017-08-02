@@ -637,6 +637,7 @@ def generate_audit_spec_contest(se):
 
     for i, cid in enumerate(se.cids):
         mid = "mid{}".format(i)
+        se.mids.append(mid)
         se.cid_m[mid] = cid
         se.risk_method_m[mid] = "Bayes"
         se.risk_limit_m[mid] = 0.05
@@ -677,7 +678,6 @@ def generate_audited_votes(se):
                     else:
                         selids = list(se.selids_c[cid])
                     selection = se.SynRandomState.choice(selids)
-                    print("**** syn2 av_cpb", (selection,))
                     utils.nested_set(se.av_cpb, [cid, pbcid, bid], (selection,))
 
 
@@ -714,6 +714,7 @@ def write_audit_spec_global_csv(se):
         file.write("Max audit stage time,")
         file.write(se.max_stage_time)
         file.write("\n")
+
 
 def write_audit_spec_contest_csv(se):
 
