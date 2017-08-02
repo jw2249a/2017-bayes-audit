@@ -793,30 +793,32 @@ def write_32_audit_orders_csv(se):
 def write_33_audited_votes_csv(se):
     """ Write 3-audit/33-audited-votes/audited-votes-PBCID.csv """
 
+    print("syn2.py write_33_audited_votes_csv")
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
                            se.election_dirname,
                            "3-audit",
                            "33-audited-votes")
     os.makedirs(dirpath, exist_ok=True)
-    for cid in se.av_cpb:
-        for pbcid in se.av_cpb[cid]:
-            safe_pbcid = ids.filename_safe(pbcid)
-            filename = os.path.join(dirpath, "audited-votes-" + safe_pbcid+".csv")
-            with open(filename, "w") as file:
-                fieldnames = ["Collection", "Ballot id", "Contest", "Selections"]
-                file.write(",".join(fieldnames))
-                file.write("\n")
-                for cid in se.av_cpb:
-                    for pbcid_inner in se.av_cpb[cid]:
-                        if pbcid_inner == pbcid:
-                            for bid in se.av_cpb[cid][pbcid]:
-                                vote = se.av_cpb[cid][pbcid][bid]
-                                file.write("{},".format(pbcid))
-                                file.write("{},".format(bid))
-                                file.write("{},".format(cid))
-                                selections = ",".join(vote)
-                                file.write("{}".format(selections))
-                                file.write("\n")
+
+    pbcids = [pbcid for cid in se.av_cpb for pbcid in se.av_cpb[cid]]
+    for pbcid in pbcids:
+        safe_pbcid = ids.filename_safe(pbcid)
+        filename = os.path.join(dirpath, "audited-votes-" + safe_pbcid+".csv")
+        with open(filename, "w") as file:
+            fieldnames = ["Collection", "Ballot id", "Contest", "Selections"]
+            file.write(",".join(fieldnames))
+            file.write("\n")
+            for cid in se.av_cpb:
+                if pbcid in se.av_cpb[cid]:
+                    for bid in se.av_cpb[cid][pbcid]:
+                        vote = se.av_cpb[cid][pbcid][bid]
+                        file.write("{},".format(pbcid))
+                        file.write("{},".format(bid))
+                        file.write("{},".format(cid))
+                        selections = ",".join(vote)
+                        file.write("{}".format(selections))
+                        file.write("\n")
+
 
 def write_34_audit_output_csv(se):
 
