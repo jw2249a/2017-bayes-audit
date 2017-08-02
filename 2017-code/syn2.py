@@ -677,6 +677,7 @@ def generate_audited_votes(se):
                     else:
                         selids = list(se.selids_c[cid])
                     selection = se.SynRandomState.choice(selids)
+                    print("**** syn2 av_cpb", (selection,))
                     utils.nested_set(se.av_cpb, [cid, pbcid, bid], (selection,))
 
 
@@ -813,11 +814,13 @@ def write_33_audited_votes_csv(se):
                                 file.write("{},".format(pbcid))
                                 file.write("{},".format(bid))
                                 file.write("{},".format(cid))
-                                file.write("{}".format(vote))
+                                selections = ",".join(vote)
+                                file.write("{}".format(selections))
                                 file.write("\n")
 
 def write_34_audit_output_csv(se):
 
+    # Nothing really to do here!
     pass
 
 

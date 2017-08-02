@@ -424,8 +424,8 @@ def show_audit_spec(e):
     utils.myprint("Maxx allowed start time for any stage (e.max_stage_time):")
     utils.myprint("    {}".format(e.max_stage_time))
 
-    utils.myprint("Number of trials used to estimate risk (e.n_trials):"
-            "in compute_contest_risk):")
+    utils.myprint("Number of trials used to estimate risk"
+                  "in compute_contest_risk (e.n_trials):")
     utils.myprint("    {}".format(e.n_trials))
 
     utils.myprint("Dirichlet hyperparameter for base case or non-matching reported/actual votes")
