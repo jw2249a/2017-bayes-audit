@@ -349,10 +349,12 @@ class Election(object):
         e.mids = []
         # input (31-audit-spec/audit-spec-contest.csv)
         # list of measurement ids (typically one per contest being audited)
+        # list of strings
 
         e.cid_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
         # The contest being measured in a given measurement.
+        # dict mapping mids to strings
 
         e.risk_method_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
@@ -360,30 +362,36 @@ class Election(object):
         # The risk-measurement method used for a given measurement.
         # Right now, the options are "Bayes" and "Frequentist", but this may
         # change.
+        # dict mapping mids to strings
 
         e.risk_limit_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
         # mid->reals
         # risk limit for each measurement (from [0,1])
+        # dict mapping mids to floats
 
         e.risk_upset_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
         # mid->reals
         # risk upset threshold for each measurement (from [0,1])
+        # dict mapping mids to floats
 
         e.sampling_mode_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
         # mid->{"Active", "Opportunistic"}
+        # dict mapping mids to strings
 
         e.initial_status_m = {}
         # initial status of test, should be one of
         #    "Open", "Off"
         # (Later they may change to "Passed" or "Upset" or "Exhausted".)
+        # dict mapping mids to strings
 
         e.risk_measurement_parameters_m = {}
         # input (31-audit-spec/audit-spec-contest.csv)
         # additional parameters that may be needed by the risk measurement method
         # These are are represented as a *tuple* for each measurement.
+        # dict mapping mids to tuples of strings
 
         e.max_audit_rate_p = {}
         # input (31-audit-spec/audit-spec-collection.csv)
@@ -430,6 +438,7 @@ class Election(object):
 
         e.max_stage_time = "9999-12-31-23-59-59"
         # maximum stage time (starting time) allowed for any audit
+        # string
 
         # stage time input is stage time when value or file is computed
         # stage time is denoted t here
@@ -437,17 +446,21 @@ class Election(object):
         e.status_tm = {}
         # mid->{"Open", "Passed", "Upset", "Exhasuted", "Off"}
         # status for a measurement for a given stage
+        # dict mapping mids to strings
 
         e.plan_tp = {}
-        # stage_time->pbcid->reals
+        # stage_time->pbcid->float
         # sample size wanted after next draw
+        # dict mapping stage_time and pbcid to floats
 
         e.risk_tm = {}
         # stage_time->measurement->reals
         # risk = probability that e.ro_c[e.cid[mid]] is wrong
+        # dict mapping stage_time and mid to floats
 
         e.election_status_t = {}
         # stage_time->list of measurement statuses, at most once each
+        # dict mapping stage_time to string
 
         # sample info
 

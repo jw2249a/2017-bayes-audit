@@ -72,15 +72,21 @@ def dirichlet(tally):
 
 def draw_sample(e):
     """ 
-    "Draw sample", tally it, save sample tally in e.sn_tcpra[stage_time][cid][pbcid]. 
+    "Draw sample", tally it, save sample tally in 
+        e.sn_tcpra[stage_time][cid][pbcid]. 
     Update e.sn_tcpr
 
     Draw sample is in quotes since it just looks at the first
-    e.sn_tp[stage_time][pbcid] elements of e.av_cpb[cid][pbcid].
-    Code sets e.sn_tcpr[e.stage_time][cid][pbcid][r] to number 
-    in sample with reported vote r.
+        e.sn_tp[stage_time][pbcid] 
+    elements of 
+        e.av_cpb[cid][pbcid].
+    Code sets 
+        e.sn_tcpr[e.stage_time][cid][pbcid][r] 
+    to number of votes in sample with reported vote r.
 
-    Code sets e.sn_tp to number of ballots sampled in each pbc (equal to plan).
+    Code sets 
+        e.sn_tp 
+    to number of ballots sampled in each pbc (equal to plan).
     Note that in real life actual sampling number might be different than planned;
     here it will be the same.  But code elsewhere allows for such differences.
     """
@@ -226,15 +232,17 @@ def show_risks_and_statuses(e):
     Show election and contest statuses for current stage. 
     """
 
-    utils.myprint("    Risk (that reported outcome is wrong) and measurement status per mid:")
+    utils.myprint(("    Risk (that reported outcome is wrong)"
+                   "and measurement status per mid:"))
     for mid in e.mids:
         utils.myprint("     ",
                       mid,
                       e.cid_m[mid],
                       e.risk_method_m[mid],
                       e.sampling_mode_m[mid],
-                      e.risk_tm[e.stage][mid],
-                      "(limits {},{})".format(e.risk_limit_m[mid], e.risk_upset_m[mid]),
+                      e.risk_tm[e.stage_time][mid],
+                      "(limits {},{})".format(e.risk_limit_m[mid],
+                                              e.risk_upset_m[mid]),
                       e.status_tm[e.stage_time][mid])
     utils.myprint("    Election status:", e.election_status_t[e.stage_time])
 
@@ -326,8 +334,8 @@ def read_audit_spec_contest(e, args):
         e.mids.append(mid)
         e.cid_m[mid] = row["Contest"]
         e.risk_method_m[mid] = row["Risk Measurement Method"]
-        e.risk_limit_m[mid] = row["Risk Limit"]
-        e.risk_upset_m[mid] = row["Risk Upset Threshold"]
+        e.risk_limit_m[mid] = float(row["Risk Limit"])
+        e.risk_upset_m[mid] = float(row["Risk Upset Threshold"])
         e.sampling_mode_m[mid] = row["Sampling Mode"]
         e.initial_status_m[mid] = row["Initial Status"]
         e.risk_measurement_parameters_m[mid] = (row["Param 1"], row["Param 2"])
@@ -552,8 +560,8 @@ def write_audit_output_contest_status(e):
             file.write("{},".format(e.risk_upset_m[mid]))
             file.write("{},".format(e.sampling_mode_m[mid]))
             file.write("{},".format(e.status_tm[e.stage_time][mid]))
-            file.write("{},".format(e.risk_measurement_parameters[mid][0]))
-            file.write("{}".format(e.risk_measurement_parameters[mid][1]))
+            file.write("{},".format(e.risk_measurement_parameters_m[mid][0]))
+            file.write("{}".format(e.risk_measurement_parameters_m[mid][1]))
             file.write("\n")
 
 def write_audit_output_collection_status(e):
@@ -593,8 +601,8 @@ def stop_audit(e):
     (I.e., if some measurement is Open and Active).
     """
 
-    for m in e.mids:
-        if e.status_m[mid]=="Open" and e.sampling_mode=="Active":
+    for mid in e.mids:
+        if e.status_tm[e.stage_time][mid]=="Open" and e.sampling_mode=="Active":
             return False
     return True
 
@@ -629,11 +637,13 @@ def show_audit_summary(e):
 
     utils.myprint("All measurements have a status in the following list:",
             e.election_status_t[e.stage_time])
-    if all([e.sampling_mode_m[mid]!="Active" or e.status_m[mid]!="Open" \
+    if all([e.sampling_mode_m[mid]!="Active" \
+            or e.status_tm[e.stage_time][mid]!="Open" \
             for mid in e.mids]):
         utils.myprint("No `Active' measurement still has `Open' status.")
     if ("Active", "Upset") in \
-       [(e.sampling_mode_m[mid], e.status_m[mid]) for mid in e.mids]:
+       [(e.sampling_mode_m[mid], e.status_tm[e.stage_time][mid])
+        for mid in e.mids]:
         utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
     if e.stage_time > e.max_stage_time:
         utils.myprint("Maximum audit stage time ({}) reached."
