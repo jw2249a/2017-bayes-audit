@@ -29,7 +29,7 @@ def write_initial_saved_state(e):
     e.status_tm[initial_stage_time] = {}
     print("*** mids:", e.mids)
     print("*** initial status:", e.initial_status_m)
-    for m in e.mids:                                
+    for mid in e.mids:                                
         # initial contest state
         e.status_tm[initial_stage_time][mid] = e.initial_status_m[mid]
 

@@ -208,6 +208,7 @@ def compute_statuses(e):
             e.saved_state["status_tm"][e.saved_state["stage_time"]][mid]
         if e.status_tm[e.stage_time][mid] == "Open":
             if all([e.rn_p[pbcid] == e.sn_tp[e.stage_time][pbcid]
+                    for cid in e.possible_pbcid_c
                     for pbcid in e.possible_pbcid_c[cid]]):
                 e.status_tm[e.stage_time][mid] = "Exhausted"
             elif e.risk_tm[e.stage_time][mid] < e.risk_limit_m[mid]:
@@ -319,6 +320,7 @@ def read_audit_spec_contest(e, args):
                   "Param 1",
                   "Param 2"]          
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=False)
+    print("read_audit_spec_contest: e.mid:", e.mids)
     for row in rows:
         mid = row["Measurement id"]
         e.mids.append(mid)
@@ -328,7 +330,7 @@ def read_audit_spec_contest(e, args):
         e.risk_upset_m[mid] = row["Risk Upset Threshold"]
         e.sampling_mode_m[mid] = row["Sampling Mode"]
         e.initial_status_m[mid] = row["Initial Status"]
-        e.risk_measurement_parameters[mid] = (row["Param 1"], row["Param 2"])
+        e.risk_measurement_parameters_m[mid] = (row["Param 1"], row["Param 2"])
 
 
 def read_audit_spec_collection(e, args):
@@ -384,7 +386,7 @@ def check_audit_spec(e):
         if mid not in e.mids:
             utils.mywarning("e.risk_limit_m mid key `{}` is not in e.mids."
                       .format(mid))
-        if not (0.0 <= e.risk_limit_m[mid] <= 1.0):
+        if not (0.0 <= float(e.risk_limit_m[mid]) <= 1.0):
             utils.mywarning("e.risk_limit_m[{}] not in interval [0,1]".format(mid))
 
     if not isinstance(e.max_audit_rate_p, dict):

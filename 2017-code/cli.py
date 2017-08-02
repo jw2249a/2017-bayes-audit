@@ -102,7 +102,6 @@ def process_args(e, args):
     elif args.audit:
         election_spec.read_election_spec(e)
         reported.read_reported(e)
-        audit.read_audit_spec(e, args)
         audit.audit(e, args)
 
 

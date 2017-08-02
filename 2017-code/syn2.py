@@ -745,8 +745,8 @@ def write_audit_spec_contest_csv(se):
             file.write("{},".format(se.risk_upset_m[mid]))
             file.write("{},".format(se.sampling_mode_m[mid]))
             file.write("{},".format(se.initial_status_m[mid]))
-            file.write("{},".format(se.risk_measurement_parameters[mid][0]))
-            file.write("{}".format(se.risk_measurement_parameters[mid][1]))
+            params = ",".join(se.risk_measurement_parameters_m[mid])
+            file.write("{}".format(params))
             file.write("\n")
 
 
