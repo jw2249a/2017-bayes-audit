@@ -17,13 +17,18 @@ def write_initial_saved_state(e):
 
     initial_stage_time = "0000-00-00-00-00-00" # stage_time for initial saved-state
 
+    e.sn_tp[initial_stage_time] = {}
     for pbcid in e.pbcids:
         # no sampling done yet
         e.sn_tp[initial_stage_time][pbcid] = 0      
 
+    e.plan_tp[initial_stage_time] = {}
     for pbcid in e.pbcids:
-        e.plan_tp[initial_stage_time][pbcid] = e.max_audit_rate_p[pbcid]
+        e.plan_tp[initial_stage_time][pbcid] = int(e.max_audit_rate_p[pbcid])
 
+    e.status_tm[initial_stage_time] = {}
+    print("*** mids:", e.mids)
+    print("*** initial status:", e.initial_status_m)
     for m in e.mids:                                
         # initial contest state
         e.status_tm[initial_stage_time][mid] = e.initial_status_m[mid]
@@ -48,7 +53,7 @@ def write_saved_state(e, ss):
     """
 
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
-                           se.election_dirname,
+                           e.election_dirname,
                            "3-audit",
                            "34-audit-output")
     os.makedirs(dirpath, exist_ok=True)
@@ -71,8 +76,8 @@ def read_saved_state(e):
     filename = utils.greatest_name(dirpath,
                                    "audit-output-saved-state",
                                    ".json")
-    file_pathname = os.path.join(audit_spec_pathname, filename)
-    file = open(filename, "r")
+    file_pathname = os.path.join(dirpath, filename)
+    file = open(file_pathname, "r")
 
     e.saved_state = json.load(file)
 

@@ -671,6 +671,7 @@ def write_audit_spec_global_csv(se):
 
 def write_audit_spec_contest_csv(se):
 
+    print("**** se.mids:", se.mids)
     dirpath = os.path.join(multi.ELECTIONS_ROOT,
                            se.election_dirname,
                            "3-audit",

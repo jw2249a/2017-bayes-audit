@@ -97,7 +97,7 @@ def draw_sample(e):
         e.sn_tcpr[e.stage_time][cid] = {}
         for pbcid in e.possible_pbcid_c[cid]:
             e.sn_tcpr[e.stage_time][cid][pbcid] = {}
-            sample_size = e.sn_tp[e.stage_time][pbcid]
+            sample_size = int(e.sn_tp[e.stage_time][pbcid])
             sample_bids = e.bids_p[pbcid][:sample_size]
             avs = []
             rvs = []
@@ -400,14 +400,14 @@ def show_audit_spec(e):
                               e.risk_upset_m[mid],
                               e.sampling_mode_m[mid]))
 
-    utils.myprint("e.max_audit_rate_p (max number of ballots audited/day per pbcid):")
+    utils.myprint("Max number of ballots audited/day (e.max_audit_rate_p):")
     for pbcid in sorted(e.pbcids):
         utils.myprint("    {}:{}".format(pbcid, e.max_audit_rate_p[pbcid]))
 
-    utils.myprint("e.max_stage_time (max allowed start time of any audit):")
+    utils.myprint("Maxx allowed start time for any stage (e.max_stage_time):")
     utils.myprint("    {}".format(e.max_stage_time))
 
-    utils.myprint("e.n_trials (number of trials used to estimate risk "
+    utils.myprint("Number of trials used to estimate risk (e.n_trials):"
             "in compute_contest_risk):")
     utils.myprint("    {}".format(e.n_trials))
 
@@ -421,12 +421,7 @@ def show_audit_spec(e):
 
 def initialize_audit(e):
 
-    e.sn_tp["0"] = {}
-    for pbcid in e.pbcids:
-        e.sn_tp["0"][pbcid] = 0
-    # Initial plan size is just audit rate, for each pbcid.
-    e.plan_tp["0"] = {pbcid: min(
-        e.rn_p[pbcid], int(e.max_audit_rate_p[pbcid])) for pbcid in e.pbcids}
+    pass
 
 
 def show_audit_stage_header(e):
@@ -434,7 +429,6 @@ def show_audit_stage_header(e):
     utils.myprint("audit stage time", e.stage_time)
     utils.myprint("    New target sample sizes by paper ballot collection:")
     for pbcid in e.pbcids:
-        print("*** e.saved_state:", e.saved_state)
         last_s = e.saved_state["sn_tp"][e.saved_state["stage_time"]]
         utils.myprint("      {}: {} (+{})"
                 .format(pbcid,
@@ -569,7 +563,7 @@ def write_audit_output_collection_status(e):
                 old_sample_size = e.saved_state["sn_tp"] \
                                     [e.saved_state["stage_time"]][pbcid]
                 diff_sample_size = new_sample_size - old_sample_size
-                file.write({}.format(diff_sample_size))
+                file.write("{}".format(diff_sample_size))
             file.write("\n")            
 
 
@@ -590,6 +584,7 @@ def audit(e, args):
 
     read_audit_spec(e, args)
     initialize_audit(e)
+    saved_state.write_initial_saved_state(e)
     show_audit_spec(e)
 
     utils.myprint("====== Audit ======")
@@ -614,22 +609,22 @@ def show_audit_summary(e):
     utils.myprint("Audit completed!")
 
     utils.myprint("All measurements have a status in the following list:",
-            e.election_status_t[e.stage])
+            e.election_status_t[e.stage_time])
     if all([e.sampling_mode_m[mid]!="Active" or e.status_m[mid]!="Open" \
             for mid in e.mids]):
         utils.myprint("No `Active' measurement still has `Open' status.")
     if ("Active", "Upset") in \
        [(e.sampling_mode_m[mid], e.status_m[mid]) for mid in e.mids]:
         utils.myprint("At least one `Active' measurement signals `Upset' (full recount needed).")
-    if int(e.stage) == e.max_stages:
-        utils.myprint("Maximum number of audit stages ({}) reached."
-                .format(e.max_stages))
+    if e.stage_time > e.max_stage_time:
+        utils.myprint("Maximum audit stage time ({}) reached."
+                .format(e.max_stage_time))
 
     utils.myprint("Number of ballots sampled, by paper ballot collection:")
     for pbcid in e.pbcids:
-        utils.myprint("  {}:{}".format(pbcid, e.sn_tp[e.stage][pbcid]))
+        utils.myprint("  {}:{}".format(pbcid, e.sn_tp[e.stage_time][pbcid]))
     utils.myprint_switches = ["std"]
     utils.myprint("Total number of ballots sampled: ", end='')
-    utils.myprint(sum([e.sn_tp[e.stage][pbcid] for pbcid in e.pbcids]))
+    utils.myprint(sum([e.sn_tp[e.stage_time][pbcid] for pbcid in e.pbcids]))
 
 
