@@ -4,7 +4,7 @@
 # python3
 
 """
-Command-line parser and dispatch
+Command-line parser and dispatch for multi.py
 """
 
 
@@ -30,6 +30,7 @@ def parse_args():
     # Mandatory argument: dirname
     parser.add_argument("election_dirname", help="""
                         The name for this election of the subdirectory within the elections root directory.""")
+
     # All others are optional
 
     parser.add_argument("--election_name",

@@ -35,6 +35,7 @@ multi.Election.  We fill in the values of the fields as if they
 had been read on, or else we (optionally) output the values as csv files.
 """
 
+import argparse
 import numpy as np
 import os
 
@@ -152,7 +153,8 @@ def generate_election_spec(se=default_SynElection):
 
     dts = utils.datetime_string()
     se.election_name = "TestElection-"+dts
-    se.election_dirname = "TestElection-"+dts
+    if se.election_dirname=="":
+        se.election_dirname = "TestElection-"+dts
     se.election_date = dts                  
     se.election_url = "None"            
 
@@ -253,21 +255,25 @@ def write_election_spec_csv(se):
 
 def write_election_spec_general_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "election-spec-general.csv")
 
     with open(filename, "w") as file:
         file.write("Attribute,Value\n")
         file.write("Election name,"+se.election_name+"\n")
-        file.write("Elections dirname,"+se.election_dirname+"\n")
+        file.write("Election dirname,"+se.election_dirname+"\n")
         file.write("Election date,"+se.election_date+"\n")
         file.write("Election URL,"+se.election_url+"\n")
 
 
 def write_election_spec_contests_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "election-spec-contests.csv")
 
@@ -286,7 +292,9 @@ def write_election_spec_contests_csv(se):
 
 def write_election_spec_contest_groups_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "election-spec-contest-groups.csv")
 
@@ -302,7 +310,9 @@ def write_election_spec_contest_groups_csv(se):
 
 def write_election_spec_collections_csv(se):
 
-    dirpath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname, "1-election-spec")
+    dirpath = os.path.join(multi.ELECTIONS_ROOT,
+                           se.election_dirname,
+                           "1-election-spec")
     os.makedirs(dirpath, exist_ok=True)
     filename = os.path.join(dirpath, "election-spec-collections.csv")
 
@@ -394,7 +404,8 @@ def generate_reported(se):
 
             se.cids_b[bid] = list(se.cids_b[bid])
 
-    # Generate the reported selection for each contest and ballot (populate rv_cpb).
+    # Generate the reported selection for each contest and ballot
+    # (populate rv_cpb).
     # Draw from selids_c[cid] for each cid.
     se.rv_cpb = {}
 
@@ -406,7 +417,8 @@ def generate_reported(se):
                     selection = se.SynRandomState.choice(selids)
                     rv = (selection,)
                     utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rv)
-                else: # we can handle this later when its not hardcoded 
+                else:
+                    # we can handle this later...
                     # need to distinguish preferential voting, etc...
                     pass
                     
@@ -684,7 +696,6 @@ def write_audit_csv(se):
     write_31_audit_spec_csv(se)
     write_32_audit_orders_csv(se)
     write_33_audited_votes_csv(se)
-    # write_34_audit_output_csv(se)  # needed ??
 
 
 def write_31_audit_spec_csv(se):
@@ -818,16 +829,7 @@ def write_33_audited_votes_csv(se):
                         file.write("\n")
 
 
-def write_34_audit_output_csv(se):
-
-    # Nothing really to do here!
-    pass
-
-
-def test():
-
-    se = SynElection()
-    se.seed = 9
+def test(se):
 
     generate_election_spec(se)
     election_spec.finish_election_spec(se)
@@ -853,10 +855,51 @@ def test():
     
     write_election_spec_csv(se)
     write_reported_csv(se)
-
     write_audit_csv(se)
+
+
+##############################################################################
+# Command-line arguments
+
+def parse_args():
+
+    parser = argparse.ArgumentParser(description=\
+                                     ("syn2.py: "
+                                      "Synthetic election generation for "
+                                      "multi.py (a Bayesian post-election "
+                                      "audit program for an election with "
+                                      "multiple contests and multiple paper "
+                                      "ballot collections)."))
+
+    # Mandatory argument: dirname
+
+    parser.add_argument("election_dirname",
+                        help=('The name for this election of the '
+                              'subdirectory within the elections root '
+                              'directory. Enter "" to get default '
+                              'of TestElection followed by datetime.'))
+
+    # All others are optional
+
+    args = parser.parse_args()
+    return args
+
+
+def process_args(se, args):
+
+    se.election_dirname = ids.filename_safe(args.election_dirname)
+    se.election_name = se.election_dirname
+
+    test(se)
 
 
 if __name__=="__main__":
 
-    test()
+    se = SynElection()
+
+    args = parse_args()
+    process_args(se, args)
+
+    
+
+
