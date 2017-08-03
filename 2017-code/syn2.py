@@ -1,32 +1,32 @@
 # syn2.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# July 22, 2017
+# August 3, 2017
 # python3
 
 """
 Routines to generate a synthetic test election dataset, 
 given the following parameters (defaults in brackets):
 
-    n_cids = # number of contests [2]
-    n_cids_wrong = # number of contests with wrong reported outcome [0]
-    min_n_selids_per_cid = minimum number of selids per contest [2]
-    max_n_selids_per_cid = maximum number of selids per contest [5]
-    n_pbcids = # number of pbcids [2]
-    n_pbcids_nocvr = # number of collections with no CVRs [0]
-    min_n_bids_per_pbcid = minimum number of bids per pbcid [10]
-    max_n_bids_per_pbcidp = maximum number of bids per pbcid [20]
-    box_size = max number of ballots in a box [100]
-    min_pbcids_per_cid = minimum number of pbcids per contest [1]
-    max_pbcids_per_cid = maximum number of pbcids per contest [1]
-    dropoff = rate at which votes drop off with selection (geometric) [0.9]
-    errorrate = rate at which reported votes != actual votes [0.005]
-    synseed = random number seed (for reproducibility) [1]
-    RandomState = state for random number generator
+    syn_n_cids = # number of contests [2]
+    syn_n_cids_wrong = # number of contests with wrong reported outcome [0]
+    syn_min_n_selids_per_cid = minimum number of selids per contest [2]
+    syn_max_n_selids_per_cid = maximum number of selids per contest [5]
+    syn_n_pbcids = # number of pbcids [2]
+    syn_n_pbcids_nocvr = # number of collections with no CVRs [0]
+    syn_min_n_bids_per_pbcid = minimum number of bids per pbcid [10]
+    syn_max_n_bids_per_pbcid = maximum number of bids per pbcid [20]
+    syn_box_size = max number of ballots in a box [100]
+    syn_min_pbcids_per_cid = minimum number of pbcids per contest [1]
+    syn_max_pbcids_per_cid = maximum number of pbcids per contest [1]
+    syn_dropoff = rate at which votes drop off with selection (geometric) [0.9]
+    syn_error_rate = rate at which reported votes != actual votes [0.005]
+    syn_seed = random number seed (for reproducibility) [1]
+    syn_RandomState = state for random number generator
 
     ### following are then computed ###
     cids = list of cids (of length n_cids)
     cids_wrong = list of cids that will have wrong output
-    pbcids = list of pbcids (of length n_pbcids)
+    pbcids = list of pbcids (of length syn_n_pbcids)
     cvr_type_p = mapping of pbcid to "CVR" or "noCVR"
     n_bids_p = mapping from pbcid to number of bids in that pbcid
     
@@ -47,33 +47,33 @@ import outcomes
 import random 
 import utils
 
-class SynElection(multi.Election):
+class Syn_Election(multi.Election):
 
-    def __init__(self, synseed=1):
+    def __init__(self, syn_seed=1):
 
-        super(SynElection, self).__init__()
+        super(Syn_Election, self).__init__()
 
         # controllable fields
-        self.n_cids = 2
-        self.n_cids_wrong = 0
-        self.min_n_selids_per_cid = 2
-        self.max_n_selids_per_cid = 5
-        self.n_pbcids = 2
-        self.n_pbcids_nocvr = 0
-        self.min_n_bids_per_pbcid = 200
-        self.max_n_bids_per_pbcid = 200
-        self.box_size = 100
-        self.min_pbcids_per_cid = 1
-        self.max_pbcids_per_cid = self.n_pbcids
-        self.dropoff = 0.9
-        self.error_rate = 0.005
-        self.synseed = synseed
-        self.SynRandomState = np.random.RandomState(self.synseed)
+        self.syn_n_cids = 2
+        self.syn_n_cids_wrong = 0
+        self.syn_min_n_selids_per_cid = 2
+        self.syn_max_n_selids_per_cid = 5
+        self.syn_n_pbcids = 2
+        self.syn_n_pbcids_nocvr = 0
+        self.syn_min_n_bids_per_pbcid = 200
+        self.syn_max_n_bids_per_pbcid = 200
+        self.syn_box_size = 100
+        self.syn_min_pbcids_per_cid = 1
+        self.syn_max_pbcids_per_cid = self.syn_n_pbcids
+        self.syn_dropoff = 0.9
+        self.syn_error_rate = 0.005
+        self.syn_seed = syn_seed
+        self.syn_RandomState = np.random.RandomState(self.syn_seed)
 
         # working fields
         # none right now...
 
-default_SynElection = SynElection()          
+default_Syn_Election = Syn_Election()          
 
 
 def geospace(start, stop, num=7):
@@ -107,7 +107,7 @@ def geospace_choice(se, start, stop, num=7):
     """
 
     elts = geospace(start, stop, num)
-    return se.SynRandomState.choice(elts)
+    return se.syn_RandomState.choice(elts)
 
 
 def generate_segments(se, low, high):
@@ -127,7 +127,7 @@ def generate_segments(se, low, high):
     L = []
     if low!=high:
         L.append((low, high))
-        mid = se.SynRandomState.choice(range(low, high))
+        mid = se.syn_RandomState.choice(range(low, high))
         L.extend(generate_segments(se, low, mid))
         L.extend(generate_segments(se,  mid+1, high))
     return L
@@ -136,9 +136,9 @@ def generate_segments(se, low, high):
 ##############################################################################
 ## election specification
 
-def generate_election_spec(se=default_SynElection):
+def generate_election_spec(se=default_Syn_Election):
     """
-    se has SynElection for the parameters noted above;
+    se has Syn_Election for the parameters noted above;
     add to se values that would be otherwise read in,
     e.g. via election_spec.py (read_election_spec, 
     read_election_spec_contests,
@@ -148,8 +148,8 @@ def generate_election_spec(se=default_SynElection):
 
     print("generate_election_spec")
 
-    # reset SynRandomState from synseed
-    se.SynRandomState = np.random.RandomState(se.synseed)
+    # reset syn_RandomState from syn_seed
+    se.syn_RandomState = np.random.RandomState(se.syn_seed)
 
     dts = utils.datetime_string()
     se.election_name = "TestElection-"+dts
@@ -162,9 +162,9 @@ def generate_election_spec(se=default_SynElection):
 def generate_contests(se):
 
     # check number of contests
-    assert isinstance(se.n_cids, int) and se.n_cids >= 1
+    assert isinstance(se.syn_n_cids, int) and se.syn_n_cids >= 1
     # make cid for each contest
-    se.cids = set("con{}".format(i+1) for i in range(se.n_cids))
+    se.cids = set("con{}".format(i+1) for i in range(se.syn_n_cids))
 
     # generate contest types as plurality and number winners = 1
     # no write-ins
@@ -174,20 +174,20 @@ def generate_contests(se):
         se.write_ins_c[cid] = "no"
 
     # check number of cids with wrong reported outcome
-    assert isinstance(se.n_cids_wrong, int)
-    assert 0 <= se.n_cids_wrong <= se.n_cids
+    assert isinstance(se.syn_n_cids_wrong, int)
+    assert 0 <= se.syn_n_cids_wrong <= se.syn_n_cids
     # determine which, if any, cids have wrong reported outcome
     cids_list = list(se.cids)
-    se.SynRandomState.shuffle(cids_list)    # in-place
-    se.cids_wrong = cids_list[:se.n_cids_wrong]
+    se.syn_RandomState.shuffle(cids_list)    # in-place
+    se.cids_wrong = cids_list[:se.syn_n_cids_wrong]
 
     # generate selids for each cid
     se.n_selids_c = {}
     se.selids_c = {}
     for cid in se.cids:
         se.n_selids_c[cid] = geospace_choice(se,
-                                             se.min_n_selids_per_cid,
-                                             se.max_n_selids_per_cid)
+                                             se.syn_min_n_selids_per_cid,
+                                             se.syn_max_n_selids_per_cid)
 
         se.selids_c[cid] = {"sel{}".format(i):True for i in range(1, se.n_selids_c[cid]+1)}
 
@@ -205,7 +205,7 @@ def generate_contest_groups(se):
 
     se.gids = []
     cids_list = sorted(list(se.cids))
-    for (low, high) in generate_segments(se, 1, se.n_cids):
+    for (low, high) in generate_segments(se, 1, se.syn_n_cids):
         gid = "gid{}-{}".format(low, high)
         se.cgids_g[gid] = cids_list[low:high+1] 
 
@@ -213,21 +213,21 @@ def generate_contest_groups(se):
 def generate_collections(se):
 
     # generate list of pbcids
-    assert isinstance(se.n_pbcids, int) and se.n_pbcids >= 1
-    se.pbcids = ["pbc{}".format(i) for i in range(1, se.n_pbcids+1)]
+    assert isinstance(se.syn_n_pbcids, int) and se.syn_n_pbcids >= 1
+    se.pbcids = ["pbc{}".format(i) for i in range(1, se.syn_n_pbcids+1)]
 
     # add managers
     for pbcid in se.pbcids:
         se.manager_p[pbcid] = "Nobody"
 
     # number of pbcids with no CVR
-    assert isinstance(se.n_pbcids_nocvr, int) and \
-        0 <= se.n_pbcids_nocvr <= se.n_pbcids
+    assert isinstance(se.syn_n_pbcids_nocvr, int) and \
+        0 <= se.syn_n_pbcids_nocvr <= se.syn_n_pbcids
 
     # identify which pbcids have types CVR or noCVR
     se.cvr_type_p = {}
-    while len(se.cvr_type_p) < se.n_pbcids_nocvr:
-        se.cvr_type_p[se.SynRandomState.choice[se.pbcids]] = "noCVR"
+    while len(se.cvr_type_p) < se.syn_n_pbcids_nocvr:
+        se.cvr_type_p[se.syn_RandomState.choice[se.pbcids]] = "noCVR"
     for pbcid in se.pbcids:
         if pbcid not in se.cvr_type_p:
             se.cvr_type_p[pbcid] = "CVR"
@@ -235,8 +235,8 @@ def generate_collections(se):
     # record randomly chosen required and possible contest groups for each pbcid
     for pbcid in se.pbcids:
         if len(se.gids)>0:
-            se.required_gid_p[pbcid] = se.SynRandomState.choice(se.gids)
-            se.possible_gid_p[pbcid] = se.SynRandomState.choice(se.gids)
+            se.required_gid_p[pbcid] = se.syn_RandomState.choice(se.gids)
+            se.possible_gid_p[pbcid] = se.syn_RandomState.choice(se.gids)
         else:
             se.required_gid_p[pbcid] = ""
             se.possible_gid_p[pbcid] = ""
@@ -341,8 +341,8 @@ def generate_reported(se):
     se.n_bids_p = {}
     for pbcid in se.pbcids:
         se.n_bids_p[pbcid] = geospace_choice(se,
-                                             se.min_n_bids_per_pbcid,
-                                             se.max_n_bids_per_pbcid)
+                                             se.syn_min_n_bids_per_pbcid,
+                                             se.syn_max_n_bids_per_pbcid)
 
     # generate list of ballot ids for each pbcid
     # note that these are only unique within a pbcid, not globally
@@ -377,8 +377,8 @@ def generate_reported(se):
             se.cids_b[bid] = set()
 
             if len(se.gids) > 0:
-                se.required_gid_b[bid] = se.SynRandomState.choice(se.gids)
-                se.possible_gid_b[bid] = se.SynRandomState.choice(se.gids)
+                se.required_gid_b[bid] = se.syn_RandomState.choice(se.gids)
+                se.possible_gid_b[bid] = se.syn_RandomState.choice(se.gids)
             else:
                 se.required_gid_b[bid] = ""
                 se.possible_gid_b[bid] = ""
@@ -399,7 +399,7 @@ def generate_reported(se):
                 possible_cids_b = set(se.cids)
             possible_cids = possible_cids_p.intersection(possible_cids_b)
             for cid in possible_cids:
-                if se.SynRandomState.choice([True, False]):
+                if se.syn_RandomState.choice([True, False]):
                     se.cids_b[bid].add(cid)
 
             se.cids_b[bid] = list(se.cids_b[bid])
@@ -414,7 +414,7 @@ def generate_reported(se):
             for cid in se.cids_b[bid]:
                 selids = list(se.selids_c[cid])
                 if se.contest_type_c[cid] == 'plurality':
-                    selection = se.SynRandomState.choice(selids)
+                    selection = se.syn_RandomState.choice(selids)
                     rv = (selection,)
                     utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rv)
                 else:
@@ -516,8 +516,9 @@ def generate_ballot_manifest(se):
     # se.comments_pb = {}
     for pbcid in se.pbcids:
         for i, bid in enumerate(se.bids_p[pbcid]):
-            utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(1+((i+1)//se.box_size)))
-            utils.nested_set(se.position_pb, [pbcid, bid], 1+(i%se.box_size))
+            utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}"
+                             .format(1+((i+1)//se.syn_box_size)))
+            utils.nested_set(se.position_pb, [pbcid, bid], 1+(i%se.syn_box_size))
             utils.nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
             utils.nested_set(se.required_gid_pb, [pbcid, bid], "")
             utils.nested_set(se.possible_gid_pb, [pbcid, bid], "")
@@ -667,7 +668,7 @@ def generate_audit_spec_collection(se):
 
 def generate_audit_spec_seed(se):
 
-    se.audit_seed = se.SynRandomState.randint(0, 2**32-1)
+    se.audit_seed = se.syn_RandomState.randint(0, 2**32-1)
 
 
 def generate_audit_orders(se):
@@ -683,11 +684,11 @@ def generate_audited_votes(se):
             for bid in se.rv_cpb[cid][pbcid]:
                 rv = se.rv_cpb[cid][pbcid][bid]
                 av = se.rv_cpb[cid][pbcid][bid]  # default no error
-                if (se.SynRandomState.uniform() <= se.error_rate):
+                if (se.syn_RandomState.uniform() <= se.syn_error_rate):
                     selids = list(se.selids_c[cid])     
                     if rv in selids:    
                         selids.remove(rv)
-                    av = (se.SynRandomState.choice(selids),)
+                    av = (se.syn_RandomState.choice(selids),)
                 utils.nested_set(se.av_cpb, [cid, pbcid, bid], av)
 
 
@@ -895,7 +896,7 @@ def process_args(se, args):
 
 if __name__=="__main__":
 
-    se = SynElection()
+    se = Syn_Election()
 
     args = parse_args()
     process_args(se, args)
