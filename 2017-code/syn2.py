@@ -455,16 +455,7 @@ def compute_reported_stats(se):
     reported.compute_rn_c(se)
     reported.compute_rn_p(se)
     reported.compute_rn_cr(se)
-    compute_ro_c(se)
-
-
-def compute_ro_c(se):
-    """ Compute reported outcomes ro_c from se.rn_cr. """
-    se.ro_c = dict()
-    for cid in se.rn_cr:
-        tally = se.rn_cr[cid]
-        se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
-
+    outcomes.compute_ro_c(se)
 
 
 def generate_reported_ballot_manifests(se):
