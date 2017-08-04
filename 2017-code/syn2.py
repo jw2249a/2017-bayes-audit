@@ -136,17 +136,16 @@ def generate_segments(se, low, high):
 ##############################################################################
 ## election specification
 
-def generate_election_spec(se=default_Syn_Election):
+def generate_election_spec_general(se=default_Syn_Election):
     """
     se has Syn_Election for the parameters noted above;
     add to se values that would be otherwise read in,
-    e.g. via election_spec.py (read_election_spec, 
-    read_election_spec_contests,
-    read_election_spec_contest_groups, 
-    read_election_spec_collections)
+    e.g. via election_spec.py 
+    (read_election_spec_general, 
+     read_election_spec_contests,
+     read_election_spec_contest_groups, 
+     read_election_spec_collections)
     """
-
-    print("generate_election_spec")
 
     # reset syn_RandomState from syn_seed
     se.syn_RandomState = np.random.RandomState(se.syn_seed)
@@ -159,7 +158,7 @@ def generate_election_spec(se=default_Syn_Election):
     se.election_url = "None"            
 
 
-def generate_contests(se):
+def generate_election_spec_contests(se):
 
     # check number of contests
     assert isinstance(se.syn_n_cids, int) and se.syn_n_cids >= 1
@@ -201,7 +200,7 @@ def generate_contests(se):
                           .format(cid))
 
 
-def generate_contest_groups(se):
+def generate_election_spec_contest_groups(se):
 
     se.gids = []
     cids_list = sorted(list(se.cids))
@@ -210,7 +209,7 @@ def generate_contest_groups(se):
         se.cgids_g[gid] = cids_list[low:high+1] 
 
 
-def generate_collections(se):
+def generate_election_spec_collections(se):
 
     # generate list of pbcids
     assert isinstance(se.syn_n_pbcids, int) and se.syn_n_pbcids >= 1
@@ -490,7 +489,6 @@ def generate_reported(se):
     for cid in rn_cv:
         tally = rn_cv[cid]
         se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
-        print(">>> se.ro_c[{}] = {}".format(cid, se.ro_c[cid]))
 
     return se
 
@@ -516,10 +514,12 @@ def generate_ballot_manifest(se):
     # se.comments_pb = {}
     for pbcid in se.pbcids:
         for i, bid in enumerate(se.bids_p[pbcid]):
-            utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}"
-                             .format(1+((i+1)//se.syn_box_size)))
-            utils.nested_set(se.position_pb, [pbcid, bid], 1+(i%se.syn_box_size))
-            utils.nested_set(se.stamp_pb, [pbcid, bid], "stmp"+"{:06d}".format((i+1)*17))
+            boxid = 1+((i+1)//se.syn_box_size)
+            position = 1+(i%se.syn_box_size)
+            stamp = "stmp"+"{:06d}".format((i+1)*17)
+            utils.nested_set(se.boxid_pb, [pbcid, bid], "box{}".format(boxid))
+            utils.nested_set(se.position_pb, [pbcid, bid], position)
+            utils.nested_set(se.stamp_pb, [pbcid, bid], stamp)
             utils.nested_set(se.required_gid_pb, [pbcid, bid], "")
             utils.nested_set(se.possible_gid_pb, [pbcid, bid], "")
             utils.nested_set(se.comments_pb, [pbcid, bid], "")
@@ -830,14 +830,13 @@ def write_33_audited_votes_csv(se):
                         file.write("\n")
 
 
-def test(se):
+def test(se, debug=False):
 
-    generate_election_spec(se)
+    generate_election_spec_general(se)
+    generate_election_spec_contests(se)
+    generate_election_spec_contest_groups(se)
+    generate_election_spec_collections(se)
     election_spec.finish_election_spec(se)
-
-    generate_contests(se)
-    generate_contest_groups(se)
-    generate_collections(se)
 
     generate_reported(se)
     generate_ballot_manifest(se)
@@ -846,13 +845,12 @@ def test(se):
     generate_audit_orders(se)
     generate_audited_votes(se)
 
-    for key in sorted(vars(se)):
-        print(key)
-        print("    ", vars(se)[key])
+    if debug:
+        for key in sorted(vars(se)):
+            print(key)
+            print("    ", vars(se)[key])
 
-    print("Checking specification: ", end='')
     election_spec.check_election_spec(se)
-    print("OK.")
     
     write_election_spec_csv(se)
     write_reported_csv(se)
@@ -901,6 +899,7 @@ if __name__=="__main__":
     args = parse_args()
     process_args(se, args)
 
-    
+    filepath = os.path.join(multi.ELECTIONS_ROOT, se.election_dirname)
+    print("  Done. Synthetic election written to:", filepath)
 
 

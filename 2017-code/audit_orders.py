@@ -76,7 +76,6 @@ def compute_audit_order(e, pbcid):
 
 def write_audit_orders(e):
 
-    print("write_audit_orders")
     for pbcid in e.pbcids:
         write_audit_order(e, pbcid)
         
