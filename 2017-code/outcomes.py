@@ -52,10 +52,22 @@ def plurality(e, cid, tally):
     return max_vote
 
 
+def compute_ro_c(e):
+    """ 
+    Compute reported outcomes ro_c for each cid, from e.rn_cr. 
+    """
+
+    e.ro_c = dict()
+    for cid in e.rn_cr:
+        tally = e.rn_cr[cid]
+        e.ro_c[cid] = compute_outcome(e, cid, tally)
+
+
 def compute_outcome(e, cid, tally):
     """
     Return outcome for the given contest, given tally of votes.
     """
+
     if e.contest_type_c[cid].lower()=="plurality":
         return plurality(e, cid, tally)
     else:
@@ -80,4 +92,7 @@ def compute_tally2(vec):
             tally2[rv] = compute_tally([aa for (aa, rr)
                                         in vec if rv == rr])
     return tally2
+
+
+
 
