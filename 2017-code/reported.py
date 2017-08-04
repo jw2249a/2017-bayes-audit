@@ -88,7 +88,6 @@ import ids
 import utils
 
 
-
 ##############################################################################
 # Election data I/O and validation (stuff that depends on cast votes)
 ##############################################################################
@@ -100,14 +99,9 @@ def read_reported(e):
     read_reported_cvrs(e)
     read_reported_outcomes(e)
     
-    for cid in e.rn_cpr:
-        unpack_json_keys(e.syn_rn_cr[cid])
-        for pbcid in e.rn_cpr[cid]:
-            unpack_json_keys(e.rn_cpr[cid][pbcid])
-
-    finish_election_data(e)
-    check_election_data(e)
-    show_election_data(e)
+    finish_reported(e)
+    check_reported(e)
+    show_reported(e)
 
 
 def read_reported_ballot_manifests(e):
@@ -206,7 +200,7 @@ def read_reported_outcomes(e):
         utils.nested_set(e.ro_c, [cid], winners)
 
 
-def finish_election_data(e):
+def finish_reported(e):
     """ 
     Compute election data attributes that are derivative from others. 
     or that need conversion (e.g. strings-->tuples from json keys).
@@ -260,7 +254,7 @@ def finish_election_data(e):
                 e.rn_cr[cid][rv] += e.rn_cpr[cid][pbcid][rv]
 
 
-def check_election_data(e):
+def check_reported(e):
 
     if not isinstance(e.rn_cpr, dict):
         utils.myerror("e.rn_cpr is not a dict.")
@@ -371,8 +365,9 @@ def check_election_data(e):
             utils.mywarning("cid `{}` is not a key in e.rv_cpb.".format(cid))
         for pbcid in e.possible_pbcid_c[cid]:
             if pbcid not in e.rv_cpb[cid]:
-                utils.mywarning("pbcid `{}` from e.possible_pbcid_c[{}] is not a key for e.rv_cpb[{}]."
-                          .format(pbcid, cid, cid))
+                utils.mywarning(("pbcid `{}` from e.possible_pbcid_c[{}] "
+                                 "is not a key for e.rv_cpb[{}].")
+                                .format(pbcid, cid, cid))
 
     if not isinstance(e.ro_c, dict):
         utils.myerror("e.ro_c is not a dict.")
@@ -389,7 +384,7 @@ def check_election_data(e):
 
 def check_audited_votes(e):
     """
-    old code; was in check_election_data, but moved here temporarily
+    old code; was in check_reported, but moved here temporarily
     """
 
     if not isinstance(e.av_cpb, dict):
@@ -420,7 +415,7 @@ def check_audited_votes(e):
 
 
 
-def show_election_data(e):
+def show_reported(e):
 
     utils.myprint("====== Reported election data ======")
 
