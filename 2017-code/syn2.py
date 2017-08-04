@@ -344,15 +344,27 @@ def write_election_spec_collections_csv(se):
 
 def generate_reported(se):
 
-    # generate number of bids for each pbcid
+    generate_n_bids_p(se)
+    generate_bids_p(se)
+    generate_cids_b(se)
+    generate_rv_cpb(se)
+
+
+def generate_n_bids_p(se):
+    """ Generate number of bids for each pbcid. """
+    
     se.n_bids_p = {}
     for pbcid in se.pbcids:
         se.n_bids_p[pbcid] = geospace_choice(se,
                                              se.syn_min_n_bids_per_pbcid,
                                              se.syn_max_n_bids_per_pbcid)
 
-    # generate list of ballot ids for each pbcid
-    # note that these are only unique within a pbcid, not globally
+def generate_bids_p(se):
+    """ Generate list of ballot ids for each pbcid. 
+
+    Note that these need only be unique within a pbcid, not globally.
+    """
+
     se.n_bids = 0
     se.bids_p = {}
     for pbcid in se.pbcids:
@@ -362,13 +374,18 @@ def generate_reported(se):
             bid = "bid{}".format(se.n_bids)
             se.bids_p[pbcid].append(bid)
 
+
+def generate_cids_b(se):
     """
     figure out what contest(s) are on the ballot for given bid and pbcid 
     figure out if contest is CVR or not 
     draw from selection 
-    """
 
-    """
+    Also: se.required_gid_b 
+          se.possible_gid_b 
+          se.required_cids_p
+          se.possible_cids_p
+
     Above we have the bids that correspond to the given paper ballot 
     collections.  What we want to do is assign contests to those ballot 
     ids based on what contests are in the given pbcids as well as assign 
@@ -382,7 +399,6 @@ def generate_reported(se):
         se.possible_gid_b = {}
         for bid in se.bids_p[pbcid]:
             se.cids_b[bid] = set()
-
             if len(se.gids) > 0:
                 se.required_gid_b[bid] = se.syn_RandomState.choice(se.gids)
                 se.possible_gid_b[bid] = se.syn_RandomState.choice(se.gids)
@@ -411,9 +427,12 @@ def generate_reported(se):
 
             se.cids_b[bid] = list(se.cids_b[bid])
 
-    # Generate the reported selection for each contest and ballot
-    # (populate rv_cpb).
-    # Draw from selids_c[cid] for each cid.
+
+def generate_rv_cpb(se):
+    """ Generate the reported selection for each contest and ballot
+        (populate rv_cpb).
+        Draw from selids_c[cid] for each cid.
+    """
     se.rv_cpb = {}
 
     for pbcid in se.pbcids:
@@ -429,6 +448,9 @@ def generate_reported(se):
                     # need to distinguish preferential voting, etc...
                     pass
                     
+
+def compute_reported_stats(se):
+
     compute_rn_p(se)
     compute_rn_cr(se)
     compute_rn_c(se)
@@ -852,6 +874,7 @@ def test(se, debug=False):
 
     generate_reported(se)
     generate_reported_ballot_manifests(se)
+    compute_reported_stats(se)
 
     generate_audit_spec(se)
     generate_audit_orders(se)
