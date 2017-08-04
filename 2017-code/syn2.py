@@ -44,7 +44,7 @@ import audit_orders
 import election_spec
 import ids
 import outcomes
-import random 
+import reported
 import utils
 
 class Syn_Election(multi.Election):
@@ -451,73 +451,11 @@ def generate_rv_cpb(se):
 
 def compute_reported_stats(se):
 
-    compute_rn_p(se)
-    compute_rn_cr(se)
-    compute_rn_c(se)
-    compute_rn_cpr(se)
+    reported.compute_rn_cpr(se)
+    reported.compute_rn_c(se)
+    reported.compute_rn_p(se)
+    reported.compute_rn_cr(se)
     compute_ro_c(se)
-
-
-def compute_rn_cr(se):
-
-    # sum rn_cpb over ballot ids and pbcids to get se.rn_cr
-    se.rn_cr = {}
-    for pbcid in se.pbcids:
-        for bid in se.bids_p[pbcid]:
-            for cid in se.cids_b[bid]:
-                rvote = se.rv_cpb[cid][pbcid][bid]
-                if cid not in se.rn_cr:
-                    utils.nested_set(se.rn_cr, [cid, rvote], 1)
-                else:
-                    if rvote not in se.rn_cr[cid]:
-                        utils.nested_set(se.rn_cr, [cid, rvote], 1)
-                    else:
-                        se.rn_cr[cid][rvote]+=1
-
-
-def compute_rn_p(se):
-    """ Compute rn_p from se.rv_cpb. """
-
-    se.rn_p = dict()
-    for cid in se.rv_cpb:
-        for pbcid in se.rv_cpb[cid]:
-            for bid in se.rv_cpb[cid][pbcid]:
-                if pbcid not in se.rn_p:
-                    se.rn_p[pbcid]=1
-                else:
-                    se.rn_p[pbcid]+=1
-
-
-def compute_rn_c(se):                    
-    """ Compute rn_c: sum se.rn_cr over selection ids. """
-    
-    se.rn_c = {}
-    for cid in se.rn_cr:
-        for rv in se.rn_cr[cid]:
-            if cid not in se.rn_c:
-                se.rn_c[cid]=se.rn_cr[cid][rv]
-            else:
-                se.rn_c[cid]+=se.rn_cr[cid][rv]
-
-
-def compute_rn_cpr(se):                
-    """ Compute rn_cpr. """
-
-    se.rn_cpr = dict()
-    for cid in se.cids:
-        for pbcid in se.rv_cpb[cid]:
-            for bid in se.rv_cpb[cid][pbcid]:
-                rv = se.rv_cpb[cid][pbcid][bid]
-                if cid in se.rn_cpr:
-                    if pbcid in se.rn_cpr[cid]:
-                        if rv in se.rn_cpr[cid][pbcid]:
-                            se.rn_cpr[cid][pbcid][rv]+=1
-                        else:
-                            utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
-                    else:
-                        utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
-                else:
-                    utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
 
 
 def compute_ro_c(se):

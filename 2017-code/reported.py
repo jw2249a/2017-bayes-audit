@@ -200,12 +200,8 @@ def read_reported_outcomes(e):
         utils.nested_set(e.ro_c, [cid], winners)
 
 
-def finish_reported(e):
-    """ 
-    Compute election data attributes that are derivative from others. 
-    or that need conversion (e.g. strings-->tuples from json keys).
-    """
-
+def check_reported_selids(e):
+    
     # make sure e.selids_c[cid] contains all +/- selids seen in reported votes
     # and that e.votes_c[cid] contains all reported votes
     for cid in e.cids:
@@ -220,7 +216,9 @@ def finish_reported(e):
                     if ids.is_writein(selid) or ids.is_error_selid(selid):
                         e.selids_c[cid][selid] = True
 
-    # set e.rn_cpr[cid][pbcid][r] to number in pbcid with reported vote rv:
+def compute_rn_cpr(e):
+    """ Set e.rn_cpr[cid][pbcid][rv] to number in pbcid with reported vote rv. """
+
     for cid in e.cids:
         e.rn_cpr[cid] = {}
         for pbcid in e.possible_pbcid_c[cid]:
@@ -230,19 +228,35 @@ def finish_reported(e):
                                                 if bid in e.rv_cpb[cid][pbcid] and \
                                                 e.rv_cpb[cid][pbcid][bid] == rv])
 
-    # e.rn_c[cid] is number of reported votes cast in contest cid
-    for cid in e.cids:
-        e.rn_c[cid] = sum([e.rn_cpr[cid][pbcid][vote]
-                           for pbcid in e.rn_cpr[cid]
-                           for vote in e.votes_c[cid]])
 
-    # e.rn_p[pbcid] is number of reported votes cast in collection pbcid
+def compute_rn_c(e):    
+    """ 
+    Compute e.rn_c[cid] as number of reported votes cast in contest cid. 
+
+    (From e.rn_cpr)
+    """
+    
+    for cid in e.cids:
+        e.rn_c[cid] = sum([e.rn_cpr[cid][pbcid][rv]
+                           for pbcid in e.rn_cpr[cid]
+                           for rv in e.votes_c[cid]])
+
+
+def compute_rn_p(e):
+    """ Compute e.rn_p[pbcid] as number of reported votes cast in collection pbcid. """
+
     for pbcid in e.pbcids:
         e.rn_p[pbcid] = sum([e.rn_cpr[cid][pbcid][rv]
                              for cid in e.rn_cpr
                              for rv in e.votes_c[cid]])        
 
-    # e.rn_cr[cid][vote] is reported number cast for vote in cid
+
+def compute_rn_cr(e):
+    """ 
+    Compute  e.rn_cr[cid][rv] as reported number cast for 
+    reported vote rv in cid. 
+    """
+    
     for cid in e.cids:
         e.rn_cr[cid] = {}
         for pbcid in e.rn_cpr[cid]:
@@ -252,6 +266,20 @@ def finish_reported(e):
                 if rv not in e.rn_cpr[cid][pbcid]:
                     e.rn_cpr[cid][pbcid][rv] = 0
                 e.rn_cr[cid][rv] += e.rn_cpr[cid][pbcid][rv]
+
+
+def finish_reported(e):
+    """ 
+    Compute election data attributes that are derivative from others. 
+    or that need conversion (e.g. strings-->tuples from json keys).
+    """
+
+    check_reported_selids(e)
+
+    compute_rn_cpr(e)
+    compute_rn_c(e)    
+    compute_rn_p(e)
+    compute_rn_cr(e)
 
 
 def check_reported(e):
