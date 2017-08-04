@@ -142,6 +142,8 @@ def generate_election_spec(se):
     generate_election_spec_contests(se)
     generate_election_spec_contest_groups(se)
     generate_election_spec_collections(se)
+    election_spec.finish_election_spec(se)
+    election_spec.check_election_spec(se)
 
 
 def generate_election_spec_general(se=default_Syn_Election):
@@ -339,7 +341,7 @@ def write_election_spec_collections_csv(se):
 
 
 ##############################################################################
-## election
+## reported results
 
 
 def generate_reported(se):
@@ -348,6 +350,8 @@ def generate_reported(se):
     generate_bids_p(se)
     generate_cids_b(se)
     generate_rv_cpb(se)
+    generate_reported_ballot_manifests(se)
+    compute_reported_stats(se)
 
 
 def generate_n_bids_p(se):
@@ -433,14 +437,18 @@ def generate_rv_cpb(se):
         (populate rv_cpb).
         Draw from selids_c[cid] for each cid.
     """
-    se.rv_cpb = {}
 
+    se.rv_cpb = {}
     for pbcid in se.pbcids:
         for bid in se.bids_p[pbcid]:
             for cid in se.cids_b[bid]:
                 selids = list(se.selids_c[cid])
                 if se.contest_type_c[cid] == 'plurality':
-                    selection = se.syn_RandomState.choice(selids)
+                    # give min(selids) an "edge" for winning
+                    if se.syn_RandomState.uniform() <= se.syn_edge:
+                        selection = min(selids)
+                    else:
+                        selection = se.syn_RandomState.choice(selids)
                     rv = (selection,)
                     utils.nested_set(se.rv_cpb, [cid, pbcid, bid], rv)
                 else:
@@ -628,7 +636,8 @@ def generate_audit_spec_contest(se):
 
 def generate_audit_spec_collection(se):
 
-    pass #TBD
+    for pbcid in se.pbcids:
+        se.max_audit_rate_p[pbcid] = 40
 
 
 def generate_audit_spec_seed(se):
@@ -741,7 +750,7 @@ def write_audit_spec_collection_csv(se):
         file.write("\n")
         for pbcid in se.pbcids:
             file.write("{},".format(pbcid))
-            file.write("{},".format(40))
+            file.write("{},".format(se.max_audit_rate_p[pbcid]))
             file.write("\n")
 
 
@@ -798,16 +807,8 @@ def write_33_audited_votes_csv(se):
 def test(se, debug=False):
 
     generate_election_spec(se)
-    election_spec.finish_election_spec(se)
-    election_spec.check_election_spec(se)
-
     generate_reported(se)
-    generate_reported_ballot_manifests(se)
-    compute_reported_stats(se)
-
-    generate_audit_spec(se)
-    generate_audit_orders(se)
-    generate_audited_votes(se)
+    generate_audit(se)
 
     if debug:
         for key in sorted(vars(se)):
@@ -845,7 +846,7 @@ def parse_args():
 
     parser.add_argument("--syn_type",
                         help="Type of synthetic election.",
-                        default=1)
+                        default='1')
 
     args = parser.parse_args()
     return args
@@ -856,10 +857,25 @@ def process_args(se, args):
     se.election_dirname = ids.filename_safe(args.election_dirname)
     se.election_name = se.election_dirname
 
-    if args.syn_type == 1:                        
+    print(args)
+    if args.syn_type == '1':                        
         test(se)
-    elif args.syn_type == 2:
-        pass
+    elif args.syn_type == '2':
+        se.syn_n_cids = 1
+        se.syn_n_cids_wrong = 0
+        se.syn_min_n_selids_per_cid = 2
+        se.syn_max_n_selids_per_cid = 2
+        se.syn_n_pbcids = 1
+        se.syn_n_pbcids_nocvr = 0
+        se.syn_min_n_bids_per_pbcid = 5000
+        se.syn_max_n_bids_per_pbcid = 5000
+        se.syn_box_size = 500
+        se.syn_min_pbcids_per_cid = 1
+        se.syn_max_pbcids_per_cid = 1
+        se.syn_edge = 0.05
+        test(se)
+    else:
+        print("Illegal syn_type:", args.syn_type)
 
 
 if __name__=="__main__":
