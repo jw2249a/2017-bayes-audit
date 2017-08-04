@@ -136,6 +136,14 @@ def generate_segments(se, low, high):
 ##############################################################################
 ## election specification
 
+def generate_election_spec(se):
+
+    generate_election_spec_general(se)
+    generate_election_spec_contests(se)
+    generate_election_spec_contest_groups(se)
+    generate_election_spec_collections(se)
+
+
 def generate_election_spec_general(se=default_Syn_Election):
     """
     se has Syn_Election for the parameters noted above;
@@ -421,22 +429,33 @@ def generate_reported(se):
                     # need to distinguish preferential voting, etc...
                     pass
                     
+    compute_rn_p(se)
+    compute_rn_cr(se)
+    compute_rn_c(se)
+    compute_rn_cpr(se)
+    compute_ro_c(se)
 
-    # sum over ballot ids and pbcids to get se.rn_cv
-    rn_cv = {}
+
+def compute_rn_cr(se):
+
+    # sum rn_cpb over ballot ids and pbcids to get se.rn_cr
+    se.rn_cr = {}
     for pbcid in se.pbcids:
         for bid in se.bids_p[pbcid]:
             for cid in se.cids_b[bid]:
                 rvote = se.rv_cpb[cid][pbcid][bid]
-                if cid not in rn_cv:
-                    utils.nested_set(rn_cv, [cid, rvote], 1)
+                if cid not in se.rn_cr:
+                    utils.nested_set(se.rn_cr, [cid, rvote], 1)
                 else:
-                    if rvote not in rn_cv[cid]:
-                        utils.nested_set(rn_cv, [cid, rvote], 1)
+                    if rvote not in se.rn_cr[cid]:
+                        utils.nested_set(se.rn_cr, [cid, rvote], 1)
                     else:
-                        rn_cv[cid][rvote]+=1
+                        se.rn_cr[cid][rvote]+=1
 
-    # get rn_p from se.rv_cpb
+
+def compute_rn_p(se):
+    """ Compute rn_p from se.rv_cpb. """
+
     se.rn_p = dict()
     for cid in se.rv_cpb:
         for pbcid in se.rv_cpb[cid]:
@@ -446,54 +465,49 @@ def generate_reported(se):
                 else:
                     se.rn_p[pbcid]+=1
 
-    # sum over selection ids to get rn_c
-    se.rn_c = {}
-    for cid in rn_cv:
-        for rvote in rn_cv[cid]:
-            if cid not in se.rn_c:
-                se.rn_c[cid]=rn_cv[cid][rvote]
-            else:
-                se.rn_c[cid]+=rn_cv[cid][rvote]
 
-    # get rn_cpr
+def compute_rn_c(se):                    
+    """ Compute rn_c: sum se.rn_cr over selection ids. """
+    
+    se.rn_c = {}
+    for cid in se.rn_cr:
+        for rv in se.rn_cr[cid]:
+            if cid not in se.rn_c:
+                se.rn_c[cid]=se.rn_cr[cid][rv]
+            else:
+                se.rn_c[cid]+=se.rn_cr[cid][rv]
+
+
+def compute_rn_cpr(se):                
+    """ Compute rn_cpr. """
+
     se.rn_cpr = dict()
     for cid in se.cids:
         for pbcid in se.rv_cpb[cid]:
             for bid in se.rv_cpb[cid][pbcid]:
-                rvote = se.rv_cpb[cid][pbcid][bid]
+                rv = se.rv_cpb[cid][pbcid][bid]
                 if cid in se.rn_cpr:
                     if pbcid in se.rn_cpr[cid]:
-                        if rvote in se.rn_cpr[cid][pbcid]:
-                            se.rn_cpr[cid][pbcid][rvote]+=1
+                        if rv in se.rn_cpr[cid][pbcid]:
+                            se.rn_cpr[cid][pbcid][rv]+=1
                         else:
-                            utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                            utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
                     else:
-                        utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                        utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
                 else:
-                    utils.nested_set(se.rn_cpr,[cid, pbcid, rvote], 1)
+                    utils.nested_set(se.rn_cpr,[cid, pbcid, rv], 1)
 
-    # sum over pbcids to get rn_cr
-    se.rn_cr = dict()
-    for cid in se.cids:
-        for pbcid in se.rn_cpr[cid]:
-            for rvote in se.rn_cpr[cid][pbcid]:
-                if cid in se.rn_cr:
-                    if rvote in se.rn_cr[cid]:
-                        se.rn_cr[cid][rvote] += se.rn_cpr[cid][pbcid][rvote]
-                    else:
-                        utils.nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
-                else:
-                    utils.nested_set(se.rn_cr, [cid, rvote], se.rn_cpr[cid][pbcid][rvote])
 
+def compute_ro_c(se):
+    """ Compute reported outcomes ro_c from se.rn_cr. """
     se.ro_c = dict()
-    for cid in rn_cv:
-        tally = rn_cv[cid]
+    for cid in se.rn_cr:
+        tally = se.rn_cr[cid]
         se.ro_c[cid] = outcomes.compute_outcome(se, cid, tally)
 
-    return se
 
 
-def generate_ballot_manifest(se):
+def generate_reported_ballot_manifests(se):
     """
     Generate synthetic ballot manifest data.
 
@@ -832,14 +846,12 @@ def write_33_audited_votes_csv(se):
 
 def test(se, debug=False):
 
-    generate_election_spec_general(se)
-    generate_election_spec_contests(se)
-    generate_election_spec_contest_groups(se)
-    generate_election_spec_collections(se)
+    generate_election_spec(se)
     election_spec.finish_election_spec(se)
+    election_spec.check_election_spec(se)
 
     generate_reported(se)
-    generate_ballot_manifest(se)
+    generate_reported_ballot_manifests(se)
 
     generate_audit_spec(se)
     generate_audit_orders(se)
@@ -850,7 +862,6 @@ def test(se, debug=False):
             print(key)
             print("    ", vars(se)[key])
 
-    election_spec.check_election_spec(se)
     
     write_election_spec_csv(se)
     write_reported_csv(se)
@@ -880,6 +891,10 @@ def parse_args():
 
     # All others are optional
 
+    parser.add_argument("--syn_type",
+                        help="Type of synthetic election.",
+                        default=1)
+
     args = parser.parse_args()
     return args
 
@@ -889,7 +904,10 @@ def process_args(se, args):
     se.election_dirname = ids.filename_safe(args.election_dirname)
     se.election_name = se.election_dirname
 
-    test(se)
+    if args.syn_type == 1:                        
+        test(se)
+    elif args.syn_type == 2:
+        pass
 
 
 if __name__=="__main__":
