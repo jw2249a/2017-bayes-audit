@@ -455,7 +455,7 @@ def compute_reported_stats(e, syn):
     reported.compute_rn_c(e)
     reported.compute_rn_p(e)
     reported.compute_rn_cr(e)
-    outcomes.compute_ro_c(e, syn)
+    outcomes.compute_ro_c(e)
 
 
 def generate_reported_ballot_manifests(e, syn):
