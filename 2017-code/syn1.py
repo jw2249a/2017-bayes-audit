@@ -25,6 +25,38 @@ import utils
 import write_csv
 
 
+"""
+Routines work with the following parameters (defaults in brackets):
+
+    cids = # number of contests [2]
+    n_cids_wrong = # number of contests with wrong reported outcome [0]
+    min_n_selids_per_cid = minimum number of selids per contest [2]
+    max_n_selids_per_cid = maximum number of selids per contest [5]
+    n_pbcids = # number of pbcids [2]
+    n_pbcids_nocvr = # number of collections with no CVRs [0]
+    min_n_bids_per_pbcid = minimum number of bids per pbcid [10]
+    max_n_bids_per_pbcid = maximum number of bids per pbcid [20]
+    box_size = max number of ballots in a box [100]
+    min_pbcids_per_cid = minimum number of pbcids per contest [1]
+    max_pbcids_per_cid = maximum number of pbcids per contest [1]
+    dropoff = rate at which votes drop off with selection (geometric) [0.9]
+    error_rate = rate at which reported votes != actual votes [0.005]
+    seed = random number seed (for reproducibility) [1]
+    RandomState = state for random number generator
+
+    ### following are then computed ###
+    ### in e:
+    cids = list of cids (of length n_cids)
+    cids_wrong = list of cids that will have wrong output
+    pbcids = list of pbcids (of length syn_n_pbcids)
+    cvr_type_p = mapping of pbcid to "CVR" or "noCVR"
+    ### in syn:
+    n_bids_p = mapping from pbcid to number of bids in that pbcid
+    
+We fill in the values of the fields of election e as if they
+had been read in, or else we (optionally) output the values as csv files.
+"""
+
 def default_parameters(synpar):
 
     synpar.n_cids = 2
