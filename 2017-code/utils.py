@@ -226,7 +226,9 @@ def convert_int_to_32_bit_numpy_array(v):
         if v<0:
             raise ValueError
     except ValueError:
-        myerror("{} is not a nonnegative integer, or convertible to one.".format(v))
+        myerror(("convert_int_to_32_bit_numpy_array: "
+                 "{} is not a nonnegative integer, "
+                 "or convertible to one.").format(v))
     v_parts = []
     radix = 2**32
     while v>0:

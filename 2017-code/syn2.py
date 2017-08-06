@@ -45,6 +45,7 @@ def process_spec(e, synpar, L):
     """
 
     for (cid, pbcid, rv, av, num) in L:
+        print(cid, pbcid, rv, av, num)
 
         if cid not in e.cids:
             e.cids.append(cid)
@@ -52,13 +53,25 @@ def process_spec(e, synpar, L):
             e.winners_c[cid] = 1
             e.write_ins_c[cid] = "no"
             e.selids_c[cid] = {}
-            for selid in rv:
-                if selid not in e.selids_c[cid]:
-                    e.selids_c[cid][selid] = True
-            for selid in av:
-                if selid not in e.selids_c[cid]:
-                    e.selids_c[cid][selid] = True
-            e.ro_c[cid] = "Alice"
+            e.ro_c[cid] = ("Alice",)     # FIX
+            mid = "M-"+cid
+            e.mids.append(mid)
+            e.cid_m[mid] = cid
+            e.risk_method_m[mid] = "Bayes"
+            e.risk_limit_m[mid] = 0.05
+            e.risk_upset_m[mid] = 0.98
+            e.sampling_mode_m[mid] = "Active"
+            e.initial_status_m[mid] = "Open"
+            e.risk_measurement_parameters_m[mid] = ("","")
+
+        for selid in rv:
+            print("rv selid:", selid)
+            if selid not in e.selids_c[cid]:
+                e.selids_c[cid][selid] = True
+        for selid in av:
+            print("av selid:", selid)
+            if selid not in e.selids_c[cid]:
+                e.selids_c[cid][selid] = True
 
         if pbcid not in e.pbcids:
             e.pbcids.append(pbcid)
@@ -83,8 +96,6 @@ def process_spec(e, synpar, L):
             e.stamp_pb[pbcid][bid] = ""
             e.comments_pb[pbcid][bid] = ""
 
-    audit_orders.compute_audit_orders(e)
-
 ##############################################################################
 ##
 
@@ -93,9 +104,15 @@ def generate_syn_type_2(e, args):
     synpar = copy.copy(args)
     # syn1.default_parameters(synpar)
 
-    L = [ ("cid1", "pbcid1", ("Alice",), ("Bob",), 3) ]
+    L = [
+          ("cid1", "pbcid1", ("Alice",), ("Alice",), 3000),
+          ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
+          ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
+        ]
 
     process_spec(e, synpar, L)
+    e.audit_seed = 0
+    audit_orders.compute_audit_orders(e)
 
     # generate_election_spec(e, synpar)
     # generate_reported(e, synpar)
