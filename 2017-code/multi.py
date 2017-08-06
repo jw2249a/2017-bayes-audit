@@ -258,7 +258,7 @@ class Election(object):
         # No need for "Number of ballots" field (always implicitly 1 now).
 
         e.boxid_pb = {}
-        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCID.csv)
+        # input (21-reported-ballot-manifests/reported-ballot-manifest-PBCIDcsv)
         # pbcid->bid->boxid
         # from ballot manifest "Box id" field
 
