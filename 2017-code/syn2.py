@@ -1,4 +1,4 @@
-# syn22.py
+# syn2.py
 # Ronald L. Rivest
 # August 5, 2017
 # python3
@@ -11,6 +11,7 @@ In support of multi.py audit support program.
 
 import copy
 
+import audit_orders
 import syn
 import syn1
 import utils
@@ -57,7 +58,7 @@ def process_spec(e, synpar, L):
             for selid in av:
                 if selid not in e.selids_c[cid]:
                     e.selids_c[cid][selid] = True
-            e.ro_c[cid] = "FIX_ME"
+            e.ro_c[cid] = "Alice"
 
         if pbcid not in e.pbcids:
             e.pbcids.append(pbcid)
@@ -70,8 +71,7 @@ def process_spec(e, synpar, L):
             e.position_pb[pbcid] = {}
             e.stamp_pb[pbcid] = {}
             e.max_audit_rate_p[pbcid] = 40
-            e.shuffled_indices_p[pbcid] = "FIXME"
-            e.shuffled_bids_p[pbcid] = "FIXME"
+            e.comments_pb[pbcid] = {}
 
         for pos in range(1, num+1):
             bid = "bid{}".format(pos)
@@ -81,6 +81,9 @@ def process_spec(e, synpar, L):
             e.boxid_pb[pbcid][bid] = "box1"
             e.position_pb[pbcid][bid] = pos
             e.stamp_pb[pbcid][bid] = ""
+            e.comments_pb[pbcid][bid] = ""
+
+    audit_orders.compute_audit_orders(e)
 
 ##############################################################################
 ##
@@ -90,7 +93,7 @@ def generate_syn_type_2(e, args):
     synpar = copy.copy(args)
     # syn1.default_parameters(synpar)
 
-    L = [ ("cid1", "pbcid1", ("Alice",), ("Bob,"), 3) ]
+    L = [ ("cid1", "pbcid1", ("Alice",), ("Bob",), 3) ]
 
     process_spec(e, synpar, L)
 

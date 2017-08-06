@@ -150,7 +150,7 @@ def read_reported_ballot_manifests(e):
                 e.bids_p[pbcid].append(bids[i])
                 utils.nested_set(e.boxid_pb, [pbcid, bids[i]], boxid)
                 utils.nested_set(e.position_pb, [pbcid, bids[i]], position[i])
-                utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamp[i])
+                utils.nested_set(e.stamp_pb, [pbcid, bids[i]], stamps[i])
                 utils.nested_set(e.required_gid_pb, [pbcid, bids[i]], req)
                 utils.nested_set(e.possible_gid_pb, [pbcid, bids[i]], poss)
                 utils.nested_set(e.comments_pb, [pbcid, bids[i]], comments)
