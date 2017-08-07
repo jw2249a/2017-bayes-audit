@@ -417,10 +417,11 @@ def show_audit_spec(e):
     utils.myprint("    {}".format(e.audit_seed))
 
     utils.myprint(("Risk Measurement ids (e.mids) with contest,"
-                   "method, risk limit, and risk upset threshold:"))
+                   "method, risk limit, and upset threshold, and sampling mode:"))
     for mid in e.mids:
-        utils.myprint("    {}: ({}, {}, {}, {})"
-                      .format(e.cid_m[mid],
+        utils.myprint("    {}: {}, {}, {}, {}, {}"
+                      .format(mid, 
+                              e.cid_m[mid],
                               e.risk_method_m[mid],
                               e.risk_limit_m[mid],
                               e.risk_upset_m[mid],

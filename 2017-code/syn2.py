@@ -10,6 +10,7 @@ In support of multi.py audit support program.
 """
 
 import copy
+import numpy as np
 
 import audit_orders
 import syn
@@ -45,7 +46,7 @@ def process_spec(e, synpar, L):
     """
 
     for (cid, pbcid, rv, av, num) in L:
-        print(cid, pbcid, rv, av, num)
+        print("    ", cid, pbcid, rv, av, num)
 
         if cid not in e.cids:
             e.cids.append(cid)
@@ -54,7 +55,7 @@ def process_spec(e, synpar, L):
             e.write_ins_c[cid] = "no"
             e.selids_c[cid] = {}
             e.ro_c[cid] = ("Alice",)     # FIX
-            mid = "M-"+cid
+            mid = "M{}-{}".format(len(e.cids), cid)
             e.mids.append(mid)
             e.cid_m[mid] = cid
             e.risk_method_m[mid] = "Bayes"
@@ -65,11 +66,9 @@ def process_spec(e, synpar, L):
             e.risk_measurement_parameters_m[mid] = ("","")
 
         for selid in rv:
-            print("rv selid:", selid)
             if selid not in e.selids_c[cid]:
                 e.selids_c[cid][selid] = True
         for selid in av:
-            print("av selid:", selid)
             if selid not in e.selids_c[cid]:
                 e.selids_c[cid][selid] = True
 
@@ -87,7 +86,7 @@ def process_spec(e, synpar, L):
             e.comments_pb[pbcid] = {}
 
         for pos in range(1, num+1):
-            bid = "bid{}".format(pos)
+            bid = "bid{}".format(1+len(e.bids_p[pbcid]))
             utils.nested_set(e.rv_cpb, [cid, pbcid, bid], rv)
             utils.nested_set(e.av_cpb, [cid, pbcid, bid], av)
             e.bids_p[pbcid].append(bid)
@@ -96,26 +95,44 @@ def process_spec(e, synpar, L):
             e.stamp_pb[pbcid][bid] = ""
             e.comments_pb[pbcid][bid] = ""
 
+def shuffle_votes(e, synpar):
+
+    # shuffle rv, av lists
+    for cid in e.rv_cpb:
+        for pbcid in e.rv_cpb[cid]:
+            bids = [bid for bid in e.rv_cpb[cid][pbcid]]
+            L = [(e.rv_cpb[cid][pbcid][bid],
+                  e.av_cpb[cid][pbcid][bid])
+                 for bid in bids]
+            synpar.RandomState.shuffle(L)           # in-place
+            for i in range(len(bids)):
+                bid = bids[i]
+                (rv, av) = L[i]
+                e.rv_cpb[cid][pbcid][bid] = rv
+                e.av_cpb[cid][pbcid][bid] = av
+    
+
 ##############################################################################
 ##
 
 def generate_syn_type_2(e, args):
 
     synpar = copy.copy(args)
-    # syn1.default_parameters(synpar)
 
+    # following test case will be replaced by reading csv file
     L = [
           ("cid1", "pbcid1", ("Alice",), ("Alice",), 3000),
           ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
           ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
+        # ("cid1", "pbcid2", ("Bob",), ("Bob",), 5)
         ]
 
     process_spec(e, synpar, L)
-    e.audit_seed = 0
+    e.audit_seed = 1
+    synpar.RandomState = np.random.RandomState(e.audit_seed)
+    shuffle_votes(e, synpar)
     audit_orders.compute_audit_orders(e)
 
-    # generate_election_spec(e, synpar)
-    # generate_reported(e, synpar)
     # generate_audit(e, synpar)
 
     debug = False

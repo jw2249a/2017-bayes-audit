@@ -381,7 +381,7 @@ def generate_audit_spec_contest(e, synpar):
     # Audit all contests
 
     for i, cid in enumerate(e.cids):
-        mid = "mid{}".format(i)
+        mid = "M{}-{}".format(i, cid)
         e.mids.append(mid)
         e.cid_m[mid] = cid
         e.risk_method_m[mid] = "Bayes"
