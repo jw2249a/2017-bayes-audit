@@ -115,19 +115,24 @@ def shuffle_votes(e, synpar):
 ##############################################################################
 ##
 
+# following test case will be replaced by reading csv file
+LCVR = [("cid1", "pbcid1", ("Alice",), ("Alice",), 3100),
+        ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
+        ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
+        # ("cid1", "pbcid2", ("Bob",), ("Bob",), 5)
+       ]
+LnoCVR = [("cid1", "pbcid1", ("-noCVR",), ("Alice",), 3100),
+          ("cid1", "pbcid1", ("-noCVR",), ("Bob",), 3000),
+          ("cid1", "pbcid1", ("-noCVR",), ("Bob",), 3)
+          # ("cid1", "pbcid2", ("-noCVR",), ("Bob",), 5)
+         ]
+
 def generate_syn_type_2(e, args):
 
     synpar = copy.copy(args)
 
-    # following test case will be replaced by reading csv file
-    L = [
-          ("cid1", "pbcid1", ("Alice",), ("Alice",), 3000),
-          ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
-          ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
-        # ("cid1", "pbcid2", ("Bob",), ("Bob",), 5)
-        ]
 
-    process_spec(e, synpar, L)
+    process_spec(e, synpar, LnoCVR)
     e.audit_seed = 1
     synpar.RandomState = np.random.RandomState(e.audit_seed)
     shuffle_votes(e, synpar)
