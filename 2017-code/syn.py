@@ -116,9 +116,9 @@ def parse_args():
                               'will be placed.  '
                               'A parameter value of "" gets the default '
                               'of TestElection followed by datetime.  '
-                              'A file with name syn2.csv within this subdirectory '
+                              'A file with name foo.csv within subdirectory syn2_specs '
                               'gives the synthetic election specification for '
-                              'syn_type 2.  '))
+                              'syn_type 2, where foo is the election_dirname.  '))
 
     # All others are optional
 
