@@ -60,7 +60,8 @@ def dirichlet(tally):
     The values produced sum to one.
     """
 
-    dir = {vote: gamma(tally[vote]) for vote in tally}
+    # make sure order of applying gamma is deterministic, for reproducibility
+    dir = {vote: gamma(tally[vote]) for vote in sorted(tally)}
     total = sum(dir.values())
     dir = {vote: dir[vote] / total for vote in dir}
     return dir
