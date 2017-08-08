@@ -188,7 +188,7 @@ def compute_risk(e, mid, st):
                 dirichlet_dict = dirichlet(tally)
                 nonsample_size = e.rn_cpr[cid][pbcid][rv] - \
                     e.sn_tcpr[e.stage_time][cid][pbcid][rv]
-                for av in tally:
+                for av in sorted(tally):
                     test_tally[av] += tally[av]
                     if e.sn_tcpr[e.stage_time][cid][pbcid][rv] > 0:
                         test_tally[av] += dirichlet_dict[av] * nonsample_size
