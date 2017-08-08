@@ -1,0 +1,5 @@
+LCVR = [("cid1", "pbcid1", ("Alice",), ("Alice",), 3100),
+        ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
+        ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
+        # ("cid1", "pbcid2", ("Bob",), ("Bob",), 5)
+       ]
