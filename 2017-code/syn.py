@@ -102,24 +102,28 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description=\
                                      ("syn.py: "
-                                      "Synthetic election generation for "
-                                      "multi.py (a Bayesian post-election "
+                                      "Generates synthetic elections for "
+                                      "multi.py, a Bayesian post-election "
                                       "audit program for an election with "
                                       "multiple contests and multiple paper "
-                                      "ballot collections)."))
+                                      "ballot collections."))
 
     # Mandatory argument: dirname
 
     parser.add_argument("election_dirname",
-                        help=('The name for this election of the '
-                              'subdirectory within the elections root '
-                              'directory. Enter "" to get default '
-                              'of TestElection followed by datetime.'))
+                        help=('The name of a subdirectory within the elections '
+                              'root directory, where the output of this program '
+                              'will be placed.  '
+                              'A parameter value of "" gets the default '
+                              'of TestElection followed by datetime.  '
+                              'A file with name syn2.csv within this subdirectory '
+                              'gives the synthetic election specification for '
+                              'syn_type 2.  '))
 
     # All others are optional
 
     parser.add_argument("--syn_type",
-                        help="Type of synthetic election.",
+                        help="Type of synthetic election. (1 or 2)",
                         default='1')
 
     args = parser.parse_args()

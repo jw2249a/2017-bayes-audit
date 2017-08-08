@@ -11,7 +11,10 @@ In support of multi.py audit support program.
 
 import copy
 import numpy as np
+import os
 
+import multi
+import csv_readers
 import audit_orders
 import syn
 import syn1
@@ -85,7 +88,7 @@ def process_spec(e, synpar, L):
             e.max_audit_rate_p[pbcid] = 40
             e.comments_pb[pbcid] = {}
 
-        for pos in range(1, num+1):
+        for pos in range(1, int(num)+1):
             bid = "bid{}".format(1+len(e.bids_p[pbcid]))
             utils.nested_set(e.rv_cpb, [cid, pbcid, bid], rv)
             utils.nested_set(e.av_cpb, [cid, pbcid, bid], av)
@@ -115,7 +118,34 @@ def shuffle_votes(e, synpar):
 ##############################################################################
 ##
 
-# following test case will be replaced by reading csv file
+def read_syn2_csv(e, synpar):
+    """ 
+    Read file defining syn2 synthetic election spec. 
+    """
+
+    syn2_pathname = os.path.join(multi.ELECTIONS_ROOT, 
+                                 "syn2_specs")
+    filename = utils.greatest_name(syn2_pathname,
+                                   synpar.election_dirname,
+                                   ".csv")
+    file_pathname = os.path.join(syn2_pathname, filename)
+    fieldnames = ["Contest",
+                  "Collection",
+                  "Reported Vote",
+                  "Actual Vote",
+                  "Number"
+                 ]
+    rows = csv_readers.read_csv_file(file_pathname,
+                                     fieldnames,
+                                     varlen=False)
+    return [(row["Contest"],
+             row["Collection"],
+             (row["Reported Vote"],),
+             (row["Actual Vote"],),
+             row["Number"])
+            for row in rows]
+
+# following test cases may be replaced by reading csv files
 LCVR = [("cid1", "pbcid1", ("Alice",), ("Alice",), 3100),
         ("cid1", "pbcid1", ("Bob",), ("Bob",), 3000),
         ("cid1", "pbcid1", ("Alice",), ("Bob",), 3)
@@ -130,9 +160,8 @@ LnoCVR = [("cid1", "pbcid1", ("-noCVR",), ("Alice",), 3100),
 def generate_syn_type_2(e, args):
 
     synpar = copy.copy(args)
-
-
-    process_spec(e, synpar, LnoCVR)
+    rows = read_syn2_csv(e, synpar)
+    process_spec(e, synpar, rows)
     e.audit_seed = 1
     synpar.RandomState = np.random.RandomState(e.audit_seed)
     shuffle_votes(e, synpar)
