@@ -103,10 +103,14 @@ def draw_sample(e):
     for cid in e.cids:
         e.sn_tcpra[e.stage_time][cid] = {}
         e.sn_tcpr[e.stage_time][cid] = {}
-        for pbcid in e.possible_pbcid_c[cid]:
+        # Use "sorted" in next line to preserve deterministic operation.
+        for pbcid in sorted(e.possible_pbcid_c[cid]):
+
             e.sn_tcpr[e.stage_time][cid][pbcid] = {}
+
             sample_size = int(e.sn_tp[e.stage_time][pbcid])
             sample_bids = e.bids_p[pbcid][:sample_size]
+
             avs = []
             rvs = []
             for bid in sample_bids:
@@ -121,7 +125,9 @@ def draw_sample(e):
                 else:
                     rvs.append(("-NoSuchContest",))
             arvs = list(zip(avs, rvs))  # list of (actual, reported) vote pairs
+
             e.sn_tcpra[e.stage_time][cid][pbcid] = outcomes.compute_tally2(arvs)
+
             for r in e.rn_cpr[cid][pbcid]:
                 e.sn_tcpr[e.stage_time][cid][pbcid][r] = len(
                     [rr for rr in rvs if rr == r])
