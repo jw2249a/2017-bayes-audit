@@ -173,10 +173,10 @@ def compute_risk(e, mid, st):
     wrong_outcome_count = 0
     for trial in range(e.n_trials):
         test_tally = {vote: 0 for vote in e.votes_c[cid]}
-        for pbcid in e.possible_pbcid_c[cid]:
+        for pbcid in sorted(e.possible_pbcid_c[cid]):
             # Draw from posterior for each paper ballot collection, sum them.
             # Stratify by reported vote.
-            for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
+            for rv in sorted(e.sn_tcpra[e.stage_time][cid][pbcid]):
                 tally = e.sn_tcpra[e.stage_time][cid][pbcid][rv].copy()
                 for av in e.votes_c[cid]:
                     if av not in tally:
