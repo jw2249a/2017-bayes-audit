@@ -9,10 +9,8 @@ the November 2017 Colorado election, which has hundreds of contests
 spread across 64 counties.
 
 **This README file is a *design document*, not a description of what
-the code does now.  The code here is still in progress  and not
-yet functional.  It is in the process of becoming code that matches
-this design document.  But don't expect it to match what is described
-here.  At least not yet.**
+the code does yet.  The code here is still in progress  and only partially
+implements this design. 
 
 ## Table of contents
 
