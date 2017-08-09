@@ -137,7 +137,6 @@ def process_args(e, args):
     e.election_dirname = ids.filename_safe(args.election_dirname)
     e.election_name = e.election_dirname
 
-    print(args)
     if args.syn_type == '1':                        
         syn1.generate_syn_type_1(e, args)
     elif args.syn_type == '2':
