@@ -103,7 +103,8 @@ def shuffle_votes(e, synpar):
     # shuffle rv, av lists
     for cid in e.rv_cpb:
         for pbcid in e.rv_cpb[cid]:
-            bids = [bid for bid in e.rv_cpb[cid][pbcid]]
+            # sorted need in following line for reproducible results
+            bids = [bid for bid in sorted(e.rv_cpb[cid][pbcid])]
             L = [(e.rv_cpb[cid][pbcid][bid],
                   e.av_cpb[cid][pbcid][bid])
                  for bid in bids]
