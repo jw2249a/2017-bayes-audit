@@ -262,6 +262,7 @@ def RandomState(seed):
         seed_as_array = convert_int_to_32_bit_numpy_array(seed)
         return np.random.RandomState(seed_as_array)
     else:
+        print("utils.RandomState: seed is None!")
         return np.random.RandomState(seed)
 
 

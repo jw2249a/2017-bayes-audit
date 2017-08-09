@@ -46,8 +46,10 @@ def gamma(k, rs=None):
     if rs == None:
         rs = auditRandomState
     if k <= 0.0:
-        return 0.0
-    return rs.gamma(k)
+        ans = 0.0
+    else:
+        ans = rs.gamma(k)
+    return ans
 
 
 # Dirichlet distribution
