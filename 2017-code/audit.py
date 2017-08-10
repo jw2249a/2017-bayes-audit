@@ -150,7 +150,7 @@ def show_sample_counts(e):
 
 
 ##############################################################################
-# Risk measurement
+# Risk measurement (Bayes risk)
 
 def compute_risk(e, mid, st):
     """ 
