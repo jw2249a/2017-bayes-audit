@@ -429,7 +429,7 @@ def audit_stage(e, stage_time):
     read_audited_votes(e)
 
     draw_sample(e)
-    risk-bayes.compute_risks(e, e.sn_tcpra)
+    risk_bayes.compute_risks(e, e.sn_tcpra)
     compute_statuses(e)
 
     write_audit_output_contest_status(e)
