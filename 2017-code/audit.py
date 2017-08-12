@@ -167,8 +167,8 @@ def compute_risk(e, mid, st):
     which a frequentist method is known.
 
     The comparison and ballot-polling audits are blended here; the
-    election data just records a ("-noCVR",) vote for the reported vote
-    in a noCVR paper ballot collection.
+    reported election data just records a ("-noCVR",) vote for the 
+    reported vote in a noCVR paper ballot collection.
     """
 
     cid = e.cid_m[mid]
@@ -183,13 +183,11 @@ def compute_risk(e, mid, st):
                 for av in e.votes_c[cid]:
                     if av not in tally:
                         tally[av] = 0
-                    if av == rv:
-                        tally[av] += e.pseudocount_match
-                    else:
-                        tally[av] += e.pseudocount_base
+                    tally[av] += (e.pseudocount_match if av==rv
+                                  else e.pseudocount_base)
                 dirichlet_dict = dirichlet(tally)
                 nonsample_size = e.rn_cpr[cid][pbcid][rv] - \
-                    e.sn_tcpr[e.stage_time][cid][pbcid][rv]
+                                 e.sn_tcpr[e.stage_time][cid][pbcid][rv]
                 for av in sorted(tally):
                     test_tally[av] += tally[av]
                     if e.sn_tcpr[e.stage_time][cid][pbcid][rv] > 0:
