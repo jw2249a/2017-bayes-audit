@@ -12,6 +12,7 @@ Called by audit.py
 import numpy as np
 
 import multi
+import audit
 import outcomes
 
 ##############################################################################
@@ -28,9 +29,8 @@ def gamma(k, rs=None):
     Differs from standard one that it allows k==0, which returns 0.
     Parameter rs, if present, is a numpy.random.RandomState object.
     """
-    global auditRandomState
     if rs == None:
-        rs = auditRandomState
+        rs = audit.auditRandomState
     if k <= 0.0:
         ans = 0.0
     else:
@@ -100,7 +100,9 @@ def compute_risk(e, mid, st):
                         test_tally[av] += dirichlet_dict[av] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
-    e.risk_tm[e.stage_time][mid] = wrong_outcome_count / e.n_trials
+    risk = wrong_outcome_count / e.n_trials
+    e.risk_tm[e.stage_time][mid] = risk
+    return risk
 
 
 def compute_risks(e, st):
