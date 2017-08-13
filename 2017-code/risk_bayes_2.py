@@ -27,7 +27,7 @@ We assume that we are dealing with a single contest 'cid'.
 The basic data structure is a finite tree T, representable
 as a nonempty set of python tuples.
 
-The empty tuple () represents the root T.root of the tree.
+The empty tuple () represents the root, T.root, of the tree.
 
 The children of a node x = (x1, x2, ..., xk) are tuples
 that are one longer:
@@ -51,6 +51,8 @@ The set of all "internal" (non-leaf) nodes is denoted
 The set of all nodes (leaf or non-leaf) is denoted
     T.nodes
 
+
+
 Every leaf node has a 'count':
     T.count(x)
 The count may be an arbitrary real number, but the
@@ -68,8 +70,8 @@ including
      -- the reported vote for that contest (rv)
      -- the paper ballot collection (pbcid)
      -- the ballot style or card type as seen on
-        the ballot manifest (??)
-     -- the scanner used on that ballot (??)
+        the ballot manifest (denoted how??)
+     -- the scanner used on that ballot (denoted how??)
 and so on.  Then the 'count' is the number of
 ballots with the stated actual vote (av) within
 the subpopulation of votes with the stated meta-data.
