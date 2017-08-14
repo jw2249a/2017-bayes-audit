@@ -51,6 +51,9 @@ def geospace(start, stop, num=7):
     [20, 56, 159, 447, 1260, 3550, 10000]    
     >>> geospace(1, 64)
     [1, 2, 4, 8, 16, 32, 64]
+
+    This should presumably be replaced by numpy.logspace !
+    (although duplicates need to be removed...)
     """
 
     answer = {start, stop}
