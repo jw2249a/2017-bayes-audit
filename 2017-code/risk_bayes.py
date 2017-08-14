@@ -107,8 +107,6 @@ def compute_risk(e, mid, sn_tcpra):
                 nonsample_size = stratum_size - sample_size
                 for av in sorted(tally):
                     test_tally[av] += tally[av]
-                    # if sample_size > 0:
-                    #     test_tally[av] += dirichlet_dict[av] * nonsample_size
                     test_tally[av] += dirichlet_dict[av] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
@@ -122,6 +120,22 @@ def compute_risks(e, st):
     for mid in e.mids:
         compute_risk(e, mid, st)
 
+
+def compute_slack(e):
+    """
+    Return dictionary showing amount by which sample in each
+    pbcid can be increased.
+    """
+
+    mid = e.mids[0]
+    cid = e.cid_m[mid]
+    slack = {}
+    for pbcid in e.pbcids:
+        slack[pbcid] = 0
+        for rv in e.rn_cpr[cid][pbcid]:
+            slack[pbcid] += e.rn_cpr[cid][pbcid][rv]
+            slack[pbcid] -= e.sn_tcpr[e.stage_time][cid][pbcid][rv]
+    return slack
 
 if __name__ == "__main__":
 

@@ -538,6 +538,7 @@ def audit(e, args):
         if stop_audit(e):
             break
         planner.compute_plan(e)
+        print("Slack:", risk_bayes.compute_slack(e))
         if not input("Begin new audit stage? (y or n):").startswith('y'):
             break
         saved_state.write_intermediate_saved_state(e)
