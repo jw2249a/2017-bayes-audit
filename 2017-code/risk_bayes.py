@@ -107,8 +107,9 @@ def compute_risk(e, mid, sn_tcpra):
                 nonsample_size = stratum_size - sample_size
                 for av in sorted(tally):
                     test_tally[av] += tally[av]
-                    if sample_size > 0:
-                        test_tally[av] += dirichlet_dict[av] * nonsample_size
+                    # if sample_size > 0:
+                    #     test_tally[av] += dirichlet_dict[av] * nonsample_size
+                    test_tally[av] += dirichlet_dict[av] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
     risk = wrong_outcome_count / e.n_trials
