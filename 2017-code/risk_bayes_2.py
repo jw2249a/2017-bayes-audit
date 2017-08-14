@@ -1,12 +1,15 @@
 # risk_bayes_2.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# August 11, 2017
+# August 13, 2017
 # python3
 
 """
 Improved code for computing Bayes risks.
 
 Will replace risk_bayes.py, and be called by audit.py.
+
+THIS FILE IS INCOMPLETE.  TO BE THOUGHT THROUGH
+MORE CAREFULLY, AND THEN IMPLEMENTED.
 """
 
 """
@@ -51,7 +54,13 @@ The set of all "internal" (non-leaf) nodes is denoted
 The set of all nodes (leaf or non-leaf) is denoted
     T.nodes
 
-
+A 'count' is a python function taking three inputs:
+    a tree T
+    a node x = (x1, x2, ..., xk) in the tree, and
+    a vote v,
+and returns
+    ***TBD***
+     
 
 Every leaf node has a 'count':
     T.count(x)

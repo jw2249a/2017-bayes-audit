@@ -7,6 +7,12 @@
 Routines to compute Bayes risk for a contest, or for a set of contests.
 
 Called by audit.py
+
+This is designed to be compatible only with sampling by pbcid;
+more elaborate sampling regimes, such as sampling by card number
+or by reported vote, are yet to be implemented, and may require
+a significant change to the code base.  (Some thoughts, albeit
+primitive, are sketched in risk_bayes_2.py.)
 """
 
 import numpy as np
@@ -58,14 +64,16 @@ def dirichlet(tally):
 ##############################################################################
 # Risk measurement (Bayes risk)
 
-def compute_risk(e, mid, st):
+def compute_risk(e, mid, sn_tcpra):
     """ 
     Compute Bayesian risk (chance that reported outcome is wrong 
     for contest e.cid_m[mid]).
-    We take st here as argument rather than e.sn_tcpra so
+    We take sn_tcpra here as argument rather than just use e.sn_tcpra so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later, when optimizing
     workload.)
+    Here sn_tcpra is identical in structure to (and may in fact be
+    identical to) e.sn_tcpra.
 
     This method is the heart of the Bayesian post-election audit method.
     But it could be replaced by a frequentist approach instead, at
@@ -84,19 +92,22 @@ def compute_risk(e, mid, st):
         for pbcid in sorted(e.possible_pbcid_c[cid]):
             # Draw from posterior for each paper ballot collection, sum them.
             # Stratify by reported vote.
-            for rv in sorted(e.sn_tcpra[e.stage_time][cid][pbcid]):
-                tally = e.sn_tcpra[e.stage_time][cid][pbcid][rv].copy()
+            for rv in sorted(sn_tcpra[e.stage_time][cid][pbcid]):
+                tally = sn_tcpra[e.stage_time][cid][pbcid][rv].copy()
                 for av in e.votes_c[cid]:
                     if av not in tally:
                         tally[av] = 0
                     tally[av] += (e.pseudocount_match if av==rv
                                   else e.pseudocount_base)
                 dirichlet_dict = dirichlet(tally)
-                nonsample_size = e.rn_cpr[cid][pbcid][rv] - \
-                                 e.sn_tcpr[e.stage_time][cid][pbcid][rv]
+                stratum_size = e.rn_cpr[cid][pbcid][rv]
+                # sample_size = sn_tcpr[e.stage_time][cid][pbcid][rv]  
+                sample_size = sum([sn_tcpra[e.stage_time][cid][pbcid][rv][av]
+                                   for av in sn_tcpra[e.stage_time][cid][pbcid][rv]])
+                nonsample_size = stratum_size - sample_size
                 for av in sorted(tally):
                     test_tally[av] += tally[av]
-                    if e.sn_tcpr[e.stage_time][cid][pbcid][rv] > 0:
+                    if sample_size > 0:
                         test_tally[av] += dirichlet_dict[av] * nonsample_size
         if e.ro_c[cid] != outcomes.compute_outcome(e, cid, test_tally):  
             wrong_outcome_count += 1
