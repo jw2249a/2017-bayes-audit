@@ -15,6 +15,7 @@ a significant change to the code base.  (Some thoughts, albeit
 primitive, are sketched in risk_bayes_2.py.)
 """
 
+import copy
 import numpy as np
 
 import multi
@@ -121,21 +122,65 @@ def compute_risks(e, st):
         compute_risk(e, mid, st)
 
 
-def compute_slack(e):
+def compute_slack_p(e):
     """
     Return dictionary showing amount by which sample in each
     pbcid can be increased.
     """
 
-    mid = e.mids[0]
+    mid = e.mids[0]         # sampling is same so far for all mids
     cid = e.cid_m[mid]
-    slack = {}
+    slack_p = {}
     for pbcid in e.pbcids:
-        slack[pbcid] = 0
+        slack_p[pbcid] = 0
         for rv in e.rn_cpr[cid][pbcid]:
-            slack[pbcid] += e.rn_cpr[cid][pbcid][rv]
-            slack[pbcid] -= e.sn_tcpr[e.stage_time][cid][pbcid][rv]
-    return slack
+            slack_p[pbcid] += e.rn_cpr[cid][pbcid][rv]
+            slack_p[pbcid] -= e.sn_tcpr[e.stage_time][cid][pbcid][rv]
+    return slack_p
+
+def compute_risk_with_tweak(e, mid, slack_p, tweak):
+    """
+    Return computed risk if sample sizes were tweaked.
+
+    Here tweak is a dict mapping pbcids to how much
+    to increase sample size by in each pbcid.  We must have
+        slack[pbcid] >= tweak[pbcid] >= 0
+    for all pbcids.
+    """
+
+    cid = e.cid_m[mid]
+    sn_tcpra = copy.deepcopy(e.sn_tcpra)
+    sn_tcp = {}
+    sn_tcp[e.stage_time] = {}
+    sn_tcp[e.stage_time][cid] = {}
+    for pbcid in e.pbcids:
+        assert slack[pbcid] >= tweak[pbcid] >= 0
+        sn_tcp[e.stage_time][cid][pbcid] = 0
+        sn_tcpra = copy.deepcopy(e.sn_tcpra)
+    return compute_risk(e, mid, sn_tcpra)
+
+def tweak_all(e, mid):
+    """
+    Test routine to try all tweaks.
+    """
+
+    risk = compute_risk(e, mid, e.sn_tcpra)
+    print("Risk (no change):", risk)
+    slack_p = compute_slack_p(e)
+    cid = e.cid_m[mid]
+    for pbcid in e.pbcids:
+        for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
+            for av in e.sn_tcpra[e.stage_time][cid][pbcid][rv]:
+                if sn_tcp[e.stage_time][cid][pbcid] > 0:
+                    sn_tcpra[e.stage_time][cid][pbcid][rv][av] += \
+                        min(100,                                                               
+                            slack_p[pbcid] *\
+                            sn_tcpra[e.stage_time][cid][pbcid][rv][av] / \
+                            sn_tcp[e.stage_time][cid][pbcid])
+        risk = compute_risk_with_tweak(e, mid, slack_p, tweak)
+        print("Risk (change {}):".format(pbcid),
+              risk)
+                                                                                    
 
 if __name__ == "__main__":
 
