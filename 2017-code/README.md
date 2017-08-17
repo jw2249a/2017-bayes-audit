@@ -8,9 +8,11 @@ The software is designed to be helpful for auditing elections such as
 the November 2017 Colorado election, which has hundreds of contests
 spread across 64 counties.
 
-**This README file is a *design document*, not a description of what
+**
+This README file is a *design document*, not a description of what
 the code does yet.  The code here is still in progress  and only partially
-implements this design. 
+implements this design.
+**
 
 ## Table of contents
 
