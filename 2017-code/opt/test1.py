@@ -4,11 +4,13 @@
 # Routine to experiment with scipy.optimize.minimize
 
 import scipy.optimize
+from scipy.stats import norm
 
 # function to minimize:
 def g(xy):
     (x,y) = xy
-    return x+y
+    print("g({},{})".format(x,y))
+    return x + y + 0.00000005 * norm.rvs(0)
 
 # constraints
 
@@ -31,6 +33,6 @@ constraints = [
                 }
                ]
 
-print(scipy.optimize.minimize(g, (10, 5), constraints=constraints))
+print(scipy.optimize.minimize(g, (11, 5), constraints=constraints))
 
                   
