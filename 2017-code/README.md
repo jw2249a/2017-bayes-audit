@@ -107,13 +107,12 @@ We assume the following:
       (for example, one or a few collections per county),
 * a **collection manager** for each collection (may be the same
   manager for several collections),
-* all ballots in a collection have the same **ballot style** (that is,
-  they show the same contests on each ballot in the collection),
-  (** THIS IS BEING FIXED **)
+* all ballots in a collection need not have the same **ballot style** (that is,
+  they need not show the same contests on each ballot in the collection),
 * for a given contest, there may be one or several collections having ballots
-  showing that contest,
+  showing that contest.
 
-We assume that the election has the following components:
+We assume that the election has the following phases:
 1. ("_Pre-election_") Election specification and setup.
 2. ("_Election_") Vote-casting, interpretation and preliminary reporting.
 3. ("_Post-election_") Audit.
@@ -124,20 +123,23 @@ We assume that the election has the following components:
 
 ## Scanning of cast paper ballots
 
-We assume that all the paper ballots in each collection have been **scanned** by
+We assume that the paper ballots in each collection have been **scanned** by
 an **optical scanner**.  There may be a different scanner for each collection.
+There may even be several scanners used for a single collection.
 
 We distinguish two types of collections, according to the type of information
-produced by the scanner:
+produced by the scanner(s):
 * in a "**CVR collection**", the scanner produces an electronic **cast vote
   record** (CVR) for each paper ballot scanned, giving the choices made for each
   contest on that paper ballot.
 * in a "**noCVR collection**", the scanner does not produce a separate
   electronic record for each paper ballot scanned; it only produces a summary
-  tally showing for each contest and each possible choice (vote) on that
+  tally for the collection showing for each contest and each possible choice (vote) on that
   contest, how many ballots in the collection showed the given choice.
+
 Note that some contests may be associated with collections of both types:
-some CVR collections as well as some noCVR collections.
+some CVR collections as well as some noCVR collections. It is an
+interesting technical challenge to audit such contests efficiently.
 
 We assume that the vote-casting, scanning, and subsequent storage
 process yields a "**ballot manifest**" for each collection,
@@ -147,16 +149,16 @@ population of paper ballots in the collection that will be sampled
 during the audit.
 
 Some elections have so many contests that the ballot is comprised of
-two or more separate "cards".  We do not deal with this complexity; we
-assume in such multi-card cases that the cards for a single ballot are
-always kept together. (Obviously a false assumption in practice.)
+two or more separate "cards".  
+We treat this situation in the same manner as having a collection
+consisting of two or more ``ballot styles.''
 
 [Back to TOC](#table-of-contents)
 
 ## Auditing
 
 A post-election audit provides statistical assurance that the reported
-outcomes are correct (if they are), using computations on a small
+outcomes are correct (if they are), using computations based on a small
 random sample of the cast paper ballots.  Audits are often several
 orders of magnitude more efficient than doing a full manual recount of
 all cast paper ballots.
@@ -164,6 +166,12 @@ all cast paper ballots.
 ``Multi.py`` supports "Bayesian" audits, a form of post-election auditing
 proposed by 
 [Rivest and Shen (2012)](http://people.csail.mit.edu/rivest/pubs.html#RS12z).
+It also supports ``frequentist`` risk-limiting audits, as explained by
+[Lindeman and Stark (2012)](https://www.stat.berkeley.edu/~stark/Preprints/gentle12.pdf).
+(Or will; this code isn't written yet.)
+Our emphasis and strongest interest is in Bayesian audits, but the
+``multi.py`` framework allows multiple approaches to co-exist and even
+be used simultaneously.
 
 A Bayesian audit provides an answer to the question 
 "``What is the probability that the reported election outcome is wrong?``"
@@ -172,26 +180,30 @@ outcome, given the audit data.
 
 A Bayesian audit continues to draw ballots at random for manual
 examination and interpretation, until the estimated Bayesian risk
-drops below a prespecified risk limit (such as 5%) for all contests.
+drops below a prespecified risk limit (such as 5%) for all contests
+under audit.
 With typical contests, only a small number of ballots may need to be
 examined before the risk limit is reached and the audit stops.
 Contests that are very close, however, may require extensive sampling
-before the risk limits are reached.
+before their risk limits are reached.
 
-See Rivest (''Bayesian audits: Explained and Extended'', draft available
-from author) for an expanded discussion of Bayesian audits.
+See Rivest (''Bayesian audits: Explained and Extended'', draft
+available from author) for an expanded discussion of Bayesian audits.
 
-Bayesian risk-limiting audits are subtly different than the ``frequentist'' risk-limiting
-audits promulgated by Stark and others.
-(REFS) Details omitted here, but Bayesian audits provide additional
-capabilities and flexibility, at the cost of some additional (but still
-very reasonable) computation during the audit.
+Bayesian risk-limiting audits are subtly different than the
+``frequentist'' risk-limiting audits promulgated by Lindeman and Stark
+[Lindeman and Stark (2012)](https://www.stat.berkeley.edu/~stark/Preprints/gentle12.pdf).
+Details omitted here, but Bayesian audits provide additional
+capabilities and flexibility, at the cost of some additional (but
+still very reasonable) computation during the audit.
 
 We assume the existence of an **Audit Coordinator** who coordinates
-the audit in collaboration with the collection managers (the
-Coordinator might be from the Secretary of State's office).
+the audit in collaboration with the collection managers.
+The Coordinator might be from the Secretary of State's office; we
+also call the Audit Coordinator by the name ``Audit Central``.
 
 [Back to TOC](#table-of-contents)
+
 
 ## Audit workflow
 
@@ -203,11 +215,15 @@ observer).
 
 ### Pre-election
 
-On the  Audit Central file system, create a directory (folder) for
-this election.  This directory may be on a server that is publicly readable, but
+On the  Audit Central file system, 
+the Audit Coordinator
+creates a directory (folder) for
+this election.  
+This directory may be on a server that is publicly readable, but
 only writable by Audit Central.
 
-Give the election specification in four files, one for each of:
+The Audit Coordinator gives the election specification in four files,
+one for each of:
 
 * **global parameters** (such as the name and date of the election)
 
@@ -217,96 +233,97 @@ Give the election specification in four files, one for each of:
 
 * **paper ballot collections** (saying how the paper ballots will be collected and organized).
 
-Put these four files into the subdirectory:
+These four files are put into the subdirectory:
 
-    1-election-spec
+    1-election-spec/
 
-within the directory for this election.
+within the main directory for this election.
 
 [Back to TOC](#table-of-contents)
 
+
 ### Election
 
-After the election has closed, and paper ballot have been
-scanned:
+After the polls have closed, and the paper ballots
+have been scanned:
 
-* Organize the paper ballots in each collections, 
-  and produce ballot manifests describing how the
-  paper ballots are stored (e.g. in boxes).
+* Election officials organize the paper ballots in each collection, 
+  and produce a ballot manifest for each collection describing how the
+  paper ballots are stored (e.g. in boxes numbered a certain way).
 
 * If the scanners produced a cast vote record for each
   ballot, collection managers (or the tabulation equipment)
-  produces a "reported-cvrs" CSV file for each
+  produce a "reported-cvrs" CSV file for each
   collection, having one row for each vote.
-  Otherwise, produce one file for each collection
+  Otherwise, they produce one file for each collection
   giving the tally of votes in that collection.
 
-* Audit Central collects the reported outcome for each contest.
+* Audit Central determines and publishes the 
+  reported outcome for each contest.
 
   Audit Central puts this information into directories and files:
 
-      2-reported
-        21-reported-ballot-manifests
-        22-reported-cvrs
+      2-reported/
+        21-reported-ballot-manifests/
+        22-reported-cvrs/
         23-reported-outcomes.csv
 
 
 ### Audit
 
-* Audit Central produces an "audit specification".
+* Audit Central produces an "audit specification" consisting of:
 
-  * Produce any necessary global audit parameters.
+  * A file with any necessary **global** audit parameters.
 
-  * Produce a detailed list of which contests will be
-    audited, and to what risk limits.  
-    Give the initial
-    status for each contest audit.
-    (Arguably, this should be done before the election
-    itself.)
+  * A detailed list of **which contests will be
+    audited**, and to **what risk limits**.  
+    Each contest has a specified **initial status**,
+    which will be updated as the audit progresses.
 
-  * Produce a random audit seed (say by rolling dice at a
-    public ceremony).
+  * A **random audit seed**, which may have been produced by
+    rolling twenty ten-sided dice at a public ceremony.
 
-  * Produce an initial "audit order" for each paper ballot
+  * An initial "**audit order**" for each paper ballot
     collection, saying what randomly-chosen ballots should
     be audited first.
 
-  * Put this information into directories and files:
+  * Audit Central puts this information into the following
+    directories and files:
 
-        3-audit
-           31-audit-spec
+        3-audit/
+           31-audit-spec/
               audit-spec-global.csv
               audit-spec-contest.csv
               audit-spec-collection.csv
               audit-spec-seed.csv
     
-           32-audit-orders
+           32-audit-orders/
               audit-order-PBCID1.csv
               audit-order-PBCID2.csv
               ...
 
 * Each collection manager begins auditing the
   ballots specified in his "audit order" file, and
-  shipped the results back to Audit Central, who
-  stores them in directory:
+  ships the results back to Audit Central, who
+  stores them in the following directory:
 
-        3-audit
-           33-audited-votes
+        3-audit/
+           33-audited-votes/
              audited-votes-PBCID1.csv
              audited-votes-PBCID2.csv
              ...
 
-* Audit Central will process the received audited
+* Audit Central processes the received audited
   votes files, and frequently send back to each
-  collection manager additional audit orders and status
-  reports on how each contest audit is progress (including
+  collection manager additional audit orders, as well as status
+  reports on how each contest audit is progressing (including
   an estimate as to how much work remains to be done).  
 
-  Audit Central will announce when each contest has been
+  Audit Central announces when each contest has been
   sufficiently audited, and when the overall audit is complete.
 
-  From a collection manager's point of view, the process
-  is **asynchronous** with the operations of Audit Central.
+  From a collection manager's point of view, the whole process
+  is largely **asynchronous** with the operations of Audit Central.
   A collection manager can update
   her audited votes file whenever she is ready to do so.
 
@@ -318,6 +335,7 @@ scanned:
   methods, the uploads may need to be synchronized.)
 
 [Back to TOC](#table-of-contents)
+
 
 ## Implementation notes: identifiers, votes, file names, and directory structure
 
@@ -336,26 +354,36 @@ how ``multi.py`` structures information in a directory.
 The data structures for ``multi.py`` use identifiers extensively.
 Identifiers are more-or-less arbitrary strings of characters.
 
-We have:
+We have several types of identifiers:
 
-* **Contest Identifiers** (example: ``"DenverMayor"``)
+* **Contest Identifiers** (example: ``**"DenverMayor"**``)
+  A contest identifier may contain blanks or punctuation.
   A contest identifier is called a ``"cid"`` in the code.
 
-* **Selection Identifiers** (examples: ``"Yes"`` or ``"JohnSmith"``)
+* **Selection Identifiers** (examples: ``**"Yes"**`` or ``**"JohnSmith"**``)
   A selection identifier is called a ``"selid"`` in the code.
-  Roughly speaking, there should be one selection identifier for each
-  optical scan bubble.  If bubble are arranged in a matrix, for
-  preferential voting, then the selid should have the form
-  ``"rank-candidate"``, as in ``"1-Jones"`` or ``"2-Smith"`` (for the
+  **Roughly speaking, there should be one selection identifier for each
+  optical scan bubble**.
+
+  If bubble are arranged in a matrix, for
+  preferential voting, then each selid should have the form
+  ``**"rank-candidate"**``, as in ``**"1-Jones"**`` or ``**"2-Smith"**`` (for the
   first and second candidates preferred by the voter).
-  Fore score voting or 3-2-1 voting, the selid should have the
-  form ``"score-candidate"``, as in ``"17-Smith"`` or ``"Excellent-Jones"``.
+
+  For score voting or 3-2-1 voting, the selid should have the
+  form ``**"score-candidate"**``, as in ``**"17-Smith"**`` or ``**"Excellent-Jones"**``.
+
   In other cases of bubbles arranged in a matrix, the
-  selid should have the form ``"rowid-columnid"``.
+  selid should have the form ``**"rowid-columnid"**``.
+
   A **write-in** selection has a selection id beginning with a plus
-  sign (example: ``"+BobWhite"``).
-  Other potentially useful selection ids include
-    1. **``-Unknown``**: Nothing is known about the ballot. It might
+  sign (example: ``**"+BobWhite"**``).
+
+  Other potentially useful selection ids include the following.  Selection
+  ids beginning with a minus sign are used to signal special conditions,
+  and may not win a contest.  
+
+    1. **``"-Unknown"``**: Nothing is known about the ballot. It might
        not even contain the desired contest.
     2. **``-NoSuchContest``**: The contest is missing from the ballot. Perhaps
        the wrong ballot was pulled, or the contest doesn't appear on every
@@ -364,34 +392,31 @@ We have:
        the voter's selection was not recorded.  Perhaps useful if the
        desired contest is no longer being audited.
     4. **``-Invalid``**: The voter selections were invalid somehow.
-    5. **``-Expected``**: The ballot style indicates that the ballot
-       *should* contain this contest, but the ballot hasn't been
-       further examined yet. (Requires a ballot style on the ballot.)
-    6. **``-NotExpected``** The ballot style indicates that the ballot
-       *should* *not* contain this contest, but the ballot hasn't been
-       further examined yet. (Requires a ballot style on the ballot.)
-    7. **``-NoBallot``**: The ballot doesn't exist.  Perhaps it only exists
+    5. **``-NoBallot``**: The ballot doesn't exist.  Perhaps it only exists
        in electronic form.  (Suggested by Neal McBurnett, as NoVVPR)
 
-* **Paper Ballot Collection Identifiers** (example: ``"BoulderPBC25"``)
+* **Paper Ballot Collection Identifiers** (example: ``**"BoulderPBC25"**``)
   A paper ballot collection identifier is called a ``"pbcid"`` in the code.
 
 * A **Ballot Identifier** is a unique identifier assigned to a particular
-  paper ballot (example: ``"25-72"``).
+  paper ballot (example: ``**"25-72"**``).
   A ballot id is called a ``"bid"`` in the code.
+
   Ballots within a collection must have unique bids, but it is not
   necessary that ballots in different collections have different
-  bids.  A ballot id may encode the physical storage location of
+  bids.
+
+  A ballot id may encode the physical storage location of
   the ballot (e.g. the box number and position within box), but
   need not do so.  The ballot id might or might not include the
   pbcid. The ballot id might be generated when the ballot
   is printed, when it is scanned, or when it is stored.  The
   ballot ids need not be "sequential".
 
-  (CO remark: A ballot id (or at least the ballot location may consist of
+  (CO remark: A ballot id (or at least the ballot location) may consist of
   a four-tuple (TabulatorId, BatchId, RecordId, CountingGroupId).)
 
-Identifiers are converted to "reduced" form when first encountered, by
+All identifiers are converted to "reduced" form when first encountered, by
 removing any initial or final whitespace characters, and converting
 any internal subsequence of two or more whitespace characters to a
 single blank.
@@ -429,81 +454,95 @@ or of size greater than one (an overvote).
 Implementation note: Within Python, we represent a vote as a
 tuple, such as
 
-    ()               for the empty set
+    ()               the empty set is represented by the length-zero tuple
 
-    ("AliceJones",)  a vote with only one selection
+    ("AliceJones",)  a vote with only one selection is represented by a length-one tuple
 
-    ("AliceJones", "+BobSmith")  a vote with two selections, one of
-                     which is a write-in for Bob Smith.
+    ("AliceJones", "+BobSmith")  a vote with two or more selections is represented
+                     by a tuple with two or more selection ids; in this example one of
+                     the selections is a write-in for Bob Smith.
 
 We use a Python tuple rather than a Python set, since the tuple
 is hashable.  But the intent is to represent a set, not a sequence.
 To that end, the default order of a vote is with the selids
-sorted into increasing order (as strings).
+sorted into increasing lexicographic order (as strings).
 
 [Back to TOC](#table-of-contents)
+
 
 ### File formats
 
 ``Multi.py`` uses CSV (comma-separated values) format for files;
 a single header row specifies the column labels, and each subsequent line of
 the file specifies one spreadsheet row.  A compressed format is
-suggested in the Appendix below.
+suggested in the Appendix below (this is not yet implemented).
+
+Files representing audited votes are intended to be **append-only**;
+new data is added to the end, but previous data is never changed.
 
 [Back to TOC](#table-of-contents)
+
 
 ###  Directory structure
 
 The information for an election is kept in a single directory
-structure, as documented here.  Information for a different election
-would be kept in a separate similar (but disjoint) directory
-structure.
+structure in the public Audit Central election server, as documented here.
 
-Flexible version labels in file names are supported (but not
-illustrated) here; see [Appendix: File names](#appendix-file-names)
-for details.
+Information for a different election would be kept in a separate
+similar (but disjoint) directory structure.
 
-The top-level directory might be named something like
-``./elections/CO-2017-general-election``.  The contents
-of that directory might look as follows.  Here PCBID1 etc.
-would be the identifiers for paper ballot collections,
-perhaps as "DEN-A01".
-In addition, all of these files would likely have
+Flexible version labels in file names are supported (but only 
+occasionally illustrated here) here.
+Typically a version label is a date-time stamp inserted just before
+the final period, so that the filename
+    ``election-spec-general.csv``
+may become
+    ``election-spec-general-2017-11-08-08-23-11.csv``
+See [Appendix: File names](#appendix-file-names) for details of
+version labels.
+
+The top-level directory for a particular election
+might be named something like
+``./elections/CO-2017-general-election``.
+
+The contents of that directory might look as follows.  Here PCBID1
+etc.  would be the identifiers for paper ballot collections, such
+as "DEN-A01".  In addition, all of these files would likely have
 version labels that are date-time stamps, such as
 "-2017-11-08-10-14-23".
 
-    1-election-spec
+    1-election-spec/
        election-spec-general.csv
        election-spec-contests.csv
        election-spec-contest-groups.csv
        election-spec-collections.csv
 
-    2-reported
-       21-reported-ballot-manifests
+    2-reported/
+       21-reported-ballot-manifests/
           reported-ballot-manifest-PCBID1.csv
           reported-ballot-manifest-PCBID2.csv
           ...
-       22-reported-cvrs
+       22-reported-cvrs/
           reported-cvrs-PCBID1.csv
           reported-cvrs-PCBID2.csv
           ...
        23-reported-outcomes.csv
 
-    3-audit
-       31-audit-spec
+    3-audit/
+       31-audit-spec/
           audit-spec-global.csv
           audit-spec-contest.csv
           audit-spec-collection.csv
           audit-spec-seed.csv
-       32-audit-orders
+       32-audit-orders/
           audit-order-PCBID1.csv
           audit-order-PCBID2.csv
           ...
-       33-audited-votes
+       33-audited-votes/
           audited-votes-PCBID1.csv
           audited-votes-PCBID2.csv
           ...
-       34-audit-output
+       34-audit-output/
           audit-output-contest-status.csv
           audit-output-collection-status.csv
           audit-output-snapshot.csv
@@ -511,15 +550,16 @@ version labels that are date-time stamps, such as
           audit-output-plan.csv
           audit-output-saved-state.json
 
-Typically these files may have several **versions**, not shown
+Once again: these files may have several **versions**, not shown
 here, but distinguished by a datetime-stamp version labels as in
 
     audit-output-saved-state-2017-11-20-11-08-13.json
 
 See [``Appendix: File names](#appendix-file-names) for details on version labels.
+Generally, the latest version is the "operative" one.
 
- 
 [Back to TOC](#table-of-contents)
+
 
 ## (Pre-election) Election specification.
 
@@ -537,15 +577,16 @@ The election specification phase answers the questions:
   collection?
 
 Election officials answer these questions with four CSV files:
-an "**general file**", 
+a "**general file**", 
 a "**contests file**", 
 a "**contest groups file**",
 and a "**collections file**".  
 These four
 election-specification files may be produced from similar files used
-for the election itself.
+by vendor-supplied equipment for the election itself.
 
 [Back to TOC](#table-of-contents)
+
 
 ### Election specification general file
 
@@ -592,8 +633,9 @@ is a CSV file, prepared by election officials, with the name
 (possibly with a version label).
 
 Such a **contests file** specifies the contests
-in the election, their type (e.g. plurality), whether
-write-ins are allowed (and if so, whether they may be arbitrary, or whether
+in the election, their type (e.g. plurality), 
+how many winners the contest will have,
+whether write-ins are allowed (and if so, whether they may be arbitrary, or whether
 write-in candidates
 must be pre-qualified), and the officially allowed selections.
 
