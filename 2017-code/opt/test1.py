@@ -10,19 +10,21 @@ from scipy.stats import norm
 def g(xy):
     (x,y) = xy
     print("g({},{})".format(x,y))
-    return x + y + 0.00000005 * norm.rvs(0)
+    return x + y 
 
 # constraints
+
+noise_level = 0.0000005
 
 # constraint 1: y <= x/2
 def f1(xy):
     (x,y) = xy
-    return x/2 - y
+    return x/2 - y + noise_level * norm.rvs(0)
 
 # constraint 2: y >= 1/x
 def f2(xy):
     (x,y) = xy
-    return y - 1.0/x
+    return y - 1.0/x + noise_level * norm.rvs(0)
 
 constraints = [
                 { "type": "ineq",
