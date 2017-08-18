@@ -42,7 +42,7 @@ def filename_safe(id):
 
     ans = []
     for c in id:
-        if c.isalnum() or c in "+-_./":
+        if c.isalnum() or c in "+-_":
             ans.append(c)
     return "".join(ans)
 
