@@ -14,7 +14,7 @@ def g(xy):
 
 # constraints
 
-noise_level = 0.0000005
+noise_level = 0.05
 
 # constraint 1: y <= x/2
 def f1(xy):
@@ -35,6 +35,10 @@ constraints = [
                 }
                ]
 
-print(scipy.optimize.minimize(g, (11, 5), constraints=constraints))
+print(scipy.optimize.minimize(g,
+                              (11, 5),
+                              method = "COBYLA",
+                              tol = 0.01,
+                              constraints=constraints))
 
                   
