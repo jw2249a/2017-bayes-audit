@@ -637,7 +637,8 @@ in the election, their type (e.g. plurality),
 how many winners the contest will have,
 whether write-ins are allowed (and if so, whether they may be arbitrary, or whether
 write-in candidates
-must be pre-qualified), and the officially allowed selections.
+must be pre-qualified), and the officially allowed selections
+(which may be listed in any order).
 
 | Contest         | Contest type | Winners   |Write-ins  | Selections |           |            |            |
 | ---             | ---          | ---       |---        | ---        | ---       |---         |---         |
@@ -697,7 +698,7 @@ compactness.
 A contest group is defined by listing the contests it contains and/or the
 other groups it includes.
 
-The *order* of the definition is important, as it may reflect the order
+The *order* of the contests in the definition is important, as it may reflect the order
 in which the contests are presented on a ballot; this order may be used
 in the user interface used by the auditors.
 
@@ -770,9 +771,12 @@ If a collection (as for mail-in ballots)
 may hold ballots of several different ballot styles
 styles, then the ``Required Contests`` field may show a contest group giving
 the contests **common** to all possible ballots in the collection, while
-the ``Possible`` field may show a contest group listing the contests
+the ``Possible Contests`` field may show a contest group listing the contests
 that may occur on **any* ballot in the collection (that is, the union of
 the possible ballot styles).
+
+If the ``Required Contests`` field is empty, then no contest is required.
+If the ``Possible Contests`` field is empty, then any contest is possible.
 
 [Back to TOC](#table-of-contents)
 
@@ -817,7 +821,7 @@ identification imprinted on the ballot, and any additional comments
 about specific ballots.
 
 The **``Collection``** field specifies the collection id for the ballot manifest.
-This should the same for all rows in the file.
+This should the same for all rows in the ballot manifest file.
 
 The **``Box``** field gives the box identifier for the box containing
 the ballot(s) described in that row.  The box id should be unique
@@ -864,7 +868,7 @@ Typically, the row would represent all ballots in a particular box.
 In this case, the fields of the row describe the *first* ballot in the
 batch.  To generate the other rows, the **``Position``**, **``Stamp``**
 (if present), and **``Ballot id``** fields are increased by one for
-each successive newly-generated ballot
+each successive newly-generated ballot.
 Other fields are just copied for the newly-generated rows.
 This compact format may not be used if the ballot stamps are present
 but not sequential.
@@ -877,7 +881,8 @@ possible (so ``"B-0001"`` increments to ``"B-0002"`` and not ``"B-2"``, but
 contain a trailing digit sequence, then a trailing digit sequence of
 ``"1"`` is generated for the first ballot of the generated set.
 
-The size of the collection is just the sum of the values in the "Number of ballots" field.
+The size of the collection is just the sum of the values in the
+"Number of ballots" field.
 
 The **``Number of ballots``** feature is just for compactness and
 convenience; when the ballot manifest file is read in by ``multi.py``,
@@ -923,6 +928,9 @@ If the ``Required Contests`` field is missing,
 no contests are assumed to be required.
 If the ``Possible Contests`` field is missing, 
 all contests are assumed to be possible.
+(These requirements and possibilities are additional
+requirements and possibilities, above and beyond what may be
+required or possible as described in the collections file.)
 
 
 [Back to TOC](#table-of-contents)
@@ -930,11 +938,12 @@ all contests are assumed to be possible.
 
 ### Reported CVRs file
 
-A reported cvrs file will have a name of the form
+A reported cvrs file has a name of the form
 
-    2-reported/22-reported-cvrs/reported-cvrs-<pbcid>.csv
+    2-reported/22-reported-cvrs/reported-cvrs-PBCID.csv
 
-possibly with a version label.  An example filename: ``reported-cvrs-DEN-A01.csv``.
+where PBCID is the paper ballot collection id.
+This file name may also have a version label.  An example filename: ``reported-cvrs-DEN-A01.csv``.
 This file may be produced by the tabulation equipment.
 
 A **reported cvrs file** is a CSV format file containing a number of
@@ -942,15 +951,16 @@ rows, where (for a CVR collection) each row represents a voter's choices for a
 particular contest. These are the **cast vote records** (CVRs) of the election.
 
 The format is capable of representing votes in more
-complex voting schemes, like approval or instant runoff (IRV).
+complex voting schemes, like approval or instant runoff (IRV),
+where a single vote may contain several selections.
 
 Here are the fields of a row of a reported cvrs file:
 
 1. **Collection** (pbcid)
-   Typically, all rows in a vote file will have the same paper ballot
+   Typically, all rows in a reported cvrs file will have the same paper ballot
    collection identifer (pbcid).
 
-2. **Scanner**: Gives an id of the device that scanned this ballot.
+2. **Scanner**: This field gives an id of the device that scanned this ballot.
    May be blank.
 
 3. **Ballot identifier** (bid)
@@ -968,10 +978,16 @@ Here are the fields of a row of a reported cvrs file:
    In general, each selection id corresponds to a single bubble that
    the voter has filled in on the paper ballot.
 
-   Preferential voting can also be handled with these fields, in which
-   case the order of the selections matters: the first selection is
-   the most favored, and so on.  With approval voting or vote-for-k
-   voting, the order of the selections doesn't matter.
+   The order of the selections doesn't matter; a vote is just a **set**
+   of selection ids, and the vote is treated as if the selection ids
+   were given in a canonical sorted order.
+
+   Preferential voting can also be handled with these fields, using
+   selection ids of the form ``1-John Smith`` (John Smith is the voter's
+   first choice), ``2-Mary Jones``, and so on.
+   
+   Other voting methods, such as approval voting or vote-for-k voting,
+   can also be handled.
 
    An undervote for a plurality vote will have columns 4-... blank,
    whereas an overvote will have more than one such column filled in.
@@ -980,7 +996,8 @@ Here are the fields of a row of a reported cvrs file:
    a python "tuple".  An empty vote is the zero-length python
    tuple ``()``.  The python representation uses tuples, not lists,
    since tuples are hashable and so may be used as keys in
-   python dictionaries.
+   python dictionaries.  The tuple has its selection ids given
+   in sorted order.
 
 For a noCVR collection, the format is the same except that the "Ballot ID" field
 is replaced by a "Tally" field.
@@ -1006,29 +1023,16 @@ The second row is an undervote, and the third row is an overvote.  The sixth
 row has a write-in for qualified candidate Tom Cruz.  The last row represents a vote that
 is invalid for some unspecified reason.
 
-**Example:** If the reported vote file is for a noCVR collection, the "Ballot id"
-column is replaced by a "Tally" column:
-
-|Collection      | Scanner  | Tally       | Contest       | Selections     |           |
-|---             |---       | ---         | ---           | ---            | ---       |
-|LOG-B13         |FG231     | 2034        | Logan Mayor   | Susan Hat      |           |
-|LOG-B13         |FG231     | 1156        | Logan Mayor   | Barry Su       |           |
-|LOG-B13         |FG231     | 987         | Logan Mayor   | Benton Liu     |           |
-|LOG-B13         |FG231     | 3           | Logan Mayor   | -Invalid       |           |
-|LOG-B13         |FG231     | 1           | Logan Mayor   | +Lizard People |           |
-|LOG-B13         |FG231     | 3314        | U.S. Senate 1 | Rhee Pub       |           |
-|LOG-B13         |FG231     | 542         | U.S. Senate 1 | Deb O'Crat     |           |
-|LOG-B13         |FG231     | 216         | U.S. Senate 1 | Val Green      |           |
-|LOG-B13         |FG231     | 9           | U.S. Senate 1 | +Tom Cruz      |           |
-|LOG-B13         |FG231     | 1           | U.S. Senate 1 | -Invalid       |           |
-
-This file format for noCVRs is also used for output tally files for CVR
-collections.
+If the reported vote file is for a noCVR collection, the ``Selections`` field lists
+just ``-noCVR`` instead of any particular selection(s).
 
 [Back to TOC](#table-of-contents)
 
 
 ### Reported outcomes file
+
+THIS SECTION NEEDS REDOING, TO GIVE ALL REASONABLE OUTCOMES
+ARE THEIR SCORE/TALLY.
 
 A reported outcomes file has a filename of the form
 
@@ -1058,6 +1062,23 @@ computed (such as intermediate IRV round information, or tie-breaking
 decisions).  Additional output files may include this information.  But
 since this information is not relevant for the audit, we do not describe
 it here.
+
+**Example:** 
+``FIXME FIXME``
+For a noCVR collection, the "Ballot id" column is replaced by a "Tally" column:
+
+|Collection      | Scanner  | Tally       | Contest       | Selections     |           |
+|---             |---       | ---         | ---           | ---            | ---       |
+|LOG-B13         |FG231     | 2034        | Logan Mayor   | Susan Hat      |           |
+|LOG-B13         |FG231     | 1156        | Logan Mayor   | Barry Su       |           |
+|LOG-B13         |FG231     | 987         | Logan Mayor   | Benton Liu     |           |
+|LOG-B13         |FG231     | 3           | Logan Mayor   | -Invalid       |           |
+|LOG-B13         |FG231     | 1           | Logan Mayor   | +Lizard People |           |
+|LOG-B13         |FG231     | 3314        | U.S. Senate 1 | Rhee Pub       |           |
+|LOG-B13         |FG231     | 542         | U.S. Senate 1 | Deb O'Crat     |           |
+|LOG-B13         |FG231     | 216         | U.S. Senate 1 | Val Green      |           |
+|LOG-B13         |FG231     | 9           | U.S. Senate 1 | +Tom Cruz      |           |
+|LOG-B13         |FG231     | 1           | U.S. Senate 1 | -Invalid       |           |
 
 [Back to TOC](#table-of-contents)
 
