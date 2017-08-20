@@ -1611,17 +1611,23 @@ size of the "audit-order" file.
 ## Command-line interface
 
 This section sketches the command-line interface to ``multi.py``.
-Here we assume that the election data is in the directory
+Here we assume the election data is in the directory
 ``./elections/CO-2017-11``.
 
-| Command                                  | Action                              |
-|---                                       |---                                  |
-| ``python --read_election_spec CO-2017-11``| Reads and checks election spec
-| ``python --read_reported CO-2017-11``    | Reads and checks reported data      |
-| ``python --read_seed CO-2017-11``        | Reads and checks audit seed         |
-| ``python --make_audit orders CO-2017-11``| Produces initial audit order files  |
-| ``python --read_audited CO-2017-11``     | Reads and checks audited votes      |
-| ``python --audit CO-2017-11``            | Runs audit                          |
+| Command                                             | Action                              |
+|---                                                  |---                                  |
+| ``python3 multi.py --read_election_spec CO-2017-11``| Reads and checks election spec
+| ``python3 multi.py --read_reported CO-2017-11``     | Reads and checks reported data      |
+| ``python3 multi.py --read_seed CO-2017-11``         | Reads and checks audit seed         |
+| ``python3 multi.py --make_audit orders CO-2017-11`` | Produces initial audit order files  |
+| ``python3 multi.py --read_audited CO-2017-11``      | Reads and checks audited votes      |
+| ``python3 multi.py --audit CO-2017-11``             | Runs audit                          |
+
+You can also run
+
+    python3 multi.py
+
+to get usage instructions.
 
 The program ``multi.py`` will be run by Audit Central for each stage.
 
@@ -1634,6 +1640,14 @@ Because of the way ``multi.py`` works, the program can be run by Audit
 Central, or by a local collection manager.  For the latter use, the audit
 parameters should to be adjusted to only those audit contests local to the collection, 
 by setting the risk limits to all other contests to 1.00.
+
+In addition to ``multi.py``, there is another program called ``syn.py``, for
+generating sythetic data sets.
+Run
+
+    python3 syn.py
+
+to get usage instructions.
 
 
 [Back to TOC](#table-of-contents)
