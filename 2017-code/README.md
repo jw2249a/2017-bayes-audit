@@ -51,7 +51,7 @@ implements this design.**
       * [Audit snapshot file](#audit-snapshot-file)
       * [Audit output file(s)](#audit-output-file-s)
       * [Audit plan file](#audit-plan-file)
-* [Command-line interface to ``multi.py``](#command-line-interface-to-``multi-py``)
+* [Command-line interface](#command-line-interface)
 * [Appendix: File names](#appendix-file-names)
 * [Appendix (Possible future work)](#appendix-possible-future-work)
   * [Compression](#compression)
@@ -1608,7 +1608,7 @@ size of the "audit-order" file.
 [Back to TOC](#table-of-contents)
 
 
-## Command-line interface to ``multi.py``
+## Command-line interface
 
 This section sketches the command-line interface to ``multi.py``.
 Here we assume that the election data is in the directory
