@@ -1134,10 +1134,11 @@ parameters by contest, and one for parameters by collection.
 
 #### Global audit parameters
 
-The filename is of the form (showing a year-month-day version label):
+The filename is of the form:
 
-    audit-spec-global-2017-11-22.csv
+    3-audit/31-audit-spec/audit-spec-global.csv
 
+(A version label could also be included in the filename.)
 
 The **global audit parameters file** is simple.
 
@@ -1146,6 +1147,8 @@ The **global audit parameters file** is simple.
 | Max audit stage time   | 9999-12-31-23-59-59 |
 
 
+This value specifies a time when the audit will be over.  No
+auditing will be undertaken after this time.
 
 [Back to TOC](#table-of-contents)
 
