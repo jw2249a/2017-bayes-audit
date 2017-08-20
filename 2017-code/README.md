@@ -634,24 +634,27 @@ is a CSV file, prepared by election officials, with the name
 
 Such a **contests file** specifies the contests
 in the election, their type (e.g. plurality), 
-how many winners the contest will have,
+any additional parameters the outcome rule may have
+(such as, for a plurality contest, the number of winners if greater than one),
 whether write-ins are allowed (and if so, whether they may be arbitrary, or whether
 write-in candidates
 must be pre-qualified), and the officially allowed selections
 (which may be listed in any order).
+If Params has more than one parameter, then they may be separated by
+semicolons within the field.
 
-| Contest         | Contest type | Winners   |Write-ins  | Selections |           |            |            |
+| Contest         | Contest type | Params    |Write-ins  | Selections |           |            |            |
 | ---             | ---          | ---       |---        | ---        | ---       |---         |---         |
-| Denver Prop 1   | Plurality    | 1         | No        | Yes        | No  
-| Denver Prop 2   | Plurality    | 1         | No        | Yes        | No   
-| Denver Mayor    | Plurality    | 1         | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost 
-| Denver Clerk    | Plurality    | 1         | No        | Yet Again  | New Guy
-| Logan Mayor     | Plurality    | 1         | Arbitrary | Susan Hat  | Barry Su  | Benton Liu 
-| Logan Water     | Plurality    | 1         | No        | Yes        | No
-| U.S. President  | Plurality    | 1         | Arbitrary | Don Brown  | Larry Pew
-| U.S. Senate 1   | Plurality    | 1         | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | +Tom Cruz 
-| U.S. Senate 2   | Plurality    | 1         | Qualified | Term Three | Old Guy   | +Hot Stuff
-| CO Prop A       | Plurality    | 1         | No        | Yes        | No
+| Denver Prop 1   | Plurality    |           | No        | Yes        | No  
+| Denver Prop 2   | Plurality    |           | No        | Yes        | No   
+| Denver Mayor    | Plurality    |           | Qualified | John Smith | Bob Cat   | Mary Mee   |+Jack Frost 
+| Denver Clerk    | Plurality    |           | No        | Yet Again  | New Guy
+| Logan Mayor     | Plurality    |           | Arbitrary | Susan Hat  | Barry Su  | Benton Liu 
+| Logan Water     | Plurality    |           | No        | Yes        | No
+| U.S. President  | Plurality    |           | Arbitrary | Don Brown  | Larry Pew
+| U.S. Senate 1   | Plurality    |           | Qualified | Deb O'Crat | Rhee Pub  | Val Green  | +Tom Cruz 
+| U.S. Senate 2   | Plurality    |           | Qualified | Term Three | Old Guy   | +Hot Stuff
+| CO Prop A       | Plurality    |           | No        | Yes        | No
 
 
 If the contest only allows write-ins that are (pre-)qualified, then those qualified
@@ -1055,15 +1058,15 @@ ids correspond to special situations (such as ``-Invalid``) that can
 not "win elections".  The winner may be a selection id that starts
 with a plus sign (``+``), which denotes a write-in candidate.
 
-When a contest outcome specifies multiple winners, they are listed in
+When a contest outcome gives multiple winners, they are listed in
 additional columns.  We assume that if there are multiple winners,
-that the order of these winners may be important.
+that the order of these winners is important.
 
 A contest outcome need not be a single selection id, or a sequence of
 selection ids.  It may be a sequence of ids that don't appear on the
 ballot, representing special situations, such as
 
-    ``-Tied,    John Smith,    Mary Jones``
+    -Tied,    John Smith,    Mary Jones
 
 Or perhaps the outcome could be very different than the selection ids.
 Perhaps the outcome is a food type, such as ``Chinese``, when the votes

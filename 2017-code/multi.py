@@ -167,10 +167,10 @@ class Election(object):
         # input (12-contests.csv)
         # cid->contest type  (e.g. "plurality" or "irv")
 
-        e.winners_c = {}
+        e.params_c = {}
         # input (12-contests.csv)
         # cid->int
-        # number of winners in contest
+        # additional parameters (such as number of winners in contest for plurality)
 
         e.write_ins_c = {}
         # input (12-contests.csv)

@@ -53,13 +53,13 @@ def write_election_spec_contests_csv(e):
     filename = os.path.join(dirpath, "election-spec-contests.csv")
 
     with open(filename, "w") as file:
-        fieldnames = ["Contest", "Contest type", "Winners", "Write-ins", "Selections"]
+        fieldnames = ["Contest", "Contest type", "Params", "Write-ins", "Selections"]
         file.write(",".join(fieldnames))
         file.write("\n")
         for cid in e.cids:
             file.write(cid+",")
             file.write("{},".format(e.contest_type_c[cid].title()))
-            file.write("{},".format(e.winners_c[cid]))
+            file.write("{},".format(e.params_c[cid]))
             file.write("{},".format(e.write_ins_c[cid].title()))
             file.write(",".join(e.selids_c[cid]))
             file.write("\n")

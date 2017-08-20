@@ -120,11 +120,11 @@ def generate_election_spec_contests(e, synpar):
     # make cid for each contest
     e.cids = set("con{}".format(i+1) for i in range(synpar.n_cids))
 
-    # generate contest types as plurality and number winners = 1
+    # generate contest types as plurality and additional parameters
     # no write-ins
     for cid in e.cids:
         e.contest_type_c[cid] = "plurality"
-        e.winners_c[cid] = 1
+        e.params_c[cid] = ""
         e.write_ins_c[cid] = "no"
 
     # check number of cids with wrong reported outcome

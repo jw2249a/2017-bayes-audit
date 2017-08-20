@@ -54,7 +54,7 @@ def process_spec(e, synpar, L):
         if cid not in e.cids:
             e.cids.append(cid)
             e.contest_type_c[cid] = "plurality"
-            e.winners_c[cid] = 1
+            e.params_c[cid] = ""
             e.write_ins_c[cid] = "no"
             e.selids_c[cid] = {}
             e.ro_c[cid] = ("Alice",)     # FIX

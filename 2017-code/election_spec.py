@@ -24,17 +24,17 @@ election-spec-general.csv:
   Election URL     , https://sos.co.gov/election/2017-11-07/ 
 
 elections-spec-contests.csv:
-   Contest         , Contest type , Winners   ,Write-ins  , Selections 
-   Denver Prop 1   , Plurality    , 1         , No        , Yes        , No  
-   Denver Prop 2   , Plurality    , 1         , No        , Yes        , No   
-   Denver Mayor    , Plurality    , 1         , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
-   Denver Clerk    , Plurality    , 1         , No        , Yet Again  , New Guy
-   Logan Mayor     , Plurality    , 1         , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
-   Logan Water     , Plurality    , 1         , No        , Yes        , No
-   U.S. President  , Plurality    , 1         , Arbitrary , Don Brown  , Larry Pew
-   U.S. Senate 1   , Plurality    , 1         , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
-   U.S. Senate 2   , Plurality    , 1         , Qualified , Term Three , Old Guy   , +Hot Stuff
-   CO Prop A       , Plurality    , 1         , No        , Yes        , No
+   Contest         , Contest type , Params    ,Write-ins  , Selections 
+   Denver Prop 1   , Plurality    ,           , No        , Yes        , No  
+   Denver Prop 2   , Plurality    ,           , No        , Yes        , No   
+   Denver Mayor    , Plurality    ,           , Qualified , John Smith , Bob Cat   , Mary Mee   ,+Jack Frost 
+   Denver Clerk    , Plurality    ,           , No        , Yet Again  , New Guy
+   Logan Mayor     , Plurality    ,           , Arbitrary , Susan Hat  , Barry Su  , Benton Liu 
+   Logan Water     , Plurality    ,           , No        , Yes        , No
+   U.S. President  , Plurality    ,           , Arbitrary , Don Brown  , Larry Pew
+   U.S. Senate 1   , Plurality    ,           , Qualified , Deb O'Crat , Rhee Pub  , Val Green  , Sarah Day   , +Tom Cruz 
+   U.S. Senate 2   , Plurality    ,           , Qualified , Term Three , Old Guy   , +Hot Stuff
+   CO Prop A       , Plurality    ,           , No        , Yes        , No
 
 election-spec-contest-groups.csv
    Contest group id , Contest(s) or group(s)
@@ -116,7 +116,7 @@ def read_election_spec_contests(e):
     spec_pathname = os.path.join(election_pathname, "1-election-spec")
     filename = utils.greatest_name(spec_pathname, "election-spec-contests", ".csv")
     file_pathname = os.path.join(spec_pathname, filename)
-    fieldnames = ["Contest", "Contest type", "Winners", "Write-ins",
+    fieldnames = ["Contest", "Contest type", "Params", "Write-ins",
                   "Selections"]
     rows = csv_readers.read_csv_file(file_pathname, fieldnames, varlen=True)
     for row in rows:
@@ -127,7 +127,7 @@ def read_election_spec_contests(e):
         
         e.contest_type_c[cid] = row["Contest type"].lower()
         
-        e.winners_c[cid] = int(row["Winners"])
+        e.params_c[cid] = row["Params"]
         
         e.write_ins_c[cid] = row["Write-ins"].lower()
 
@@ -318,11 +318,11 @@ def show_election_spec(e):
     utils.myprint("    {}".format(e.election_url))
     utils.myprint("Number of contests:")
     utils.myprint("    {}".format(len(e.cids)))
-    utils.myprint("Contest ids with contest type, number of winners, and write-ins mode")
-    utils.myprint("(e.cids, e.contest_type_c, e.winners_c, e.write_ins_c):")
+    utils.myprint("Contest ids with contest type, additional parameters, and write-ins mode")
+    utils.myprint("(e.cids, e.contest_type_c, e.params_c, e.write_ins_c):")
     for cid in e.cids:
         utils.myprint("    {} ({}, {} winner(s), {} write-ins)"
-                      .format(cid, e.contest_type_c[cid], e.winners_c[cid], e.write_ins_c[cid]))
+                      .format(cid, e.contest_type_c[cid], e.params_c[cid], e.write_ins_c[cid]))
     utils.myprint("Valid selection ids for each cid (e.selids_c):")
     for cid in e.cids:
         utils.myprint("    {}: ".format(cid), end='')
