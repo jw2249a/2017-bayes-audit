@@ -1031,9 +1031,6 @@ just ``-noCVR`` instead of any particular selection(s).
 
 ### Reported outcomes file
 
-THIS SECTION NEEDS REDOING, TO GIVE ALL REASONABLE OUTCOMES
-ARE THEIR SCORE/TALLY.
-
 A reported outcomes file has a filename of the form
 
      2-reported/23-reported-outcomes.csv
@@ -1042,8 +1039,7 @@ A reported outcomes file has a filename of the form
 tabulation equipment.
 
 A "**reported outcomes file**" gives the reported outcome for every
-contests.  It may indicate final vote tallies for the winner, and
-do the same for the losers.
+contest as a single id or a sequence of ids.
 
 | Contest         | Winner(s)  |            |           |             |
 | ---             |  -         | ---        |---        |---          |
@@ -1052,9 +1048,33 @@ do the same for the losers.
 | Denver Mayor    | John Smith |            |           |             |
 | CO Prop A       | Yes        |            |           |             |
 
-When a contest outcome includes multiple winners, they are listed in
-additional columns.  The order of these winners may be important,
-depending on the contest type and outcome rule.
+For a plurality election with a single winner, the file shows in
+column 2 the selection id for that winner.  This will be a selection
+id that does not begin with a minus sign (``-``), as such selection
+ids correspond to special situations (such as ``-Invalid``) that can
+not "win elections".  The winner may be a selection id that starts
+with a plus sign (``+``), which denotes a write-in candidate.
+
+When a contest outcome specifies multiple winners, they are listed in
+additional columns.  We assume that if there are multiple winners,
+that the order of these winners may be important.
+
+A contest outcome need not be a single selection id, or a sequence of
+selection ids.  It may be a sequence of ids that don't appear on the
+ballot, representing special situations, such as
+
+    ``-Tied,    John Smith,    Mary Jones``
+
+Or perhaps the outcome could be very different than the selection ids.
+Perhaps the outcome is a food type, such as ``Chinese``, when the votes
+are the number of calories desired (why not?).
+
+The only operation the (Bayesian) audit cares about is "testing for
+equality" -- whether the computed election outcome for a sample is the
+same as the reported election outcome, or whether it is the same as
+computed for some other sample.  Other than that, details don't matter
+for the audit.  To test for equality of outcome, the audit just looks
+at the sequence of ids produced (order matters).
 
 This file shows only the reported winners, it does not show tally
 information, or additional information about how the winner(s) was/were
@@ -1063,22 +1083,6 @@ decisions).  Additional output files may include this information.  But
 since this information is not relevant for the audit, we do not describe
 it here.
 
-**Example:** 
-``FIXME FIXME``
-For a noCVR collection, the "Ballot id" column is replaced by a "Tally" column:
-
-|Collection      | Scanner  | Tally       | Contest       | Selections     |           |
-|---             |---       | ---         | ---           | ---            | ---       |
-|LOG-B13         |FG231     | 2034        | Logan Mayor   | Susan Hat      |           |
-|LOG-B13         |FG231     | 1156        | Logan Mayor   | Barry Su       |           |
-|LOG-B13         |FG231     | 987         | Logan Mayor   | Benton Liu     |           |
-|LOG-B13         |FG231     | 3           | Logan Mayor   | -Invalid       |           |
-|LOG-B13         |FG231     | 1           | Logan Mayor   | +Lizard People |           |
-|LOG-B13         |FG231     | 3314        | U.S. Senate 1 | Rhee Pub       |           |
-|LOG-B13         |FG231     | 542         | U.S. Senate 1 | Deb O'Crat     |           |
-|LOG-B13         |FG231     | 216         | U.S. Senate 1 | Val Green      |           |
-|LOG-B13         |FG231     | 9           | U.S. Senate 1 | +Tom Cruz      |           |
-|LOG-B13         |FG231     | 1           | U.S. Senate 1 | -Invalid       |           |
 
 [Back to TOC](#table-of-contents)
 
