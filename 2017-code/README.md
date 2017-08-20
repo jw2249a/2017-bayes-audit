@@ -1616,12 +1616,12 @@ Here we assume that the election data is in the directory
 
 | Command                                  | Action                              |
 |---                                       |---                                  |
-| ``python --read_structure CO-2017-11``   | Reads and checks structure          |
+| ``python --read_election_spec CO-2017-11``| Reads and checks election spec
 | ``python --read_reported CO-2017-11``    | Reads and checks reported data      |
 | ``python --read_seed CO-2017-11``        | Reads and checks audit seed         |
 | ``python --make_audit orders CO-2017-11``| Produces initial audit order files  |
 | ``python --read_audited CO-2017-11``     | Reads and checks audited votes      |
-| ``python --stage 002 CO-2017-11``        | Runs stage 002 of the audit         |
+| ``python --audit CO-2017-11``            | Runs audit                          |
 
 The program ``multi.py`` will be run by Audit Central for each stage.
 
@@ -1663,20 +1663,20 @@ it looks for a file with a filename having a given "prefix"
 (such as "data") and a given "suffix" (such as ".csv"). A
 file with filename
 
-    ``data.csv``
+    data.csv
 
 matches the search request, but has no version label (more precisely,
 a zero-length string as a version label).  A file
 with filename
 
-    ``data-v005.csv``
+    data-v005.csv
 
 also matches the search request, but has ``"-v005"`` as the version
 label (for that search).  Similarly a filename:
 
-    ``data-2017-11-07.csv``
+    data-2017-11-07.csv
 
-as ``"-2017-11-07-08"`` as its version label for this search.
+has ``"-2017-11-07-08"`` as its version label for this search.
 
 Note that version labels are compared as **strings**, not as **numbers**.
 For good results:
