@@ -56,7 +56,7 @@ def parse_args():
                         help="Read and check reported election data and results.")
 
 
-    parser.add_argument("--make_orders",
+    parser.add_argument("--make_audit_orders",
                         action="store_true",
                         help="Make audit orders files.")
 
@@ -93,8 +93,8 @@ def process_args(e, args):
         election_spec.read_election_spec(e)
         reported.read_reported(e)
 
-    elif args.make_orders:
-        print("make_orders")
+    elif args.make_audit_orders:
+        print("make_audit_orders")
         audit_orders.compute_audit_orders(e)
 
     elif args.read_audited:
