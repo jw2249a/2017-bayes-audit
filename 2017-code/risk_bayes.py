@@ -164,6 +164,9 @@ def tweak_all(e, mid):
     Test routine to try all tweaks.
     """
 
+    return
+
+    # FIXME in below sn_tcp is not defined.
     risk = compute_risk(e, mid, e.sn_tcpra)
     print("Risk (no change):", risk)
     slack_p = compute_slack_p(e)
