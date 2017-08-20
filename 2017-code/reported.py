@@ -1,6 +1,6 @@
 # reported.py
 # Ronald L. Rivest (with Karim Husayn Karimi)
-# July 24, 2017
+# August 19, 2017
 # python3
 
 """
@@ -134,6 +134,7 @@ def read_reported_cvrs(e):
             bid = row["Ballot id"]
             cid = row["Contest"]
             vote = row["Selections"]
+            vote = sorted(vote)        # put vote selids into canonical order
             utils.nested_set(e.rv_cpb, [cid, pbcid, bid], vote)
             utils.nested_set(e.votes_c, [cid, vote], True)
 
