@@ -51,7 +51,7 @@ implements this design.**
       * [Audit snapshot file](#audit-snapshot-file)
       * [Audit output file(s)](#audit-output-file-s)
       * [Audit plan file](#audit-plan-file)
-* [Command-line interface to ``multi.py``](#command-line-interface-to-multi-py)
+* [Command-line interface to ``multi.py``](#command-line-interface-to-``multi-py``)
 * [Appendix: File names](#appendix-file-names)
 * [Appendix (Possible future work)](#appendix-possible-future-work)
   * [Compression](#compression)
@@ -1242,11 +1242,13 @@ contests recorded.
 
 The seventh column specifes the **initial status** of the test.
 The status of a test will always be one of
+
 * ``Open``
 * ``Off``.  
 * ``Passed``
 * ``Upset``
 * ``Exhausted``
+
 In general, The status of a test describes depends upon the most recent risk
 measurement.  
 
@@ -1300,7 +1302,9 @@ the *max audit rate*, which is the maximum number of
 ballots that can be examined per day for that collection.
 
 The filename for a collection audit parameters file is of the form
-``12-audit-parameters-collection-2017-11-22.csv``
+
+    12-audit-parameters-collection-2017-11-22.csv
+
 (showing a year-month-day version label).
 
 [Back to TOC](#table-of-contents)
@@ -1324,8 +1328,12 @@ sampling of the audit.
 
 The audit seed should be made by rolling a decimal die twenty or more
 times.  **It is important that this be done *after* the reported votes have been
-collected and published by Audit Central.**  The generation of the audit
-seed should preferably be done in a videotaped public ceremony.  
+collected and published by Audit Central**,
+so as prevent an Adversary from modified cast vote records with foreknowledge
+as to which votes will be aduited.
+
+The generation of the audit seed should preferably be done in a
+videotaped public ceremony.
 
 
 [Back to TOC](#table-of-contents)
@@ -1410,7 +1418,7 @@ made so far by AC to that CM.
 
 The audit order files thus become longer as the audit progresses. 
 
-The order of the requests is a random order determined
+The order of the requests is determined "randomly" but
 cryptographically, depending the audit seed.  The order should be
 unpredictable to an adversary, which is why the audit seed should be
 determined only **after** the reported votes for all the collections
@@ -1471,8 +1479,8 @@ The audit order file and the reported cvrs file may be used
 with an appropriate UI interface to generate the audited votes
 file. 
 
-
 [Back to TOC](#table-of-contents)
+
 
 #### Audited votes
 
@@ -1486,15 +1494,15 @@ stampe.  An example audited votes filename for collection ``DEN-A01`` is
 
     audited-votes-DEN-A01-2017-11-21-09-30-55.csv
 
-As noted, if the sample is expanded, then the new sample vote file will
-contain records for not only the newly examined ballots, but also for the previously
-examined ballots.
+As noted, if the sample is expanded, then the new sample vote file
+will contain records for not only the newly examined ballots, but also
+for the previously examined ballots.
 
 For example, the file
 
     audited-votes-DEN-A01-2017-11-22-10-14-21.csv
 
-will be an augmented version of the previously show file.
+will be an augmented version of the previously shown file.
 
 An **audited votes file** represents a set of votes that have been
 sampled and audited during an audit.  It is similar in format to a
@@ -1518,7 +1526,6 @@ two ballots and three contests each.
 Compared to the reported vote file above, we note a discrepancy in the
 interpretation of contest ``Denver Prop 2`` for ballot ``B-231``: the scanner showed
 an undervote, while the hand examination showed a ``No`` vote.
-
 
 [Back to TOC](#table-of-contents)
 
@@ -1566,6 +1573,7 @@ with later version labels have been added to the directory structure.)
 
 [Back to TOC](#table-of-contents)
 
+
 ##### Audit output file(s)
 
 The **audit outputs** file(s) give the measured risks.
@@ -1577,6 +1585,7 @@ managers may be told that their work is completed.
 Format: TBD
 
 [Back to TOC](#table-of-contents)
+
 
 ##### Audit plan file
 
@@ -1597,6 +1606,7 @@ The sum of "audited-so-far" and "next stage increment request" should equal the
 size of the "audit-order" file.
 
 [Back to TOC](#table-of-contents)
+
 
 ## Command-line interface to ``multi.py``
 
