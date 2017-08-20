@@ -1625,7 +1625,7 @@ Here we assume the election data is in the directory
 
 You can also run
 
-    python3 multi.py
+    python3 multi.py --help
 
 to get usage instructions.
 
@@ -1645,7 +1645,7 @@ In addition to ``multi.py``, there is another program called ``syn.py``, for
 generating sythetic data sets.
 Run
 
-    python3 syn.py
+    python3 syn.py --help
 
 to get usage instructions.
 
