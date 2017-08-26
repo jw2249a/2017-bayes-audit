@@ -33,16 +33,16 @@ import outcomes
 def gamma(k, rs=None):
     """ 
     Return sample from gamma distribution with mean k.
-    Differs from standard one that it allows k==0, which returns 0.
+    Differs from standard gamma distribution implementation
+    in that that it allows k==0, and returns 0 in that case.
     Parameter rs, if present, is a numpy.random.RandomState object.
     """
     if rs == None:
         rs = audit.auditRandomState
     if k <= 0.0:
-        ans = 0.0
+        return 0.0
     else:
-        ans = rs.gamma(k)
-    return ans
+        return rs.gamma(k)
 
 
 # Dirichlet distribution
@@ -65,16 +65,18 @@ def dirichlet(tally):
 ##############################################################################
 # Risk measurement (Bayes risk)
 
-def compute_risk(e, mid, sn_tcpra):
+def compute_risk(e, mid, sn_tcpra, trials=None):
     """ 
-    Compute Bayesian risk (chance that reported outcome is wrong 
-    for contest e.cid_m[mid]).
+    Compute (estimate) Bayesian risk (chance that reported 
+    outcome is wrong for contest e.cid_m[mid]).
     We take sn_tcpra here as argument rather than just use e.sn_tcpra so
     we can call compute_contest_risk with modified sample counts.
     (This option not yet used, but might be later, when optimizing
     workload.)
     Here sn_tcpra is identical in structure to (and may in fact be
     identical to) e.sn_tcpra.
+    Here trials is the number of trials to run to obtain the desired
+    precision in the risk estimate.
 
     This method is the heart of the Bayesian post-election audit method.
     But it could be replaced by a frequentist approach instead, at
@@ -88,7 +90,9 @@ def compute_risk(e, mid, sn_tcpra):
 
     cid = e.cid_m[mid]
     wrong_outcome_count = 0
-    for trial in range(e.n_trials):
+    if trials == None:
+        trials = e.n_trials
+    for trial in range(trials):
         test_tally = {vote: 0 for vote in e.votes_c[cid]}
         for pbcid in sorted(e.possible_pbcid_c[cid]):
             # Draw from posterior for each paper ballot collection, sum them.
