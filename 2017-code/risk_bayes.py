@@ -120,19 +120,23 @@ def compute_risk(e, mid, sn_tcpra, trials=None):
     return risk
 
 
-def compute_risks(e, st):
+def compute_risks(e, st, trials):
+    """
+    Compute risks for all measurements.
+    """
 
     for mid in e.mids:
-        compute_risk(e, mid, st)
+        compute_risk(e, mid, st, trials)
 
 
 def compute_slack_p(e):
     """
-    Return dictionary showing amount by which sample in each
-    pbcid can be increased.
+    Return dictionary mapping pbcids to the amount by which 
+    sample in that pbcid can be increased.
     """
 
-    mid = e.mids[0]         # sampling is same so far for all mids
+    # sampling so far doesn't depend on mid, so just use first one.
+    mid = e.mids[0]         
     cid = e.cid_m[mid]
     slack_p = {}
     for pbcid in e.pbcids:
@@ -142,13 +146,14 @@ def compute_slack_p(e):
             slack_p[pbcid] -= e.sn_tcpr[e.stage_time][cid][pbcid][rv]
     return slack_p
 
-def compute_risk_with_tweak(e, mid, slack_p, tweak):
+def compute_risk_with_tweak(e, mid, slack_p, tweak, trials):
     """
-    Return computed risk if sample sizes were tweaked.
+    Return computed risk for given mid 
+    if sample sizes were tweaked (increased).
 
     Here tweak is a dict mapping pbcids to how much
     to increase sample size by in each pbcid.  We must have
-        slack[pbcid] >= tweak[pbcid] >= 0
+        0 <= tweak[pbcid] <= slack[pbcid]
     for all pbcids.
     """
 
@@ -158,23 +163,39 @@ def compute_risk_with_tweak(e, mid, slack_p, tweak):
     sn_tcp[e.stage_time] = {}
     sn_tcp[e.stage_time][cid] = {}
     for pbcid in e.pbcids:
-        assert slack[pbcid] >= tweak[pbcid] >= 0
+        assert 0 <= tweak[pbcid] <= slack[pbcid]
         sn_tcp[e.stage_time][cid][pbcid] = 0
         sn_tcpra = copy.deepcopy(e.sn_tcpra)
-    return compute_risk(e, mid, sn_tcpra)
+    return compute_risk(e, mid, sn_tcpra, trials)
 
 def tweak_all(e, mid):
     """
-    Test routine to try all tweaks.
+    Test routine to try all possible tweaks.  That is,
+    systematically vary each possible sample size.
+    This was written as means of approximating gradient
+    descent, which we might no longer do.
+    Untested.
     """
 
     return
 
-    # FIXME in below sn_tcp is not defined.
     risk = compute_risk(e, mid, e.sn_tcpra)
     print("Risk (no change):", risk)
     slack_p = compute_slack_p(e)
     cid = e.cid_m[mid]
+
+    # Compute sn_tcp, as it is not otherwise defined.
+    # (Perhaps this should be computed elsewhere/earlier?)
+    sn_tcp = {}
+    sn_tcp[e.stage_time] = {}
+    sn_tcp[e.stage_time][cid] = {}
+    for pbcid in e.pbcids:
+        sn_tcp[e.stage_time][cid][pbcid] = 0
+        for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
+            for av in e.sn_tcpra[e.stage_time][cid][pbcid][rv]:
+                sn_tcp[e.stage_time][cid][pbcid] += \
+                    e.sn_tcpra[e.stage_time][cid][pbcid][rv][av]
+
     for pbcid in e.pbcids:
         for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
             for av in e.sn_tcpra[e.stage_time][cid][pbcid][rv]:
