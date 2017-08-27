@@ -120,9 +120,9 @@ def compute_risk(e, mid, sn_tcpra, trials=None):
     return risk
 
 
-def compute_risks(e, st, trials):
+def compute_risks(e, st, trials=None):
     """
-    Compute risks for all measurements.
+    Compute risks for all measurements, for current sample.
     """
 
     for mid in e.mids:
@@ -146,29 +146,72 @@ def compute_slack_p(e):
             slack_p[pbcid] -= e.sn_tcpr[e.stage_time][cid][pbcid][rv]
     return slack_p
 
-def compute_risk_with_tweak(e, mid, slack_p, tweak, trials):
+def compute_risk_with_tweak(e, mid, slack_p, tweak_p, trials):
     """
     Return computed risk for given mid 
     if sample sizes were tweaked (increased).
 
-    Here tweak is a dict mapping pbcids to how much
+    Here tweak_p is a dict mapping pbcids to how much
     to increase sample size by in each pbcid.  We must have
-        0 <= tweak[pbcid] <= slack[pbcid]
+        0 <= tweak_p[pbcid] <= slack_p[pbcid]
     for all pbcids.
     """
 
+    for pbcid in e.pbcids:
+        assert 0 <= tweak_p[pbcid] <= slack_p[pbcid]
+
     cid = e.cid_m[mid]
-    sn_tcpra = copy.deepcopy(e.sn_tcpra)
+
+    # Compute sn_tcp, as it is not otherwise defined.
+    # (Perhaps this should be computed elsewhere/earlier?)
     sn_tcp = {}
     sn_tcp[e.stage_time] = {}
     sn_tcp[e.stage_time][cid] = {}
     for pbcid in e.pbcids:
-        assert 0 <= tweak[pbcid] <= slack[pbcid]
         sn_tcp[e.stage_time][cid][pbcid] = 0
-        sn_tcpra = copy.deepcopy(e.sn_tcpra)
+        for rv in e.sn_tcpra[e.stage_time][cid][pbcid]:
+            for av in e.sn_tcpra[e.stage_time][cid][pbcid][rv]:
+                sn_tcp[e.stage_time][cid][pbcid] += \
+                    e.sn_tcpra[e.stage_time][cid][pbcid][rv][av]
+
+    # compute sn_tcpra as "tweaked" version of e.sn_tcpra
+    sn_tcpra = copy.deepcopy(e.sn_tcpra)
+    for pbcid in e.pbcids:
+        for rv in sn_tcpra[e.stage_time][cid][pbcid]:
+            for av in e.sn_tcpra[e.stage_time][cid][pbcid][rv]:
+                sn_tcpra[e.stage_time][cid][pbcid][rv][av] += \
+                    tweak_p[pbcid] * sn_tcpra[e.stage_time][cid][pbcid][rv][av] / \
+                                     sn_tcp[e.stage_time][cid][pbcid]
+
     return compute_risk(e, mid, sn_tcpra, trials)
 
-def tweak_all(e, mid):
+
+def compute_risks_with_tweak(e, slack_p, tweak_p, trials):
+    """
+    Compute bayes risks for *all* measurements for given 
+    tweak_p (sample size increments per pbcid).
+    Here slack_p[pbcid] gives the upper bound on the tweak_p
+    (increment) size for pbcid.  So we must have
+        0 <= tweak_p[pbcid] <= slack_p[pbcid]
+    Returned value is a dict risk_m mapping mids to risk
+    values (real numbers in the interval [0,1]).
+
+    In one planning strategy, based on random walks in tweak space,
+    the value of "trials" might always be equal to one.  In this
+    case, risk_m[mid] is always 0 or 1.  This is OK.
+    """
+
+    risk_m = {}
+    for mid in e.mids:
+        risk_m[mid] = compute_risk_with_tweak(e,
+                                              mid,
+                                              slack_p,
+                                              tweak_p,
+                                              trials)
+    return risk_m
+
+
+def tweak_all(e, mid):   # unused ??
     """
     Test routine to try all possible tweaks.  That is,
     systematically vary each possible sample size.
@@ -177,7 +220,7 @@ def tweak_all(e, mid):
     Untested.
     """
 
-    return
+    return   # because this routine is unused; a stub/wip
 
     risk = compute_risk(e, mid, e.sn_tcpra)
     print("Risk (no change):", risk)
