@@ -19,6 +19,6 @@ More details can be found in the paper (warning: unfinished work-in-progress):
     
 Prototype code for Bayesian post-election audit was also developed for
 possible use in the 2016 Australian Senate elections.  See the paper:
-    https://128.84.21.199/abs/1610.00127
+    https://arxiv.org/abs/1610.00127
 and the repository:
     https://github.com/ron-rivest/2016-aus-senate-audit.git
