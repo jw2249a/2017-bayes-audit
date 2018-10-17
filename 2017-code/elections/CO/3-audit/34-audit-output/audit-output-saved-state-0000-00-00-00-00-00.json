@@ -8,8 +8,8 @@
   },
   "status_tm": {
     "0000-00-00-00-00-00": {
-      "M0-con2": "Open",
-      "M1-con1": "Open"
+      "M0-con1": "Open",
+      "M1-con2": "Open"
     }
   },
   "plan_tp": {
