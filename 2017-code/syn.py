@@ -46,9 +46,9 @@ def geospace(start, stop, num=7):
     >>> geospace(0,1)
     [0, 1]
     >>> geospace(0,10)
-    [0, 1, 2, 3, 5, 7, 10]    
+    [0, 1, 2, 3, 5, 7, 10]
     >>> geospace(20, 10000)
-    [20, 56, 159, 447, 1260, 3550, 10000]    
+    [20, 56, 159, 447, 1260, 3550, 10000]
     >>> geospace(1, 64)
     [1, 2, 4, 8, 16, 32, 64]
 
@@ -64,8 +64,8 @@ def geospace(start, stop, num=7):
 
 
 def geospace_choice(e, syn, start, stop, num=7):
-    """ 
-    Return a random element from geospace(start, stop, num), 
+    """
+    Return a random element from geospace(start, stop, num),
     based on syn.RandomState.
     """
 
@@ -74,8 +74,8 @@ def geospace_choice(e, syn, start, stop, num=7):
 
 
 def generate_segments(e, syn, low, high):
-    """ 
-    Return list of random segments (r, s) where low <= r < s <= high. 
+    """
+    Return list of random segments (r, s) where low <= r < s <= high.
 
     Number of segments returned is (high-low).
 
@@ -140,7 +140,7 @@ def process_args(e, args):
     e.election_dirname = ids.filename_safe(args.election_dirname)
     e.election_name = e.election_dirname
 
-    if args.syn_type == '1':                        
+    if args.syn_type == '1':
         syn1.generate_syn_type_1(e, args)
     elif args.syn_type == '2':
         syn2.generate_syn_type_2(e, args)
@@ -157,5 +157,3 @@ if __name__=="__main__":
 
     filepath = os.path.join(multi.ELECTIONS_ROOT, e.election_dirname)
     print("  Done. Synthetic election written to:", filepath)
-
-
