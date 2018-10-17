@@ -52,7 +52,7 @@ Routines work with the following parameters (defaults in brackets):
     cvr_type_p = mapping of pbcid to "CVR" or "noCVR"
     ### in syn:
     n_bids_p = mapping from pbcid to number of bids in that pbcid
-    
+
 We fill in the values of the fields of election e as if they
 had been read in, or else we (optionally) output the values as csv files.
 """
@@ -80,15 +80,15 @@ def default_parameters(synpar):
 ## election specification
 
 def generate_election_spec(e, synpar):
-    """ 
+    """
     e = multi.Election()
     synpar = Syn_Params()
     synpar supplies additional paramters as noted above;
     add to e values that would be otherwise read in,
-    e.g. via election_spec.py 
-    (read_election_spec_general, 
+    e.g. via election_spec.py
+    (read_election_spec_general,
      read_election_spec_contests,
-     read_election_spec_contest_groups, 
+     read_election_spec_contest_groups,
      read_election_spec_collections)
     """
 
@@ -109,8 +109,8 @@ def generate_election_spec_general(e, synpar):
     e.election_name = "TestElection-"+dts
     if e.election_dirname=="":
         e.election_dirname = "TestElection-"+dts
-    e.election_date = dts                  
-    e.election_url = "None"            
+    e.election_date = dts
+    e.election_url = "None"
 
 
 def generate_election_spec_contests(e, synpar):
@@ -158,8 +158,8 @@ def generate_election_spec_contests(e, synpar):
 
 
 def generate_election_spec_contest_groups(e, synpar):
-    """ 
-    Greate synpar.n_cids-1 'random' contest groups. 
+    """
+    Greate synpar.n_cids-1 'random' contest groups.
 
     They get ids like 'gid2-6' meaning they cover cids 2 to 6 inclusive.
     """
@@ -168,7 +168,7 @@ def generate_election_spec_contest_groups(e, synpar):
     cids_list = sorted(list(e.cids))
     for (low, high) in syn.generate_segments(e, synpar, 1, synpar.n_cids):
         gid = "gid{}-{}".format(low, high)
-        e.cgids_g[gid] = cids_list[low:high+1] 
+        e.cgids_g[gid] = cids_list[low:high+1]
 
 
 def generate_election_spec_collections(e, synpar):
@@ -203,7 +203,7 @@ def generate_election_spec_collections(e, synpar):
             e.possible_gid_p[pbcid] = ""
 
     election_spec.finish_election_spec_contest_groups(e)
-    
+
 
 ##############################################################################
 ## reported results
@@ -220,7 +220,7 @@ def generate_reported(e, synpar):
 
 def generate_n_bids_p(e, synpar):
     """ Generate number of bids for each pbcid. """
-    
+
     synpar.n_bids_p = {}
     for pbcid in e.pbcids:
         synpar.n_bids_p[pbcid] = syn.geospace_choice(e,
@@ -230,7 +230,7 @@ def generate_n_bids_p(e, synpar):
 
 
 def generate_bids_p(e, synpar):
-    """ 
+    """
     Generate list of ballot ids for each pbcid: bid1, bid2, ...  .
 
     Note that these need only be unique within a pbcid, not globally.
@@ -248,16 +248,16 @@ def generate_bids_p(e, synpar):
 
 def generate_cids_b(e, synpar):
     """
-    Determine what contest(s) are on the ballot for each bid and pbcid 
-    Determine if contest is CVR or not 
-    draw from selection 
+    Determine what contest(s) are on the ballot for each bid and pbcid
+    Determine if contest is CVR or not
+    draw from selection
 
-    Also sets: synpar.required_gid_b 
-               synpar.possible_gid_b 
+    Also sets: synpar.required_gid_b
+               synpar.possible_gid_b
 
-    Assumes we already have the bids that correspond to the given paper ballot 
-    collections.  What we want to do is assign contests to those ballot 
-    ids based on what contests are in the given pbcids as well as assign 
+    Assumes we already have the bids that correspond to the given paper ballot
+    collections.  What we want to do is assign contests to those ballot
+    ids based on what contests are in the given pbcids as well as assign
     selections based on the possible selections for each contest.
     """
 
@@ -319,7 +319,7 @@ def generate_rv_cpb(e, synpar):
                     rv = list(selids)
                     synpar.RandomState.shuffle(rv)
                     utils.nested_set(e.rv_cpb, [cid, pbcid, bid], rv)
-                    
+
 
 def compute_reported_stats(e, synpar):
 
@@ -400,15 +400,15 @@ def generate_audit_spec_collection(e, synpar):
 
 
 def generate_audit_spec_seed(e, synpar):
-    """ 
+    """
     Generate a pseudo-random audit_seed.
 
     Here audit_seed has limited range (2**32 possible values)
-    but this is only for synthetic elections, so 
+    but this is only for synthetic elections, so
     this isn't so important.
     """
 
-    e.audit_seed = synpar.RandomState.randint(0, 2**32-1)
+    e.audit_seed = synpar.RandomState.randint(0, 2^32-1)
 
 
 def generate_audit_orders(e, synpar):
@@ -425,8 +425,8 @@ def generate_audited_votes(e, synpar):
                 rv = e.rv_cpb[cid][pbcid][bid]
                 av = e.rv_cpb[cid][pbcid][bid]  # default no error
                 if (synpar.RandomState.uniform() <= synpar.error_rate):
-                    selids = list(e.selids_c[cid])     
-                    if rv in selids and len(selids)>1:    
+                    selids = list(e.selids_c[cid])
+                    if rv in selids and len(selids)>1:
                         selids.remove(rv)
                     av = (synpar.RandomState.choice(selids),)
                 utils.nested_set(e.av_cpb, [cid, pbcid, bid], av)
@@ -449,7 +449,5 @@ def generate_syn_type_1(e, args):
         for key in sorted(vars(e)):
             print(key)
             print("    ", vars(e)[key])
-    
+
     write_csv.write_csv(e)
-
-
