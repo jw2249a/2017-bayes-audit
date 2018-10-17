@@ -408,7 +408,7 @@ def generate_audit_spec_seed(e, synpar):
     this isn't so important.
     """
 
-    e.audit_seed = synpar.RandomState.randint(0, 2**32-1)
+    e.audit_seed = synpar.RandomState.randint(0, 2*32-1)
 
 
 def generate_audit_orders(e, synpar):
