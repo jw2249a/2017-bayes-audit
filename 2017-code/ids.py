@@ -18,7 +18,7 @@ These routines all related to ids:
 
 
 def clean_id(id):
-    """ 
+    """
     Return id with initial and final whitespace removed, and
     with any internal whitespace sequences replaced by a single
     blank.  Also, all nonprintable characters are removed.
@@ -46,7 +46,7 @@ def filename_safe(id):
             ans.append(c)
     return "".join(ans)
 
-    
+
 ##############################################################################
 ## selid-specifc routines
 
@@ -59,12 +59,3 @@ def is_writein(selid):
 def is_error_selid(selid):
 
     return len(selid) > 0 and selid[0] == "-"
-
-
-
-
-
-
-
-
-
